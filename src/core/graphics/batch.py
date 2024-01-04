@@ -34,16 +34,16 @@ class SpriteBatch:
         gl.glEnable(gl.GL_TEXTURE_2D)
 
     # Отрисовать спрайт:
-    def draw(self, sprite: Sprite, x: float, y: float, width=int,
-             height=int, angle=float, cull_sprites: bool = False) -> None:
+    def draw(self, sprite: Sprite, x: float, y: float, width: int = None,
+             height: int = None, angle: float = None, cull_sprites: bool = False) -> None:
         if not self.__is_begin__:
             raise Exception(
                 "The \".begin()\" function was not called "
                 "before the \".draw()\" function.")
 
         wdth, hght = width, height
-        if width  is int: wdth = sprite.width
-        if height is int: hght = sprite.height
+        if width  is None: wdth = sprite.width
+        if height is None: hght = sprite.height
 
         # Если камера не видит ваш спрайт, то мы пропускаем отрисовку спрайта:
         # ИНОГДА, ЭТО МОЖЕТ НАОБОРОТ ЗАНИЗИТЬ СКОРОСТЬ ОТРИСОВКИ!
@@ -55,12 +55,12 @@ class SpriteBatch:
                  self.camera2d.width*zoom*meter, self.camera2d.height*zoom*meter)): return
 
         # Вращаем вершины спрайта:
-        if angle is not float and angle != 0:
+        if angle is not None and angle != 0:
             center_x      = x + (wdth / 2)
             center_y      = y + (hght / 2)
-            angle_rad     = -math.radians(angle)
-            angle_rad_sin = math.sin(angle_rad)
-            angle_rad_cos = math.cos(angle_rad)
+            angle_rad     = -radians(angle)
+            angle_rad_sin = sin(angle_rad)
+            angle_rad_cos = cos(angle_rad)
             x1, y1        = ( x         - center_x), ( y         - center_y)
             x2, y2        = ((x + wdth) - center_x), ( y         - center_y)
             x3, y3        = ((x + wdth) - center_x), ((y + hght) - center_y)

@@ -9,13 +9,14 @@ if True:
     import core
     from core import files
     from core.math import *
-    from core.graphics import Window, Camera2D
+    from core.graphics import Window, Camera2D, Sprite
 
 
 # Класс игры:
 class GameClass(Window):
     def __init__(self) -> None:
-        self.camera = None   # Игровая камера.
+        self.camera = None  # Игровая камера.
+        self.sprite = None  # Наш спрайт.
 
         # Создаём окно и переходим в игровой цикл:
         self.init()
@@ -45,16 +46,22 @@ class GameClass(Window):
             zoom     = 1.0                         # Масштаб камеры.
         )
 
+        # Загружаем текстуру, которую укажем в нашем спрайте чтобы её отрисовать:
+        texture = files.load_texture("./data/icons/runapp-icon.png")
+
+        # Наш спрайт. Принимает текстуру, которую будет отрисовывать:
+        self.sprite = Sprite(texture)
+
     # Вызывается каждый кадр (игровой цикл):
     def update(self, delta_time: float, events: list) -> None:
+        # Очищаем окно (значения цвета от 0 до 1):
+        self.window.clear(0, 0, 0)
 
-        # Тут игровая логика.
+        # Отрисовываем наш спрайт (width и height можно убрать и тогда будет использоваться размер текстуры):
+        self.sprite.render(x=0, y=0, width=128, height=128)
 
-        self.window.clear(0, 0, 0) # Очищаем окно (значения цвета от 0 до 1 R-G-B).
-
-        # Тут отрисовка игры.
-
-        self.window.display()  # Отрисовываем всё в окно.
+        # Отрисовываем всё в окно:
+        self.window.display()
 
     # Вызывается при изменении размера окна:
     def resize(self, width: int, height: int) -> None:

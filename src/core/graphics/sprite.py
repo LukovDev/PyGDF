@@ -18,14 +18,15 @@ class Sprite:
         self.height = self.texture.height
 
     # Отрисовка:
-    def render(self, x: float, y: float, width=int, height=int, angle=float, color: list = None) -> None:
-        if color is None: color = [1, 1, 1, 1]
+    def render(self, x: float, y: float, width: int = None, height: int = None,
+               angle: float = None, color: list = None) -> None:
         wdth, hght = width, height
-        if width is int:  wdth = self.width
-        if height is int: hght = self.height
+        if color is None:  color = [1, 1, 1, 1]
+        if width is None:  wdth = self.width
+        if height is None: hght = self.height
 
         # Вращаем вершины спрайта:
-        if angle is not float and angle != 0:
+        if angle is not None and angle != 0:
             center_x      = x + (wdth / 2)
             center_y      = y + (hght / 2)
             angle_rad     = -radians(angle)

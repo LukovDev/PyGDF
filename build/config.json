@@ -1,13 +1,13 @@
 {
-    "main-file": "/src/main.py",
+    "program-name": "LibGFW Game",
+
+    "main-file":    "/src/main.py",
+
+    "data-folder":  "/data/",
 
     "program-icon": "/data/icons/build-icon.ico",
 
-    "program-name": "LibGFW Game",
-
     "console-disabled": true,
-
-    "data-folder": "/data/",
 
     "optimization-level": 2,
 

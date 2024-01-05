@@ -78,7 +78,7 @@ class Draw2D:
 
     # Нарисовать треугольники последняя вершина которой будет соединена с первой:
     @staticmethod
-    def triangle_loop(color: list, vertices: list) -> None:
+    def triangle_fan(color: list, vertices: list) -> None:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_TRIANGLE_FAN)
@@ -103,7 +103,7 @@ class Draw2D:
         for v in vertices: gl.glVertex2d(*v)
         gl.glEnd()
 
-    # Нарисовать многоугольник (тоже самое как line_loop но с заливкой):
+    # Нарисовать многоугольник:
     @staticmethod
     def polygon(color: list, vertices: list) -> None:
         if not color: color = [1, 1, 1]
@@ -112,25 +112,65 @@ class Draw2D:
         for v in vertices: gl.glVertex2d(*v)
         gl.glEnd()
 
+    # Нарисовать квадрат:
+    @staticmethod
+    def square(color: list, point: tuple, size: tuple, width: float = 1, smooth: bool = False) -> None:
+        if not color: color = [1, 1, 1]
+        x, y, w, h = point[0], point[1], size[0], size[1]
+        Draw2D.line_loop(color, [(x, y), (x+w, y), (x+w, y+h), (x, y+h)], width, smooth)
+
+    # Нарисовать квадрат с заливкой:
+    @staticmethod
+    def square_fill(color: list, point: tuple, size: tuple) -> None:
+        if not color: color = [1, 1, 1]
+        x, y, w, h = point[0], point[1], size[0], size[1]
+        Draw2D.quads(color, [(x, y), (x+w, y), (x+w, y+h), (x, y+h)])
+
     # Нарисовать круг:
     @staticmethod
-    def circle(color: list, point: tuple, radius: float, width: float = 1,
-               smooth: bool = False, num_vertices: int = 32) -> None:
+    def circle(color: list, center: tuple, radius: float, width: float = 1,
+               smooth: bool = False, num_vertices: int = 24) -> None:
         if not color: color = [1, 1, 1]
         if num_vertices < 3: num_vertices = 3
         vertices_list = []
         for index in range(num_vertices):
             rad_angle = radians((360/num_vertices)*index)
-            vertices_list.append([sin(rad_angle)*radius, cos(rad_angle)*radius])
+            vertices_list.append([center[0]+sin(rad_angle)*radius, center[1]+cos(rad_angle)*radius])
         Draw2D.line_loop(color, vertices_list, width, smooth)
 
     # Нарисовать круг с заливкой:
     @staticmethod
-    def circle_fill(color: list, point: tuple, radius: float, num_vertices: int = 32) -> None:
+    def circle_fill(color: list, center: tuple, radius: float, num_vertices: int = 24) -> None:
         if not color: color = [1, 1, 1]
         if num_vertices < 3: num_vertices = 3
         vertices_list = []
         for index in range(num_vertices):
             rad_angle = radians((360/num_vertices)*index)
-            vertices_list.append([sin(rad_angle)*radius, cos(rad_angle)*radius])
+            vertices_list.append([center[0]+sin(rad_angle)*radius, center[1]+cos(rad_angle)*radius])
         Draw2D.polygon(color, vertices_list)
+
+    # Нарисовать звёздочку:
+    @staticmethod
+    def star(color: list, center: tuple, outradius: float, inradius: float,
+             num_vertices: int = 5, width: float = 1, smooth: bool = False) -> None:
+        if not color: color = [1, 1, 1]
+        if num_vertices < 2: num_vertices = 2
+        vertices_list = []
+        for index in range(num_vertices*2):
+            radius = outradius if not index % 2 else inradius
+            rad_angle = radians(index*180/num_vertices)
+            vertices_list.append([center[0]+sin(rad_angle)*radius, center[1]+cos(rad_angle)*radius])
+        Draw2D.line_loop(color, vertices_list, width, smooth)
+
+    # Нарисовать звёздочку с заливкой:
+    @staticmethod
+    def star_fill(color: list, center: tuple, outradius: float, inradius: float, num_vertices: int = 5) -> None:
+        if not color: color = [1, 1, 1]
+        if num_vertices < 2: num_vertices = 2
+        vertices_list = []
+        for index in range(num_vertices*2+1):
+            radius = outradius if not index % 2 else inradius
+            rad_angle = radians(index*180/num_vertices)
+            vertices_list.append([center[0]+sin(rad_angle)*radius, center[1]+cos(rad_angle)*radius])
+            vertices_list.append(list(center))
+        Draw2D.triangle_strip(color, vertices_list)

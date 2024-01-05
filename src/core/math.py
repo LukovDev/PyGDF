@@ -35,7 +35,7 @@ def get_distance(point1: tuple, point2: tuple) -> float:
 
 # Получить плавное перемещение:
 def get_smooth_move(point: tuple, target: tuple, friction: float, delta_time: float) -> tuple:
-    return ((target[0]-point[0])*friction)*(delta_time*60), ((target[1]-point[1])*friction)*(delta_time*60)
+    return ((target[0]-point[0])*1-friction)*(delta_time*60), ((target[1]-point[1])*(1-friction))*(delta_time*60)
 
 
 # Функция для проверки пересечения круга с повёрнутым прямоугольником:

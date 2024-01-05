@@ -28,6 +28,16 @@ def get_delta_pos_angle(angle: float, distance: float) -> tuple:
     return distance*sin(radians(angle)), distance*cos(radians(angle))
 
 
+# Получить расстояние между двумя точками:
+def get_distance(point1: tuple, point2: tuple) -> float:
+    return sqrt((point2[0] - point1[0])**2 + (point2[1] - point1[1])**2)
+
+
+# Получить плавное перемещение:
+def get_smooth_move(point: tuple, target: tuple, friction: float, delta_time: float) -> tuple:
+    return ((target[0]-point[0])*friction)*(delta_time*60), ((target[1]-point[1])*friction)*(delta_time*60)
+
+
 # Функция для проверки пересечения круга с повёрнутым прямоугольником:
 def is_circle_rot_rectangle(center: tuple, radius: float, rect: list, angle: float) -> bool:
     """ Возвращает логическое значение при пересечении круга с повёрнутым прямоугольником """

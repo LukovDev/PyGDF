@@ -12,6 +12,7 @@ if True:
     import sys
     import platform
 
+    # Модули и скрипты:
     from . import audio     # Модуль звука.
     from . import graphics  # Модуль графики.
     from . import physics   # Модуль физики.

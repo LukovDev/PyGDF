@@ -58,7 +58,7 @@ class GameClass(Window):
         self.window.clear(0, 0, 0)
 
         # Отрисовываем наш спрайт (width и height можно убрать и тогда будет использоваться размер текстуры):
-        self.sprite.render(x=0, y=0, width=128, height=128)
+        self.sprite.render(x=-64, y=-64, width=128, height=128)
 
         # Отрисовываем всё в окно:
         self.window.display()

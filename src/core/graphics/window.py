@@ -108,23 +108,20 @@ class Window:
             # Получаем версию OpenGL:
             self.__params__["opengl-version"] = gl.glGetString(gl.GL_VERSION).decode()
 
-            # Включаем сглаживание точек чтобы вместо квадратов были круги:
-            gl.glEnable(gl.GL_POINT_SMOOTH)
-
-            # Включаем сглаживание линий:
-            gl.glEnable(gl.GL_LINE_SMOOTH)
-
             # Включаем поддержку альфа канала:
             gl.glEnable(gl.GL_ALPHA_TEST)
 
             # Включаем смешивание цветов (например, для альфа канала):
             gl.glEnable(gl.GL_BLEND)
             
-            # Позволяет смешивать цвет объекта с фоном или другими объектами:
+            # Позволяет смешивать цвета:
             gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
-            # Фрагменты, ближе к камере, будут отображаться поверх фрагментов, находящихся дальше от камеры:
-            gl.glDepthFunc(gl.GL_LESS)
+            # Включаем сглаживание точек чтобы вместо квадратов были круги:
+            gl.glEnable(gl.GL_POINT_SMOOTH)
+
+            # Включаем сглаживание линий:
+            # gl.glEnable(gl.GL_LINE_SMOOTH)
 
             # # Включаем тест глубины:
             # gl.glEnable(gl.GL_DEPTH_TEST)

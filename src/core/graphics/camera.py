@@ -26,6 +26,9 @@ class Camera2D:
         self.zoom     = zoom      # Масштаб камеры.
         self.meter    = meter     # Масштаб единицы измерения.
 
+        self.modelview = None
+        self.projection = None
+
         # Установка ортогональной проекции:
         self.resize(width, height)
 
@@ -41,6 +44,9 @@ class Camera2D:
         else: gl.glScaled(0.0, 0.0, 0.0)
         gl.glRotatef(self.angle, False, False, True)
         gl.glTranslated(-self.position.x, -self.position.y, 0)
+
+        self.modelview  = gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX)
+        self.projection = gl.glGetDoublev(gl.GL_PROJECTION_MATRIX)
 
     # Изменение размера камеры:
     def resize(self, width: int, height: int) -> None:

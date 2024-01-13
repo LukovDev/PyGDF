@@ -9,7 +9,7 @@ if True:
     from ..math import *
 
 
-# Класс отрисовки примитивов:
+# Класс отрисовки 2D примитивов:
 class Draw2D:
     # Нарисовать точку:
     @staticmethod
@@ -174,3 +174,107 @@ class Draw2D:
             vertices_list.append([center[0]+sin(rad_angle)*radius, center[1]+cos(rad_angle)*radius])
             vertices_list.append(list(center))
         Draw2D.triangle_strip(color, vertices_list)
+
+
+# Класс отрисовки 3D примитивов:
+class Draw3D:
+    # Нарисовать точку:
+    @staticmethod
+    def point(color: list, point: list, size: float) -> None:
+        if not color: color = [1, 1, 1]
+        gl.glPointSize(size)
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_POINTS)
+        gl.glVertex3d(*point)
+        gl.glEnd()
+
+    # Нарисовать линию:
+    @staticmethod
+    def line(color: list, point1: list, point2: list, width: float = 1, smooth: bool = False) -> None:
+        if not color: color = [1, 1, 1]
+        if smooth: gl.glEnable(gl.GL_LINE_SMOOTH)
+        gl.glLineWidth(width)
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex3d(*point1)
+        gl.glVertex3d(*point2)
+        gl.glEnd()
+        if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
+
+    # Нарисовать ломаную линию:
+    @staticmethod
+    def line_strip(color: list, points: list, width: float = 1, smooth: bool = False) -> None:
+        if not color: color = [1, 1, 1]
+        if smooth: gl.glEnable(gl.GL_LINE_SMOOTH)
+        gl.glLineWidth(width)
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_LINE_STRIP)
+        for p in points: gl.glVertex3d(*p)
+        gl.glEnd()
+        if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
+
+    # Нарисовать замкнутую ломаную линию:
+    @staticmethod
+    def line_loop(color: list, points: list, width: float = 1, smooth: bool = False) -> None:
+        if not color: color = [1, 1, 1]
+        if smooth: gl.glEnable(gl.GL_LINE_SMOOTH)
+        gl.glLineWidth(width)
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_LINE_LOOP)
+        for p in points: gl.glVertex3d(*p)
+        gl.glEnd()
+        if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
+
+    # Нарисовать треугольники:
+    @staticmethod
+    def triangles(color: list, vertices: list) -> None:
+        if not color: color = [1, 1, 1]
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_TRIANGLES)
+        for v in vertices: gl.glVertex3d(*v)
+        gl.glEnd()
+
+    # Нарисовать треугольники с общей стороной:
+    @staticmethod
+    def triangle_strip(color: list, vertices: list) -> None:
+        if not color: color = [1, 1, 1]
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_TRIANGLE_STRIP)
+        for v in vertices: gl.glVertex3d(*v)
+        gl.glEnd()
+
+    # Нарисовать треугольники последняя вершина которой будет соединена с первой:
+    @staticmethod
+    def triangle_fan(color: list, vertices: list) -> None:
+        if not color: color = [1, 1, 1]
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_TRIANGLE_FAN)
+        for v in vertices: gl.glVertex3d(*v)
+        gl.glEnd()
+
+    # Нарисовать квадрат из каждых 4-х вершин:
+    @staticmethod
+    def quads(color: list, vertices: list) -> None:
+        if not color: color = [1, 1, 1]
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_QUADS)
+        for v in vertices: gl.glVertex3d(*v)
+        gl.glEnd()
+
+    # Нарисовать квадрат из каждых 4-х вершин с общей стороной:
+    @staticmethod
+    def quads_strip(color: list, vertices: list) -> None:
+        if not color: color = [1, 1, 1]
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_QUAD_STRIP)
+        for v in vertices: gl.glVertex3d(*v)
+        gl.glEnd()
+
+    # Нарисовать многоугольник:
+    @staticmethod
+    def polygon(color: list, vertices: list) -> None:
+        if not color: color = [1, 1, 1]
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_POLYGON)
+        for v in vertices: gl.glVertex3d(*v)
+        gl.glEnd()

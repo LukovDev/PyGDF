@@ -39,6 +39,11 @@ class ShaderProgram:
     def get_uniform(self, name: str) -> int:
         return gl.glGetUniformLocation(self.program, name)
 
+    # Установить значение для униформы типа bool:
+    def uniform_bool(self, name: str, value: bool) -> None:
+        location = self.get_uniform(name)
+        if location != -1: gl.glUniform1i(location, value)
+
     # Установить значение для униформы типа float:
     def uniform_float(self, name: str, value: float) -> None:
         location = self.get_uniform(name)

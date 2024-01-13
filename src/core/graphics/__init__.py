@@ -12,6 +12,7 @@ if True:
 
     # Импортируем скрипты:
     from . import batch
+    from . import buffers
     from . import camera
     from . import draw
     from . import font
@@ -26,8 +27,9 @@ if True:
 
     # Импортируем основной функционал из скриптов:
     from .batch   import SpriteBatch
+    from .buffers import SSBO
     from .camera  import Camera2D, Camera3D
-    from .draw    import Draw2D
+    from .draw    import Draw2D, Draw3D
     from .font    import Font, SysFont, get_fonts, match_font
     from .image   import Image
     from .mesh    import BaseMesh

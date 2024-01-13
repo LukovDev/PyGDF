@@ -120,6 +120,9 @@ class Window:
             # Включаем сглаживание точек чтобы вместо квадратов были круги:
             gl.glEnable(gl.GL_POINT_SMOOTH)
 
+            # Разрешаем установку размера точки через шейдер:
+            gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
+
             # Включаем сглаживание линий:
             # gl.glEnable(gl.GL_LINE_SMOOTH)
 
@@ -178,8 +181,9 @@ class Window:
                 # # Если отпускают клавишу:
                 # elif event.type == pygame.KEYUP:
                 #     # Если нажимают на F11:
-                #     if event.key == pygame.K_F11 and self.get_f11():
-                #         self.set_fullscreen(not self.get_fullscreen(), *self.get_monitor_size())
+                #     if event.key == pygame.K_F11:
+                #         self.set_size(*self.get_monitor_size())
+                #         self.set_fullscreen(not self.get_fullscreen())
 
                 # Если нажимают любую кнопку мыши:
                 elif event.type == pygame.MOUSEBUTTONDOWN:

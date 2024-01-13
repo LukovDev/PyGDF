@@ -8,6 +8,7 @@ if True:
     import glm
     from glm import *
     from math import *
+    import numpy as _np_
 
 
 # Найти угол наклона из двух координат:
@@ -34,8 +35,17 @@ def get_distance(point1: tuple, point2: tuple) -> float:
 
 
 # Получить плавное перемещение:
-def get_smooth_move(point: tuple, target: tuple, friction: float, delta_time: float) -> tuple:
+def get_smooth_move_2d(point: tuple, target: tuple, friction: float, delta_time: float) -> tuple:
     return ((target[0]-point[0])*1-friction)*(delta_time*60), ((target[1]-point[1])*(1-friction))*(delta_time*60)
+
+
+# Получить точку в мировом пространстве:
+def get_world_space_ray(position: vec3, matproj, matview, screen_size: tuple, mouse_pos: tuple, length: float) -> vec3:
+    """ Принимает позицию камеры, матрицу проекции, матрицу вида, размер окна, позицию мыши и длину луча. """
+    inv_matproj, inv_matview, position = _np_.linalg.inv(matproj), _np_.linalg.inv(matview), _np_.array(position.xyz)
+    re = _np_.dot([2*mouse_pos[0]/screen_size[0]-1, 1-2*mouse_pos[1]/screen_size[1], -1, 1], inv_matproj)
+    re[2], re[3] = -1, 0 ; rd = _np_.dot(re, inv_matview)[:3]/_np_.linalg.norm(_np_.dot(re, inv_matview)[:3])
+    return vec3(position+rd*length)
 
 
 # Функция для проверки пересечения круга с повёрнутым прямоугольником:

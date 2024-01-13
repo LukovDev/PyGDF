@@ -5,6 +5,7 @@
 
 # Импортируем:
 if True:
+    import numpy as np
     from .gl import *
     from ..math import *
 
@@ -70,16 +71,16 @@ class Camera2D:
 # Класс 3D камеры:
 class Camera3D:
     def __init__(self,
-                 width:  int,
-                 height: int,
+                 width:    int,
+                 height:   int,
                  position: vec3,
-                 rotation = vec3(0),
-                 scale: float = 1,
-                 fov:   int   = 60,
-                 far:   float = 1000,
-                 near:  float = 0.01,
-                 yaw:   float = 0,
-                 pitch: float = 0) -> None:
+                 rotation: vec3  = vec3(0),
+                 scale:    vec3  = vec3(1),
+                 fov:      int   = 60,
+                 far:      float = 1000,
+                 near:     float = 0.01,
+                 yaw:      float = 0,
+                 pitch:    float = 0) -> None:
         self.width    = width     # Ширина камеры.
         self.height   = height    # Высота камеры.
         self.position = position  # Позиция камеры.
@@ -88,15 +89,18 @@ class Camera3D:
         self.fov      = fov       # Угол обзора камеры.
         self.far      = far       # Дальнее отсечение.
         self.near     = near      # Ближнее отсечение.
-        self.yaw     = -90+yaw    # Рыскание камеры.
-        self.pitch   = pitch      # Подача камеры.
+        self.yaw      = -90+yaw   # Рыскание камеры.
+        self.pitch    = pitch     # Тангаж камеры.
+
+        self.modelview = None
+        self.projection = None
 
         self.up      = vec3(0, 1, 0)
         self.right   = vec3(1, 0, 0)
         self.forward = vec3(0, 0, 0)
 
         gl.glEnable(gl.GL_DEPTH_TEST)
-        self.apply_settings()
+        self.apply()
 
     # Обновление камеры:
     def update(self) -> None:
@@ -107,7 +111,10 @@ class Camera3D:
         if self.far  < 1      : self.far = 1
         if self.near < 0.0001 : self.near = 0.0001
 
-        self.apply_settings()
+        self.apply()
+
+        self.modelview  = gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX)
+        self.projection = gl.glGetDoublev(gl.GL_PROJECTION_MATRIX)
 
     # Изменение размера камеры:
     def resize(self, width: int, height: int) -> None:
@@ -119,7 +126,7 @@ class Camera3D:
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
     # Применить настройки камеры:
-    def apply_settings(self) -> None:
+    def apply(self) -> None:
         # Преобразуем вектор направления:
         self.forward = normalize(vec3(
                 cos(radians(self.pitch)) * cos(radians(self.yaw)),
@@ -139,6 +146,7 @@ class Camera3D:
         gl.glLoadIdentity()
         gl.glViewport(0, 0, self.width, self.height)
         glu.gluPerspective(self.fov, float(self.width) / self.height, self.near, self.far)
+
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
         gl.glScaled(1 / self.scale.x, 1 / self.scale.y, 1 / self.scale.z)

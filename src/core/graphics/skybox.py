@@ -9,6 +9,7 @@ if True:
     from .texture import Texture
     from .camera import Camera3D
     from .shader import ShaderProgram
+    from ..math import *
 
 
 # Класс неба:
@@ -16,13 +17,13 @@ class SkyBox:
     # Класс кубического неба:
     class CubeMap:
         def __init__(self,
+                     camera: Camera3D,
                      up:     Texture,
                      down:   Texture,
                      front:  Texture,
                      back:   Texture,
                      left:   Texture,
                      right:  Texture,
-                     camera: Camera3D,
                      box_size: float = 1) -> None:
             self.camera = camera
             self.textures = [
@@ -79,8 +80,37 @@ class SkyBox:
 
     # Класс математически-вычисляемой атмосферы:
     class Atmosphere:
-        def __init__(self, camera: Camera3D, box_size: float = 1) -> None:
+        def __init__(self,
+                     camera:               Camera3D,
+                     sun_pos:              vec3,
+                     sun_radius:           float = 1.0,
+                     sun_color:            vec3  = vec3(1, 1, 1),
+                     sun_intensity:        float = 1.0,
+                     planet_radius:        float = 6371000.0,
+                     atmosphere_radius:    float = 6471000.0,
+                     wavelengths:          vec3  = vec3(720, 530, 440),
+                     coef_mie:             float = 0.000001,
+                     height_rlh:           float = 10_000.0,
+                     height_mie:           float = 1200.0,
+                     g_mie:                float = 0.758,
+                     is_atmosphere_offset: bool  = False,
+                     box_size:             float = 1) -> None:
             self.camera = camera
+
+            # Параметры:
+            self.sun_pos           = sun_pos            # Положение солнца.
+            self.sun_radius        = sun_radius         # Радиус солнца.
+            self.sun_color         = sun_color          # Цвет солнца.
+            self.sun_intensity     = sun_intensity      # Интенсивность свечения солнца.
+            self.planet_radius     = planet_radius      # Радиус планеты.
+            self.atmosphere_radius = atmosphere_radius  # Радиус атмосферы.
+            self.wavelengths       = wavelengths        # Длины волн цвета атмосферы (в нм).
+            self.coef_mie          = coef_mie           # Коэффициент Ми (сила рассеивания света).
+            self.height_rlh        = height_rlh         # Высота Рэлеевского слоя (10 км).
+            self.height_mie        = height_mie         # Высота Миевского слоя  (1.2 км).
+            self.g_mie             = g_mie              # Предпочтительное направление рассеяния Ми.
+
+            self.is_atmosphere_offset_camera = is_atmosphere_offset  # Смещение атмосферы вверх или вниз от камеры.
 
             # Вершинный шейдер:
             self.vertex_shader = """
@@ -113,12 +143,12 @@ class SkyBox:
             uniform vec3  u_sun_pos;                                  // Положение солнца.
             uniform float u_sun_radius        = 1.0;                  // Радиус солнца.
             uniform vec3  u_sun_color         = vec3(1);              // Цвет солнца.
-            uniform float u_sun_intensity     = 22.0;                 // Интенсивность свечения солнца.
+            uniform float u_sun_intensity     = 1.0;                  // Интенсивность свечения солнца.
             uniform bool  u_atmosphere_offset = false;                // Смещение атмосферы вверх вниз от камеры.
             uniform float u_planet_radius     = 6371000.0;            // Радиус планеты.
             uniform float u_atmosphere_radius = 6471000.0;            // Радиус атмосферы.
             uniform vec3  u_wavelengths       = vec3(720, 530, 440);  // Длины волн цвета атмосферы (в нм).
-            uniform float u_coef_mie          = 0.000001;             // Коэффициент Ми.
+            uniform float u_coef_mie          = 0.000001;             // Коэффициент Ми (сила рассеивания света).
             uniform float u_hrlh              = 10000.0;              // Высота Рэлеевского слоя (10 км).
             uniform float u_hmie              = 1200.0;               // Высота Миевского слоя  (1.2 км).
             uniform float u_g_mie             = 0.758;                // Предпочтительное направление рассеяния Ми.
@@ -137,7 +167,7 @@ class SkyBox:
             // Функция, возвращающая цвет солнца, если луч пересекает его позицию:
             vec4 get_sun(vec3 rdir, vec3 sun_pos, float sun_radius, vec3 sun_color) {
                 float intersection = dot(rdir, normalize(sun_pos - vec3(0)));
-                if (intersection > 0.9995 && length(intersection * rdir - sun_pos) < sun_radius) {
+                if (intersection > 0.9999 && length(intersection * rdir - sun_pos) < sun_radius) {
                     if (-vec3(-intersection*rdir-sun_pos).y < -0.5) return vec4(0);
                     return vec4(sun_color.rgb, -vec3(-intersection*rdir-sun_pos).y*5);
                 } else return vec4(0);
@@ -271,10 +301,11 @@ class SkyBox:
             // Основная функция:
             void main(void) {;
                 vec3 rd = normalize(vec3(
-                    v_direction.x,
-                    v_direction.y / (u_resolution.x / u_resolution.y),
-                    v_direction.z
+                    v_direction.x * (u_resolution.x / u_resolution.y),
+                    v_direction.y,
+                    v_direction.z * (u_resolution.x / u_resolution.y)
                 ));
+
 
                 // Получаем коэффициенты рассеяния Рэлея для каждой длины волны:
                 vec3 k_rlh = vec3(
@@ -303,7 +334,7 @@ class SkyBox:
                     rd,                   // Нормализованное направление взгляда камеры.
                     light_pos,            // Размещение источника света (высота 6372 км).
                     u_sun_pos,            // Положение солнца.
-                    u_sun_intensity,      // Интенсивность солнца.
+                    u_sun_intensity+24,   // Интенсивность солнца.
                     u_planet_radius,      // Радиус планеты в метрах (6371 км).
                     u_atmosphere_radius,  // Радиус атмосферы в метрах (высота 6471 км).
                     k_rlh,                // Коэффициент рассеяния Рэлея.
@@ -363,21 +394,23 @@ class SkyBox:
             gl.glColor(1, 1, 1)
 
             self.shader.begin()
-            self.shader.uniform_mat4("u_modelview",           self.camera.modelview)
-            self.shader.uniform_vec2("u_resolution",         (self.camera.width, self.camera.height))
-            self.shader.uniform_vec3("u_cam_pos",             self.camera.position.xyz)
-            self.shader.uniform_vec3("u_sun_pos",            [1, 1, 1])
-            self.shader.uniform_float("u_sun_radius",         1.0)
-            self.shader.uniform_vec3("u_sun_color",          [1, 1, 1])
-            self.shader.uniform_float("u_sun_intensity",      22.0)
-            self.shader.uniform_bool("u_atmosphere_offset",   False)
-            self.shader.uniform_float("u_planet_radius",      6371000.0)
-            self.shader.uniform_float("u_atmosphere_radius",  6471000.0)
-            self.shader.uniform_vec3("u_wavelengths",        [720, 530, 440])
-            self.shader.uniform_float("u_coef_mie",           0.000001)
-            self.shader.uniform_float("u_hrlh",               10000.0)
-            self.shader.uniform_float("u_hmie",               1200.0)
-            self.shader.uniform_float("u_g_mie",              0.758)
+
+            # Обновляем параметры атмосферы:
+            self.shader.uniform_mat4 ("u_modelview",         self.camera.modelview)
+            self.shader.uniform_vec2 ("u_resolution",        self.camera.size)
+            self.shader.uniform_vec3 ("u_cam_pos",           self.camera.position)
+            self.shader.uniform_vec3 ("u_sun_pos",           self.sun_pos)
+            self.shader.uniform_float("u_sun_radius",        self.sun_radius)
+            self.shader.uniform_vec3 ("u_sun_color",         self.sun_color)
+            self.shader.uniform_float("u_sun_intensity",     self.sun_intensity)
+            self.shader.uniform_bool ("u_atmosphere_offset", self.is_atmosphere_offset_camera)
+            self.shader.uniform_float("u_planet_radius",     self.planet_radius)
+            self.shader.uniform_float("u_atmosphere_radius", self.atmosphere_radius)
+            self.shader.uniform_vec3 ("u_wavelengths",       self.wavelengths)
+            self.shader.uniform_float("u_coef_mie",          self.coef_mie)
+            self.shader.uniform_float("u_hrlh",              self.height_rlh)
+            self.shader.uniform_float("u_hmie",              self.height_mie)
+            self.shader.uniform_float("u_g_mie",             self.g_mie)
 
             draw_face(self.vertices[8:12])   # UP.
             draw_face(self.vertices[12:16])  # DOWN.

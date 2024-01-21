@@ -254,6 +254,16 @@ class Window:
     def get_size() -> tuple:
         return pygame.display.get_window_size()
 
+    # Получить ширину окна:
+    @staticmethod
+    def get_width() -> int:
+        return pygame.display.get_window_size()[0]
+
+    # Получить высоту окна:
+    @staticmethod
+    def get_height() -> int:
+        return pygame.display.get_window_size()[1]
+
     # Установить минимальный размер окна:
     def set_min_size(self, width: int, height: int) -> None:
         self.__params__["min-size"] = width, height

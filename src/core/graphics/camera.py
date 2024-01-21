@@ -19,12 +19,13 @@ class Camera2D:
                  angle:    float = 0.0,
                  zoom:     float = 1.0,
                  meter:    float = 100) -> None:
-        self.width    = width     # Ширина камеры.
-        self.height   = height    # Высота камеры.
-        self.position = position  # Позиция камеры.
-        self.angle    = angle     # Угол наклона камеры.
-        self.zoom     = zoom      # Масштаб камеры.
-        self.meter    = meter     # Масштаб единицы измерения.
+        self.width    = width          # Ширина камеры.
+        self.height   = height         # Высота камеры.
+        self.position = position       # Позиция камеры.
+        self.angle    = angle          # Угол наклона камеры.
+        self.zoom     = zoom           # Масштаб камеры.
+        self.meter    = meter          # Масштаб единицы измерения.
+        self.size     = width, height  # Размер камеры.
 
         self.modelview = None
         self.projection = None
@@ -52,6 +53,7 @@ class Camera2D:
     def resize(self, width: int, height: int) -> None:
         self.width = width
         self.height = height
+        self.size = width, height
         gl.glDisable(gl.GL_DEPTH_TEST)
         # gl.glEnable(gl.GL_CULL_FACE)
         gl.glViewport(0, 0, self.width, self.height)
@@ -87,16 +89,17 @@ class Camera3D:
                  near:     float = 0.01,
                  yaw:      float = 0,
                  pitch:    float = 0) -> None:
-        self.width    = width     # Ширина камеры.
-        self.height   = height    # Высота камеры.
-        self.position = position  # Позиция камеры.
-        self.rotation = rotation  # Вращение камеры.
-        self.scale    = scale     # Размер камеры.
-        self.fov      = fov       # Угол обзора камеры.
-        self.far      = far       # Дальнее отсечение.
-        self.near     = near      # Ближнее отсечение.
-        self.yaw      = -90+yaw   # Рыскание камеры.
-        self.pitch    = pitch     # Тангаж камеры.
+        self.width    = width      # Ширина камеры.
+        self.height   = height     # Высота камеры.
+        self.position = position   # Позиция камеры.
+        self.rotation = rotation   # Вращение камеры.
+        self.scale    = scale      # Размер камеры.
+        self.fov      = fov        # Угол обзора камеры.
+        self.far      = far        # Дальнее отсечение.
+        self.near     = near       # Ближнее отсечение.
+        self.yaw      = -90+yaw    # Рыскание камеры.
+        self.pitch    = pitch      # Тангаж камеры.
+        self.size = width, height  # Размер камеры.
 
         self.modelview = None
         self.projection = None
@@ -124,6 +127,7 @@ class Camera3D:
 
     # Изменение размера камеры:
     def resize(self, width: int, height: int) -> None:
+        self.size = width, height
         self.width, self.height = width, height
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()

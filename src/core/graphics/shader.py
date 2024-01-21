@@ -8,24 +8,118 @@ if True:
     from .gl import *
 
 
+# Флаги:
+SHD_DEFAULT = 2  # По умолчанию.
+SHD_MINIMUM = 3  # Минимальный.
+SHD_SIMPLE  = 4  # Простой.
+
+
+# Минимальный фрагментный шейдер:
+MINIMUM_FRAGMENT_SHD = """
+#version 430 core
+
+// Выходной цвет:
+out vec4 FragColor;
+
+// Основная функция:
+void main(void) {
+    FragColor = vec4(0, 0, 0, 1);
+}
+"""
+
+
+# Минимальный вершинный шейдер:
+MINIMUM_VERTEX_SHD = """
+#version 430 core
+
+// Позиция вершины:
+layout (location = 0) in vec3 a_position;
+
+// Основная функция:
+void main(void) {
+    gl_Position = vec4(a_position, 1.0);
+}
+"""
+
+
+# Простой фрагментный шейдер:
+SIMPLE_FRAGMENT_SHD = """
+#version 430 core
+
+// Выходной цвет:
+out vec4 FragColor;
+
+// Основная функция:
+void main(void) {
+    FragColor = vec4(0, 0, 0, 1);
+}
+"""
+
+
+# Простой вершинный шейдер:
+SIMPLE_VERTEX_SHD = """
+#version 430 core
+
+// Входные переменные:
+uniform mat4 u_modelview;   // Матрица модель-вида.
+uniform mat4 u_projection;  // Матрица проекции.
+
+// Позиция вершины:
+layout (location = 0) in vec3 a_position;
+
+// Основная функция:
+void main(void) {
+    gl_Position = u_projection * u_modelview * vec4(a_position, 1.0);
+}
+"""
+
+
 # Класс шейдерной программы:
 class ShaderProgram:
-    def __init__(self, frag: str, vert: str = None, geom: str = None) -> None:
+    def __init__(self, frag: str | int = None, vert: str | int = None, geom: str | int = None) -> None:
         self.frag = frag
         self.vert = vert
         self.geom = geom
         self.program = gls.glCreateProgram()
 
     # Получить индекс шейдерной программы:
-    def compile(self) -> None:
-        shaders = [
-            gls.compileShader(self.frag, gl.GL_FRAGMENT_SHADER),
-        ]
+    def compile(self) -> "ShaderProgram":
+        shaders = []
 
-        if self.vert is not None: shaders.append(gls.compileShader(self.vert, gl.GL_VERTEX_SHADER))
+        # Если нет фрагментного и вершинного шейдера:
+        if self.frag is None and self.vert is None:
+            shaders = [
+                gls.compileShader(MINIMUM_FRAGMENT_SHD, gl.GL_FRAGMENT_SHADER),
+                gls.compileShader(MINIMUM_VERTEX_SHD, gl.GL_VERTEX_SHADER)
+            ]
+
+        # Если мы хотим использовать минимальный фрагментный шейдер:
+        if self.frag == SHD_MINIMUM:
+            shaders.append(gls.compileShader(MINIMUM_FRAGMENT_SHD, gl.GL_FRAGMENT_SHADER))
+
+        # Если мы хотим использовать простой фрагментный шейдер:
+        if self.frag == SHD_SIMPLE:
+            shaders.append(gls.compileShader(SIMPLE_FRAGMENT_SHD, gl.GL_FRAGMENT_SHADER))
+
+        # Если мы хотим использовать минимальный вершинный шейдер:
+        if self.vert == SHD_MINIMUM:
+            shaders.append(gls.compileShader(MINIMUM_VERTEX_SHD, gl.GL_VERTEX_SHADER))
+
+        # Если мы хотим использовать простой вершинный шейдер:
+        if self.vert == SHD_SIMPLE:
+            shaders.append(gls.compileShader(SIMPLE_VERTEX_SHD, gl.GL_VERTEX_SHADER))
+
+        # Если фрагментный шейдер есть:
+        if type(self.frag) is str: shaders.append(gls.compileShader(self.frag, gl.GL_FRAGMENT_SHADER))
+
+        # Если вершинный шейдер есть:
+        if type(self.vert) is str: shaders.append(gls.compileShader(self.vert, gl.GL_VERTEX_SHADER))
+
+        # Если геометрический шейдер есть:
         if self.geom is not None: shaders.append(gls.compileShader(self.geom, gl.GL_GEOMETRY_SHADER))
 
         self.program = gls.compileProgram(*shaders)
+        return self
 
     # Используем шейдер:
     def begin(self) -> None:
@@ -96,10 +190,10 @@ class ComputeShaderProgram:
         self.program = gls.glCreateProgram()
 
     # Компиляция шейдера вычислений:
-    def compile(self) -> None:
+    def compile(self) -> "ComputeShaderProgram":
         self.program = gls.compileProgram(
-            gls.compileShader(self.compute, gl.GL_COMPUTE_SHADER)
-        )
+            gls.compileShader(self.compute, gl.GL_COMPUTE_SHADER))
+        return self
 
     # Используем шейдер вычислений:
     def begin(self) -> None:

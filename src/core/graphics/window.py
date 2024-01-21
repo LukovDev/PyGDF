@@ -55,7 +55,10 @@ class Window:
                  visible:    bool  = True,
                  fullscreen: bool  = False,
                  min_size:   tuple = (0, 0),
-                 max_size:   tuple = (float("inf"), float("inf"))) -> None:
+                 max_size:   tuple = (float("inf"), float("inf")),
+                 gl_major:   int   = 3,
+                 gl_minor:   int   = 3,
+                 samples:    int   = 0) -> None:
         self.window = self
         self.__params__ = {
             # Настраиваемые общие параметры:
@@ -80,7 +83,8 @@ class Window:
             "time": time.time(),
             "min-size": min_size,
             "max-size": max_size,
-            "exiting": False
+            "exiting": False,
+            "samples": samples
         }
         self.clock = pygame.time.Clock()
 
@@ -102,6 +106,11 @@ class Window:
             else: visible = pygame.HIDDEN
             if self.get_fullscreen(): self.__set_mode__(pygame.FULLSCREEN | visible, self.get_vsync(), fins)
             else: self.__set_mode__(visible, self.get_vsync(), fins)
+
+            # Настраиваем прочие штуки:
+            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, gl_major)
+            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, gl_minor)
+            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
 
         # Настройка OpenGL:
         if True:
@@ -202,6 +211,7 @@ class Window:
 
     # Установить режим окна:
     def __set_mode__(self, flags: int, vsync: bool, size: tuple = None) -> None:
+        self.set_samples(self.__params__["samples"])
         if size is None: size = (self.__params__["width"], self.__params__["height"])
         flags = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE + flags
         pygame.display.set_mode(size, flags, vsync=vsync)
@@ -349,10 +359,19 @@ class Window:
     def get_fullscreen(self) -> bool:
         return self.__params__["fullscreen"]
 
+    # Установить количество сэмплов антиалиазинга:
+    def set_samples(self, samples: int) -> None:
+        self.__params__["samples"] = samples
+        pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, self.__params__["samples"])
+
+    # Получить количество сэмплов антиалиазинга:
+    def get_samples(self) -> None:
+        return self.__params__["samples"]
+
     # Установить конфигурацию окна:
     def set_config(self, title: str, icon: Image, size: list | tuple,
                    vsync: bool, fps: int, visible: bool, min_size: tuple = (0, 0),
-                   max_size: tuple = (float("inf"), float("inf"))) -> None:
+                   max_size: tuple = (float("inf"), float("inf")), samples: int = 0) -> None:
         self.set_title(title)
         self.set_icon(icon)
         self.set_size(*size)
@@ -361,13 +380,14 @@ class Window:
         self.set_visible(visible)
         self.set_min_size(*min_size)
         self.set_max_size(*max_size)
+        self.set_samples(samples)
 
     # Получить конфигурацию окна:
     def get_config(self) -> list:
         return [
             self.get_title(), self.get_icon(), self.get_size(),
             self.get_vsync(), self.get_fps(), self.get_visible(),
-            self.get_min_size(), self.get_max_size()
+            self.get_min_size(), self.get_max_size(), self.get_samples()
         ]
 
     # Получить дельту времени:

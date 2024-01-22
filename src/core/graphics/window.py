@@ -10,6 +10,7 @@ if True:
     import time
     os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
     import pygame
+    import numpy as np
 
     from .gl import *
     from .image import Image
@@ -56,9 +57,9 @@ class Window:
                  fullscreen: bool  = False,
                  min_size:   tuple = (0, 0),
                  max_size:   tuple = (float("inf"), float("inf")),
+                 samples:    int   = 0,
                  gl_major:   int   = 3,
-                 gl_minor:   int   = 3,
-                 samples:    int   = 0) -> None:
+                 gl_minor:   int   = 3) -> None:
         self.window = self
         self.__params__ = {
             # Настраиваемые общие параметры:
@@ -274,6 +275,12 @@ class Window:
     def get_height() -> int:
         return pygame.display.get_window_size()[1]
 
+    # Получить соотношение сторон окна:
+    @staticmethod
+    def get_aspect_ratio() -> tuple:
+        size = pygame.display.get_window_size()
+        return size[0] / size[1], size[1] / size[0]
+
     # Установить минимальный размер окна:
     def set_min_size(self, width: int, height: int) -> None:
         self.__params__["min-size"] = width, height
@@ -361,6 +368,8 @@ class Window:
 
     # Установить количество сэмплов антиалиазинга:
     def set_samples(self, samples: int) -> None:
+        if not 0 <= samples <= 16:  # Если samples не в диапазоне от 0 до 16:
+            raise Exception(f"Graphics Error: Samples must be set in the range from 0 to 16. You have set: {samples}")
         self.__params__["samples"] = samples
         pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, self.__params__["samples"])
 
@@ -448,6 +457,15 @@ class Window:
     # Получить версию OpenGL:
     def get_opengl_version(self) -> str:
         return self.__params__["opengl-version"]
+
+    # Получить кадр как изображение:
+    def get_frame_image(self, front: bool = False) -> Image:
+        # Всего есть 2 буфера. Отображаемый на экране и тот что в процессе рисовки:
+        if front: gl.glReadBuffer(gl.GL_FRONT)  # Передний (отображаемый) буфер.
+        else:     gl.glReadBuffer(gl.GL_BACK)   # Задний (в процессе рисовки) буфер.
+        w, h = s = self.get_size()
+        p = np.frombuffer(gl.glReadPixels(0, 0, *s, gl.GL_RGB, gl.GL_UNSIGNED_BYTE), dtype=np.uint8).reshape((h, w, 3))
+        return Image(surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
 
     # Вызовите, когда хотите закрыть окно:
     def exit(self) -> None:

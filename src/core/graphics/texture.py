@@ -34,6 +34,16 @@ class Texture:
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         gl.glDisable(gl.GL_TEXTURE_2D)
 
+    # Использовать текстуру:
+    def begin(self) -> None:
+        gl.glEnable(gl.GL_TEXTURE_2D)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
+
+    # Не используем текстуру:
+    def end(self) -> None:
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+        gl.glDisable(gl.GL_TEXTURE_2D)
+
     # Установить фильтрацию текстуры:
     def set_filter(self, name=[gl.GL_TEXTURE_MAG_FILTER, gl.GL_TEXTURE_MIN_FILTER], param=gl.GL_LINEAR) -> "Texture":
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)

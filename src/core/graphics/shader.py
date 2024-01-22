@@ -125,7 +125,7 @@ class ShaderProgram:
     def begin(self) -> None:
         gl.glUseProgram(self.program)
 
-    # Перестать использовать шейдер:
+    # Не используем шейдер:
     def end(self) -> None:
         gl.glUseProgram(0)
 

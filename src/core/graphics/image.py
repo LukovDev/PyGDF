@@ -28,16 +28,19 @@ class Image:
         self.surface = surface
 
     # Загружаем изображение:
-    def load(self, path: str) -> None:
+    def load(self, path: str) -> "Image":
         try: self.__update_image__(pygame.image.load(path))
         except Exception as error: raise Exception(f"Error in \"Image.load()\":\n{error}\n")
+        return self
 
     # Сохраняем изображение:
-    def save(self, path: str) -> None:
-        try: pygame.image.save(self.surface, filename=path)
+    def save(self, path: str) -> "Image":
+        try: pygame.image.save(self.surface, path)
         except Exception as error: raise Exception(f"Error in \"Image.save()\":\n{error}\n")
+        return self
 
     # Изменить размер:
-    def resize(self, width: int, height: int) -> None:
+    def resize(self, width: int, height: int) -> "Image":
         self.surface = pygame.transform.scale(self.surface, (width, height))
         self.__update_image__(self.surface)
+        return self

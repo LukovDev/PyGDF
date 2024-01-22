@@ -114,7 +114,7 @@ class SkyBox:
 
             # Вершинный шейдер:
             self.vertex_shader = """
-            #version 430 core
+            #version 330 core
 
             // Входные переменные:
             uniform mat4 u_modelview;  // Матрица модель-вида.
@@ -135,7 +135,7 @@ class SkyBox:
 
             # Фрагментный шейдер:
             self.fragment_shader = """
-            #version 430 core
+            #version 330 core
 
             // Входные переменные:
             uniform vec2  u_resolution;                               // Размер окна.
@@ -166,11 +166,17 @@ class SkyBox:
 
             // Функция, возвращающая цвет солнца, если луч пересекает его позицию:
             vec4 get_sun(vec3 rdir, vec3 sun_pos, float sun_radius, vec3 sun_color) {
-                float intersection = dot(rdir, normalize(sun_pos - vec3(0)));
-                if (intersection > 0.9999 && length(intersection * rdir - sun_pos) < sun_radius) {
-                    if (-vec3(-intersection*rdir-sun_pos).y < -0.5) return vec4(0);
-                    return vec4(sun_color.rgb, -vec3(-intersection*rdir-sun_pos).y*5);
-                } else return vec4(0);
+                float intersection = dot(normalize(rdir), normalize(sun_pos - vec3(0)));
+                float threshold = mix(0.9999, 0.9, smoothstep(0.01, 100.0, sun_radius));
+
+                if (intersection > threshold) {
+                    float height = -vec3(-intersection * rdir - sun_pos).y;
+                    vec2 height_sunset = vec2(-0.25 * sun_radius, 0.25 * sun_radius);
+                    if (height <= height_sunset.x) return vec4(0);
+                    return vec4(sun_color.rgb, 2.0 * smoothstep(height_sunset.x, height_sunset.y, height) - 1.0);
+                } else {
+                    return vec4(0);
+                }
             }
 
             // Проверка на пересечение луча со сферой:
@@ -348,7 +354,7 @@ class SkyBox:
                 color = 1.0 - exp(-1.0 * color);
 
                 // Добавляем солнце:
-                color += get_sun(
+                vec4 sun_color = get_sun(
                     rd,            // Нормализованное направление взгляда камеры.
                     u_sun_pos,     // Положение солнца.
                     u_sun_radius,  // Радиус солнца.
@@ -356,7 +362,7 @@ class SkyBox:
                 );
 
                 // Возвращаем цвет пикселя:
-                FragColor = color;
+                FragColor = color + sun_color;
             }
             """
 

@@ -2,5 +2,5 @@ pygame
 pyopengl
 pyopengl_accelerate
 numpy
-pyglm
 pymunk
+pyglm

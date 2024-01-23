@@ -171,7 +171,7 @@ class SkyBox:
 
                 if (intersection > threshold) {
                     float height = -vec3(-intersection * rdir - sun_pos).y;
-                    vec2 height_sunset = vec2(-0.25 * sun_radius, 0.25 * sun_radius);
+                    vec2 height_sunset = vec2(-0.25, 0.25);
                     if (height <= height_sunset.x) return vec4(0);
                     return vec4(sun_color.rgb, 2.0 * smoothstep(height_sunset.x, height_sunset.y, height) - 1.0);
                 } else {

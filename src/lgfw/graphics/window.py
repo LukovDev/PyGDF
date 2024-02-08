@@ -60,9 +60,9 @@ class Window:
                  samples:    int   = 0,
                  gl_major:   int   = 3,
                  gl_minor:   int   = 3) -> None:
+        self.clock = pygame.time.Clock()
         self.window = self
         self.__params__ = {
-            # Настраиваемые общие параметры:
             "title": title,
             "icon": icon,
             "width": size[0],
@@ -70,15 +70,12 @@ class Window:
             "vsync": vsync,
             "visible": visible,
             "fullscreen": fullscreen,
-
-            # Скрытые значения используемые во время работы окна:
             "settled-fps": fps,
             "window-active": False,
             "monitor-size": (),
             "mouse-scroll": [0.0, 0.0],
             "mouse-rel": [0, 0],
             "mouse-pressed": [False, False, None],
-            "window-size-before-fullscreen": size,
             "opengl-version": "",
             "delta-time": 1 / 60,
             "time": time.time(),
@@ -87,7 +84,6 @@ class Window:
             "exiting": False,
             "samples": samples
         }
-        self.clock = pygame.time.Clock()
 
         pygame.init()
         self.__params__["monitor-size"] = (pygame.display.Info().current_w, pygame.display.Info().current_h)
@@ -98,17 +94,13 @@ class Window:
         if True:
             wins, fins = size, list(size)
             mins, maxs = min_size, max_size
-            if wins[0] < mins[0]: fins[0] = mins[0]
-            if wins[0] > maxs[0]: fins[0] = maxs[0]
-            if wins[1] < mins[1]: fins[1] = mins[1]
-            if wins[1] > maxs[1]: fins[1] = maxs[1]
+            fins[0] = max(mins[0], min(maxs[0], wins[0]))
+            fins[1] = max(mins[1], min(maxs[1], wins[1]))
 
-            if self.get_visible(): visible = pygame.SHOWN
-            else: visible = pygame.HIDDEN
-            if self.get_fullscreen(): self.__set_mode__(pygame.FULLSCREEN | visible, self.get_vsync(), fins)
-            else: self.__set_mode__(visible, self.get_vsync(), fins)
+            visible_flag = pygame.SHOWN if self.get_visible() else pygame.HIDDEN
+            mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
+            self.__set_mode__(mode_flags, self.get_vsync(), fins)
 
-            # Настраиваем прочие штуки:
             pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, gl_major)
             pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, gl_minor)
             pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
@@ -222,10 +214,8 @@ class Window:
     def __check_size__(self, width: int, height: int) -> bool:
         wins, fins = (width, height), list((width, height))
         mins, maxs = self.get_min_size(), self.get_max_size()
-        if wins[0] < mins[0]: fins[0] = mins[0]
-        if wins[0] > maxs[0]: fins[0] = maxs[0]
-        if wins[1] < mins[1]: fins[1] = mins[1]
-        if wins[1] > maxs[1]: fins[1] = maxs[1]
+        fins[0] = max(mins[0], min(maxs[0], wins[0]))
+        fins[1] = max(mins[1], min(maxs[1], wins[1]))
         if fins != wins: self.set_size(*fins) ; return True
         return False
 
@@ -304,10 +294,9 @@ class Window:
     # Установить VSync:
     def set_vsync(self, vsync: bool) -> None:
         self.__params__["vsync"] = vsync
-        if self.get_visible(): visible = pygame.SHOWN
-        else: visible = pygame.HIDDEN
-        if self.get_fullscreen(): self.__set_mode__(pygame.FULLSCREEN | visible, vsync)
-        else: self.__set_mode__(visible, vsync)
+        visible_flag = pygame.SHOWN if self.get_visible() else pygame.HIDDEN
+        mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
+        self.__set_mode__(mode_flags, vsync)
 
     # Получить VSync:
     def get_vsync(self) -> bool:
@@ -319,7 +308,7 @@ class Window:
 
     # Получить текущий FPS:
     def get_fps(self) -> float:
-        return 1/self.get_delta_time()
+        return 1 / self.get_delta_time()
 
     # Получить установленный FPS:
     def get_settled_fps(self) -> int:
@@ -328,17 +317,17 @@ class Window:
     # Показать окно:
     def show_window(self) -> None:
         self.__params__["visible"] = True
-        visible = pygame.SHOWN
-        if self.get_fullscreen(): self.__set_mode__(pygame.FULLSCREEN | visible, self.get_vsync())
-        else: self.__set_mode__(visible, self.get_vsync())
+        visible_flag = pygame.SHOWN
+        mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
+        self.__set_mode__(mode_flags, self.get_vsync())
         self.show()
 
     # Спрятать окно:
     def hide_window(self) -> None:
         self.__params__["visible"] = False
-        visible = pygame.HIDDEN
-        if self.get_fullscreen(): self.__set_mode__(pygame.FULLSCREEN | visible, self.get_vsync())
-        else: self.__set_mode__(visible, self.get_vsync())
+        visible_flag = pygame.HIDDEN
+        mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
+        self.__set_mode__(mode_flags, self.get_vsync())
         self.hide()
 
     # Установить видимость окна:
@@ -352,15 +341,13 @@ class Window:
         return self.__params__["visible"]
 
     # Установить полноэкранный режим:
-    def set_fullscreen(self, is_fullscreen: bool) -> None:
+    def set_fullscreen(self, is_fullscreen: bool, size: tuple = None) -> None:
         self.__params__["fullscreen"] = is_fullscreen
-        if self.get_visible(): visible = pygame.SHOWN
-        else: visible = pygame.HIDDEN
-        self.__params__["window-size-before-fullscreen"] = self.get_size()
-        if is_fullscreen: self.__set_mode__(pygame.FULLSCREEN | visible, self.get_vsync())
-        else:
-            self.set_size(*self.__params__["window-size-before-fullscreen"])
-            self.__set_mode__(visible, self.get_vsync())
+        visible_flag = pygame.SHOWN if self.get_visible() else pygame.HIDDEN
+        mode_flags = pygame.FULLSCREEN | visible_flag if is_fullscreen else visible_flag
+        size = size if size is not None else (0, 0)
+        self.__set_mode__(mode_flags, self.get_vsync(), size)
+        self.resize(*self.get_size())
 
     # Получить полноэкранный режим:
     def get_fullscreen(self) -> bool:
@@ -478,7 +465,7 @@ class Window:
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
     # Очистка окна (цвета от 0 до 255):
-    def clear_255(self, red: int = 0, green: int = 0, blue: int = 0) -> None:
+    def clear255(self, red: int = 0, green: int = 0, blue: int = 0) -> None:
         self.clear(red=(red % 256)/255, green=(green % 256)/255, blue=(blue % 256)/255)
 
     # Отрисовка окна:

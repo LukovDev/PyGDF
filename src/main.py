@@ -32,18 +32,19 @@ class GameClass(Window):
             visible    = True,   # Отображаемость окна.
             fullscreen = False,  # Окно на весь экран (разрешение экрана изменится на размер окна).
             min_size   = (0, 0),                                            # Минимальный размер окна.
-            max_size   = (float("inf"), float("inf"))                       # Максимальный размер окна.
+            max_size   = (float("inf"), float("inf")),                      # Максимальный размер окна.
+            samples    = 4                                                  # Мульти-семплинг (0-16).
         )
 
     # Вызывается при создании окна:
     def start(self) -> None:
         # 2D камера:
         self.camera = Camera2D(
-            width    = self.window.get_size()[0],  # Ширина камеры.
-            height   = self.window.get_size()[1],  # Высота камеры.
-            position = vec2(0, 0),                 # Позиция камеры.
-            angle    = 0.0,                        # Угол наклона камеры.
-            zoom     = 1.0                         # Масштаб камеры.
+            width    = self.window.get_width(),   # Ширина камеры.
+            height   = self.window.get_height(),  # Высота камеры.
+            position = vec2(0, 0),                # Позиция камеры.
+            angle    = 0.0,                       # Угол наклона камеры.
+            zoom     = 1.0                        # Масштаб камеры.
         )
 
         # Загружаем текстуру, которую укажем в нашем спрайте чтобы её отрисовать:

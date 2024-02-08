@@ -6,10 +6,10 @@
 # Импортируем:
 if True:
     # Ядро фреймворка:
-    import core
-    from core import files
-    from core.math import *
-    from core.graphics import Window, Camera2D, Sprite
+    import lgfw
+    from lgfw import files
+    from lgfw.math import *
+    from lgfw.graphics import Window, Camera2D, Sprite
 
 
 # Класс игры:
@@ -84,7 +84,7 @@ class GameClass(Window):
 if __name__ == "__main__":
 
     # Выводим текущую версию фреймворка:
-    version = core.get_version()
+    version = lgfw.get_version()
     print(f"LibGFW version: {version}")
 
     game = GameClass()

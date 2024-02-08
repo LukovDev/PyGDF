@@ -63,7 +63,7 @@ class Camera2D:
         glu.gluOrtho2D(-wdth, wdth, -hght, hght)
 
     # Получить позицию точки из окна в мировом пространстве:
-    def get_screen_point_to_world(self, point_pos: tuple) -> tuple:
+    def screen_to_world(self, point_pos: tuple) -> tuple:
         # Позиция нижнего левого угла камеры с учётом метра и зума камеры:
         camera_posx = self.position.x - ((self.width  * self.zoom) / 2) * (self.meter / 100)
         camera_posy = self.position.y - ((self.height * self.zoom) / 2) * (self.meter / 100)

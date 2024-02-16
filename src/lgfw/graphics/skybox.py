@@ -305,7 +305,7 @@ class SkyBox:
             out vec4 FragColor;
 
             // Основная функция:
-            void main(void) {;
+            void main(void) {
                 vec3 rd = normalize(vec3(
                     v_direction.x * (u_resolution.x / u_resolution.y),
                     v_direction.y,

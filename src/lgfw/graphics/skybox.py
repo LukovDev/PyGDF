@@ -166,17 +166,9 @@ class SkyBox:
 
             // Функция, возвращающая цвет солнца, если луч пересекает его позицию:
             vec4 get_sun(vec3 rdir, vec3 sun_pos, float sun_radius, vec3 sun_color) {
-                float intersection = dot(normalize(rdir), normalize(sun_pos - vec3(0)));
-                float threshold = mix(0.9999, 0.9, smoothstep(0.01, 100.0, sun_radius));
-
-                if (intersection > threshold) {
-                    float height = -vec3(-intersection * rdir - sun_pos).y;
-                    vec2 height_sunset = vec2(-0.25, 0.25);
-                    if (height <= height_sunset.x) return vec4(0);
-                    return vec4(sun_color.rgb, 2.0 * smoothstep(height_sunset.x, height_sunset.y, height) - 1.0);
-                } else {
-                    return vec4(0);
-                }
+                float scalar = clamp(dot(rdir, normalize(sun_pos)), 0.0, 1.0);
+                vec3 sun_col = mix(vec3(0.0), sun_color, pow(scalar, 1.0 / (sun_radius * 0.00025)));
+                return vec4(sun_col, 2.0 * smoothstep(-0.15, 0.15, sun_pos.y) - 1.0);
             }
 
             // Проверка на пересечение луча со сферой:

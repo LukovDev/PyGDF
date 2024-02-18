@@ -76,6 +76,8 @@ void main(void) {
 
 # Класс шейдерной программы:
 class ShaderProgram:
+    texture_units = {'~': 0,}  # Словарь для хранения текстурных юнитов.
+
     def __init__(self, frag: str | int = None, vert: str | int = None, geom: str | int = None) -> None:
         self.frag = frag
         self.vert = vert
@@ -177,6 +179,21 @@ class ShaderProgram:
     def uniform_mat4(self, name: str, value) -> None:
         location = self.get_uniform(name)
         if location != -1: gl.glUniformMatrix4fv(location, 1, gl.GL_FALSE, value)
+
+    # Установить значение для униформы типа sampler2d:
+    def uniform_sampler2d(self, name: str, value: int) -> None:
+        location = self.get_uniform(name)
+        if location != -1:
+            if name not in self.texture_units:
+                # Ищем свободный текстурный юнит:
+                texture_unit = 0
+                while texture_unit in self.texture_units.values(): texture_unit += 1
+                self.texture_units[name] = texture_unit
+            texture_unit = self.texture_units[name]
+
+            gl.glActiveTexture(gl.GL_TEXTURE0 + texture_unit)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, value)
+            gl.glUniform1i(location, texture_unit)
 
     # Удаление шейдера:
     def destroy(self) -> None:

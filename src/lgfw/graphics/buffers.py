@@ -29,3 +29,24 @@ class SSBO:
     # Удалить буфер:
     def destroy(self) -> None:
         gl.glDeleteBuffers(1, [self.id])
+
+
+# Фреймбуфер:
+class FrameBuffer:
+    def __init__(self, texture_id: int) -> None:
+        self.id = gl.glGenFramebuffers(1)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.id)
+        gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT0, gl.GL_TEXTURE_2D, texture_id, 0)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
+    # Использовать буфер:
+    def begin(self) -> None:
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.id)
+
+    # Перестать использовать буфер:
+    def end(self) -> None:
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
+    # Удалить буфер:
+    def destroy(self) -> None:
+        gl.glDeleteFramebuffers(1, self.id)

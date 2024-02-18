@@ -125,6 +125,10 @@ class Window:
             # Разрешаем установку размера точки через шейдер:
             gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
+            # Делаем нулевой текстурный юнит привязанным к нулевой текстуре:
+            gl.glActiveTexture(gl.GL_TEXTURE0)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+
             # Включаем сглаживание линий:
             # gl.glEnable(gl.GL_LINE_SMOOTH)
 

@@ -27,7 +27,7 @@ if True:
 
     # Импортируем основной функционал из скриптов:
     from .batch   import SpriteBatch
-    from .buffers import SSBO
+    from .buffers import SSBO, FrameBuffer
     from .camera  import Camera2D, Camera3D
     from .draw    import Draw2D, Draw3D
     from .font    import Font, SysFont, get_fonts, match_font

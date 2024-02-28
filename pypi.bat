@@ -3,7 +3,7 @@
 echo INSTALLING PYPI LIBRARIES:
 echo.
 
-pip install -r .\build\tools\pypi.txt
+pip install -r .\build\pypi.txt
 
 echo.
 cd .\src\lgfw\

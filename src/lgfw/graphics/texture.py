@@ -14,12 +14,14 @@ if True:
 
 # Класс текстуры:
 class Texture:
-    def __init__(self, image: Image, is_flip_y: bool = False) -> None:
+    def __init__(self, image: Image, is_flip_y: bool = False, size: tuple = None) -> None:
         self.image  = image
         self.id     = int
-        self.data   = pygame.image.tostring(image.surface, "RGBA", is_flip_y)
-        self.width  = image.width
-        self.height = image.height
+        if image.surface is None: surface = pygame.Surface(size if size is not None else (1, 1))
+        else: surface = image.surface
+        self.data   = pygame.image.tostring(surface, "RGBA", is_flip_y)
+        self.width  = surface.get_width()
+        self.height = surface.get_height()
         self.id     = int(gl.glGenTextures(1))
 
         gl.glEnable(gl.GL_TEXTURE_2D)

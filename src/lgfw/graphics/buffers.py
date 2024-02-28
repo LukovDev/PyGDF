@@ -49,4 +49,4 @@ class FrameBuffer:
 
     # Удалить буфер:
     def destroy(self) -> None:
-        gl.glDeleteFramebuffers(1, self.id)
+        gl.glDeleteFramebuffers(1, [self.id])

@@ -76,6 +76,7 @@ class Window:
             "mouse-scroll": [0.0, 0.0],
             "mouse-rel": [0, 0],
             "mouse-pressed": [False, False, None],
+            "mouse-visible": True,
             "opengl-version": "",
             "delta-time": 1 / 60,
             "time": time.time(),
@@ -269,6 +270,12 @@ class Window:
     def get_height() -> int:
         return pygame.display.get_window_size()[1]
 
+    # Получить центр окна. Координаты половины размера окна:
+    @staticmethod
+    def get_center() -> tuple:
+        size = pygame.display.get_window_size()
+        return (size[0] // 2, size[1] // 2)
+
     # Получить соотношение сторон окна:
     @staticmethod
     def get_aspect_ratio() -> tuple:
@@ -436,9 +443,13 @@ class Window:
         return tuple(self.__params__["mouse-scroll"])
 
     # Установить видимость курсора мыши:
-    @staticmethod
-    def set_mouse_visible(visible: bool) -> None:
+    def set_mouse_visible(self, visible: bool) -> None:
+        self.__params__["mouse-visible"] = visible
         pygame.mouse.set_visible(visible)
+
+    # Получить видимость курсора мыши:
+    def get_mouse_visible(self) -> bool:
+        return self.__params__["mouse-visible"]
 
     # Получить нажатие клавиш клавиатуры:
     @staticmethod

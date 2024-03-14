@@ -20,12 +20,20 @@ if True:
 class Window:
     # ------------------ Приведённые ниже функции должны быть записаны в унаследованном классе: ------------------------
 
+    # Создать окно:
+    def init(self) -> None:
+        pass
+
     # Вызывается при создании окна:
     def start(self) -> None:
         pass
 
     # Вызывается каждый кадр (игровой цикл):
     def update(self, delta_time: float, events: list) -> None:
+        pass
+
+    # Вызывается в конце функции update чтобы отрисовать все изменения:
+    def render(self, delta_time: float) -> None:
         pass
 
     # Вызывается при изменении размера окна:

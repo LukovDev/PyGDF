@@ -6,119 +6,63 @@
 # Импортируем:
 if True:
     from .gl import *
+    import numpy as np
 
 
-# Флаги:
-SHD_DEFAULT = 2  # По умолчанию.
-SHD_MINIMUM = 3  # Минимальный.
-SHD_SIMPLE  = 4  # Простой.
+__texture_units__ = {}  # Словарь для хранения текстурных юнитов.
 
 
-# Минимальный фрагментный шейдер:
-MINIMUM_FRAGMENT_SHD = """
-#version 430 core
-
-// Выходной цвет:
-out vec4 FragColor;
-
-// Основная функция:
-void main(void) {
-    FragColor = vec4(0, 0, 0, 1);
-}
-"""
-
-
-# Минимальный вершинный шейдер:
-MINIMUM_VERTEX_SHD = """
-#version 430 core
-
-// Позиция вершины:
-layout (location = 0) in vec3 a_position;
-
-// Основная функция:
-void main(void) {
-    gl_Position = vec4(a_position, 1.0);
-}
-"""
-
-
-# Простой фрагментный шейдер:
-SIMPLE_FRAGMENT_SHD = """
-#version 430 core
-
-// Выходной цвет:
-out vec4 FragColor;
-
-// Основная функция:
-void main(void) {
-    FragColor = vec4(0, 0, 0, 1);
-}
-"""
-
-
-# Простой вершинный шейдер:
-SIMPLE_VERTEX_SHD = """
-#version 430 core
-
-// Входные переменные:
-uniform mat4 u_modelview;   // Матрица модель-вида.
-uniform mat4 u_projection;  // Матрица проекции.
-
-// Позиция вершины:
-layout (location = 0) in vec3 a_position;
-
-// Основная функция:
-void main(void) {
-    gl_Position = u_projection * u_modelview * vec4(a_position, 1.0);
-}
-"""
+# Обёртка ошибки компиляции шейдеров:
+class ShaderProgramError(RuntimeError): pass
 
 
 # Класс шейдерной программы:
 class ShaderProgram:
-    texture_units = {'~': 0,}  # Словарь для хранения текстурных юнитов.
-
     def __init__(self, frag: str | int = None, vert: str | int = None, geom: str | int = None) -> None:
         self.frag = frag
         self.vert = vert
         self.geom = geom
         self.program = gls.glCreateProgram()
 
-    # Получить индекс шейдерной программы:
+    # Скомпилировать шейдер:
     def compile(self) -> "ShaderProgram":
         shaders = []
 
-        # Если нет фрагментного и вершинного шейдера:
-        if self.frag is None and self.vert is None:
-            shaders = [
-                gls.compileShader(MINIMUM_FRAGMENT_SHD, gl.GL_FRAGMENT_SHADER),
-                gls.compileShader(MINIMUM_VERTEX_SHD, gl.GL_VERTEX_SHADER)
-            ]
+        # Функция для компиляции шейдера с обработкой ошибок
+        def compile_shader(source_code: str, shader_type: int) -> int:
+            # Создаем пустой объект шейдера:
+            shader = gl.glCreateShader(shader_type)
 
-        # Если мы хотим использовать минимальный фрагментный шейдер:
-        if self.frag == SHD_MINIMUM:
-            shaders.append(gls.compileShader(MINIMUM_FRAGMENT_SHD, gl.GL_FRAGMENT_SHADER))
+            # Передаем исходный код шейдера OpenGL:
+            gl.glShaderSource(shader, [source_code])
 
-        # Если мы хотим использовать простой фрагментный шейдер:
-        if self.frag == SHD_SIMPLE:
-            shaders.append(gls.compileShader(SIMPLE_FRAGMENT_SHD, gl.GL_FRAGMENT_SHADER))
+            # Компилируем шейдер:
+            gl.glCompileShader(shader)
 
-        # Если мы хотим использовать минимальный вершинный шейдер:
-        if self.vert == SHD_MINIMUM:
-            shaders.append(gls.compileShader(MINIMUM_VERTEX_SHD, gl.GL_VERTEX_SHADER))
+            # Проверяем статус компиляции:
+            if not gl.glGetShaderiv(shader, gl.GL_COMPILE_STATUS):
+                # Если компиляция не удалась, получаем ошибку:
+                error = gl.glGetShaderInfoLog(shader).decode()
 
-        # Если мы хотим использовать простой вершинный шейдер:
-        if self.vert == SHD_SIMPLE:
-            shaders.append(gls.compileShader(SIMPLE_VERTEX_SHD, gl.GL_VERTEX_SHADER))
+                # Удаляем объект шейдера:
+                gl.glDeleteShader(shader)
 
-        # Если фрагментный шейдер есть:
-        if type(self.frag) is str: shaders.append(gls.compileShader(self.frag, gl.GL_FRAGMENT_SHADER))
+                # Выводим сообщение об ошибке:
+                raise RuntimeError(error)
+            return shader
 
-        # Если вершинный шейдер есть:
-        if type(self.vert) is str: shaders.append(gls.compileShader(self.vert, gl.GL_VERTEX_SHADER))
+        # Пытаемся скомпилировать шейдер:
+        try:
+            # Если фрагментный шейдер есть:
+            if type(self.frag) is str: shaders.append(compile_shader(self.frag, gl.GL_FRAGMENT_SHADER))
 
-        # Если геометрический шейдер есть:
-        if self.geom is not None: shaders.append(gls.compileShader(self.geom, gl.GL_GEOMETRY_SHADER))
+            # Если вершинный шейдер есть:
+            if type(self.vert) is str: shaders.append(compile_shader(self.vert, gl.GL_VERTEX_SHADER))
+
+            # Если геометрический шейдер есть:
+            if self.geom is not None: shaders.append(compile_shader(self.geom, gl.GL_GEOMETRY_SHADER))
+        except RuntimeError as error:
+            raise RuntimeError(f"Shader compilation failed: {error}")
 
         self.program = gls.compileProgram(*shaders)
         return self
@@ -135,65 +79,76 @@ class ShaderProgram:
     def get_uniform(self, name: str) -> int:
         return gl.glGetUniformLocation(self.program, name)
 
-    # Установить значение для униформы типа bool:
-    def uniform_bool(self, name: str, value: bool) -> None:
+    # Установить значение для униформы в шейдере:
+    def set_uniform(self, name: str, value: bool | int | float | list | tuple | np.ndarray) -> None:
+        if type(value) is np.ndarray: value = value.tolist()
+        if type(value) is tuple: value = list(value)
         location = self.get_uniform(name)
-        if location != -1: gl.glUniform1i(location, value)
+        if location == -1: return
 
-    # Установить значение для униформы типа float:
-    def uniform_float(self, name: str, value: float) -> None:
-        location = self.get_uniform(name)
-        if location != -1: gl.glUniform1f(location, value)
+        # Тип bool:
+        if type(value) is bool:
+            gl.glUniform1i(location, value)
 
-    # Установить значение для униформы типа int:
-    def uniform_int(self, name: str, value: int) -> None:
-        location = self.get_uniform(name)
-        if location != -1: gl.glUniform1i(location, value)
+        # Тип int:
+        if type(value) is int:
+            gl.glUniform1i(location, value)
 
-    # Установить значение для униформы типа vec2:
-    def uniform_vec2(self, name: str, value) -> None:
-        location = self.get_uniform(name)
-        if location != -1: gl.glUniform2f(location, *value)
+        # Тип float:
+        if type(value) is float:
+            gl.glUniform1f(location, value)
 
-    # Установить значение для униформы типа vec3:
-    def uniform_vec3(self, name: str, value) -> None:
-        location = self.get_uniform(name)
-        if location != -1: gl.glUniform3f(location, *value)
+        # Тип vec2:
+        if type(value) is list and len(value) == 2 and not type(value[0]) is list:
+            gl.glUniform2f(location, *value[:2])
 
-    # Установить значение для униформы типа vec4:
-    def uniform_vec4(self, name: str, value) -> None:
-        location = self.get_uniform(name)
-        if location != -1: gl.glUniform4f(location, *value)
+        # Тип vec3:
+        if type(value) is list and len(value) == 3 and not type(value[0]) is list:
+            gl.glUniform3f(location, *value[:3])
 
-    # Установить значение для униформы типа mat2:
-    def uniform_mat2(self, name: str, value) -> None:
-        location = self.get_uniform(name)
-        if location != -1: gl.glUniformMatrix2fv(location, 1, gl.GL_FALSE, value)
+        # Тип vec4:
+        if type(value) is list and len(value) == 4 and not type(value[0]) is list:
+            gl.glUniform4f(location, *value[:4])
 
-    # Установить значение для униформы типа mat3:
-    def uniform_mat3(self, name: str, value) -> None:
-        location = self.get_uniform(name)
-        if location != -1: gl.glUniformMatrix3fv(location, 1, gl.GL_FALSE, value)
+        # Тип mat2:
+        if type(value) is list and len(value) == 2 and type(value[0]) is list:
+            gl.glUniformMatrix2fv(location, 1, gl.GL_FALSE, value)
 
-    # Установить значение для униформы типа mat4:
-    def uniform_mat4(self, name: str, value) -> None:
-        location = self.get_uniform(name)
-        if location != -1: gl.glUniformMatrix4fv(location, 1, gl.GL_FALSE, value)
+        # Тип mat3:
+        if type(value) is list and len(value) == 3 and type(value[0]) is list:
+            gl.glUniformMatrix3fv(location, 1, gl.GL_FALSE, value)
+
+        # Тип mat4:
+        if type(value) is list and len(value) == 4 and type(value[0]) is list:
+            gl.glUniformMatrix4fv(location, 1, gl.GL_FALSE, value)
 
     # Установить значение для униформы типа sampler2d:
-    def uniform_sampler2d(self, name: str, value: int) -> None:
+    def set_sampler2d(self, name: str, value: int) -> None:
+        global __texture_units__
         location = self.get_uniform(name)
-        if location != -1:
-            if name not in self.texture_units:
-                # Ищем свободный текстурный юнит:
-                texture_unit = 0
-                while texture_unit in self.texture_units.values(): texture_unit += 1
-                self.texture_units[name] = texture_unit
-            texture_unit = self.texture_units[name]
+        if location == -1: return
 
-            gl.glActiveTexture(gl.GL_TEXTURE0 + texture_unit)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, value)
-            gl.glUniform1i(location, texture_unit)
+        # Создаем элемент для текущего экземпляра класса, если его ещё нет:
+        if id(self) not in __texture_units__: __texture_units__[id(self)] = {}
+
+        # Ищем свободный текстурный юнит для униформы:
+        if name not in __texture_units__[id(self)]:
+            # Ищем свободный текстурный юнит:
+            tunit = 1  # texture unit.
+            while tunit in [unit for units in __texture_units__.values() for unit in units.values()]: tunit += 1
+            
+            # Сохраняем соответствие между именем униформы и текстурным юнитом:
+            __texture_units__[id(self)][name] = tunit
+        else: tunit = __texture_units__[id(self)][name]
+
+        # Активируем текстурный юнит:
+        gl.glActiveTexture(gl.GL_TEXTURE0 + tunit)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, value)
+        gl.glUniform1i(location, tunit)
+
+        # Возвращаемся к нулевому текстурному юниту и нулевой текстуре:
+        gl.glActiveTexture(gl.GL_TEXTURE0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
     # Удаление шейдера:
     def destroy(self) -> None:

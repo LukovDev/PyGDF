@@ -33,7 +33,7 @@ if True:
     from .font    import Font, SysFont, get_fonts, match_font
     from .image   import Image
     from .mesh    import BaseMesh
-    from .shader  import SHD_DEFAULT, SHD_MINIMUM, SHD_SIMPLE, ShaderProgram, ComputeShaderProgram
+    from .shader  import ShaderProgram, ComputeShaderProgram
     from .skybox  import SkyBox
     from .sprite  import Sprite
     from .texture import Texture

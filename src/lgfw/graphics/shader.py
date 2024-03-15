@@ -6,7 +6,7 @@
 # Импортируем:
 if True:
     from .gl import *
-    import numpy as np
+    from ..math import *
 
 
 __texture_units__ = {}  # Словарь для хранения текстурных юнитов.
@@ -80,8 +80,9 @@ class ShaderProgram:
         return gl.glGetUniformLocation(self.program, name)
 
     # Установить значение для униформы в шейдере:
-    def set_uniform(self, name: str, value: bool | int | float | list | tuple | np.ndarray) -> None:
-        if type(value) is np.ndarray: value = value.tolist()
+    def set_uniform(self, name: str, value: bool | int | float | list | tuple | numpy.ndarray) -> None:
+        if isinstance(value, (glm.vec2, glm.vec3, glm.vec4)): value = list(value)
+        if type(value) is numpy.ndarray: value = value.tolist()
         if type(value) is tuple: value = list(value)
         location = self.get_uniform(name)
         if location == -1: return

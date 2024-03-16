@@ -8,6 +8,7 @@ if True:
     import os
     os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
     from pygame import constants as key
+    from pygame import constants as events
     import pygame
 
     # Импортируем скрипты:

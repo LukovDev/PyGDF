@@ -29,7 +29,7 @@ class Window:
         pass
 
     # Вызывается каждый кадр (игровой цикл):
-    def update(self, delta_time: float, events: list) -> None:
+    def update(self, delta_time: float, eventlist: list) -> None:
         pass
 
     # Вызывается в конце функции update чтобы отрисовать все изменения:
@@ -172,8 +172,8 @@ class Window:
             self.__params__["mouse-pressed"][1:] = [False, None]
 
             # Цикл, собирающий события:
-            event_list = pygame.event.get()
-            for event in event_list:
+            eventlist = pygame.event.get()
+            for event in eventlist:
                 # Если программу хотят закрыть:
                 if event.type == pygame.QUIT: self.exit()
 
@@ -193,13 +193,6 @@ class Window:
                 # Если колёсико мыши провернулось:
                 elif event.type == pygame.MOUSEWHEEL: self.__params__["mouse-scroll"] = event.x, event.y
 
-                # # Если отпускают клавишу:
-                # elif event.type == pygame.KEYUP:
-                #     # Если нажимают на F11:
-                #     if event.key == pygame.K_F11:
-                #         self.set_size(*self.get_monitor_size())
-                #         self.set_fullscreen(not self.get_fullscreen())
-
                 # Если нажимают любую кнопку мыши:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     self.__params__["mouse-pressed"] = [True, False, event.button-1]
@@ -209,7 +202,7 @@ class Window:
                     self.__params__["mouse-pressed"] = [False, True, event.button-1]
 
             # Вызываем функцию цикла:
-            try: self.update(self.get_delta_time(), event_list)
+            try: self.update(self.get_delta_time(), eventlist)
             except KeyboardInterrupt: self.exit()
 
             # Обновляем дельту времени:

@@ -81,9 +81,8 @@ class ShaderProgram:
 
     # Установить значение для униформы в шейдере:
     def set_uniform(self, name: str, value: bool | int | float | list | tuple | numpy.ndarray) -> None:
-        if isinstance(value, (glm.vec2, glm.vec3, glm.vec4)): value = list(value)
+        if isinstance(value, (glm.vec2, glm.vec3, glm.vec4, tuple)): value = list(value)
         if type(value) is numpy.ndarray: value = value.tolist()
-        if type(value) is tuple: value = list(value)
         location = self.get_uniform(name)
         if location == -1: return
 

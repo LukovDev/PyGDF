@@ -29,7 +29,7 @@ class Window:
         pass
 
     # Вызывается каждый кадр (игровой цикл):
-    def update(self, delta_time: float, eventlist: list) -> None:
+    def update(self, delta_time: float, event_list: list) -> None:
         pass
 
     # Вызывается в конце функции update чтобы отрисовать все изменения:
@@ -172,8 +172,8 @@ class Window:
             self.__params__["mouse-pressed"][1:] = [False, None]
 
             # Цикл, собирающий события:
-            eventlist = pygame.event.get()
-            for event in eventlist:
+            event_list = pygame.event.get()
+            for event in event_list:
                 # Если программу хотят закрыть:
                 if event.type == pygame.QUIT: self.exit()
 
@@ -202,7 +202,7 @@ class Window:
                     self.__params__["mouse-pressed"] = [False, True, event.button-1]
 
             # Вызываем функцию цикла:
-            try: self.update(self.get_delta_time(), eventlist)
+            try: self.update(self.get_delta_time(), event_list)
             except KeyboardInterrupt: self.exit()
 
             # Обновляем дельту времени:

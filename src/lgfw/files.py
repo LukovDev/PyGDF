@@ -59,7 +59,7 @@ def save_json(file_path: str, data: dict, mode: str = "w+", encoding: str = "utf
 
 
 # Выбрать файл:
-def get_file_path(file_types: list[tuple] = [("All:" "*.*")], icon_path: str = "") -> str:
+def get_file_path_gialog(file_types: list[tuple] = [("All:" "*.*")], icon_path: str = "") -> str:
     root = tk.Tk() ; root.withdraw()
     try: root.iconbitmap(icon_path)
     except Exception as error: pass

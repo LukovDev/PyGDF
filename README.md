@@ -16,7 +16,7 @@
 
 #### Хорошо, а как скачать этот ваш фреймворк?
 
-Скачать репозиторий можно [zip-файлом](https://github.com/LukovDev/LibGFW/archive/refs/heads/master.zip), или склонировать репозиторий</br>с помощью Git ```https://github.com/LukovDev/LibGFW.git```
+Скачать репозиторий можно [zip-файлом](https://github.com/LukovDev/LibGFW/archive/refs/heads/master.zip), или склонировать репозиторий</br>с помощью Git ```git clone https://github.com/LukovDev/LibGFW.git```
 
 #### Окей, вот я скачал, и что дальше?
 

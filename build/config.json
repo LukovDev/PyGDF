@@ -9,9 +9,7 @@
 
     "console-disabled": true,
 
-    "optimization-level": 2,
-
     "pyinstaller-flags": [
-        "-F", "--log-level WARN"
+        "--onefile", "--log-level WARN"
     ]
 }

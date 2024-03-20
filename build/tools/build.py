@@ -1,7 +1,7 @@
 #
 # build.py - Компилирует вашу программу в бинарный файл при помощи pyinstaller.
 #
-# log-level: TRACE, DEBUG, INFO, WARN, DEPRECATION, ERROR, FATAL
+# log-level: TRACE, DEBUG, INFO, WARN, ERROR, FATAL
 #
 
 
@@ -47,7 +47,6 @@ def building() -> None:
     print(f"{' COMPILATION PROJECT ':─^96}")
     if waiting_enabled: waiting_thread.start()
 
-    os.system(f"set PYTHONOPTIMIZE={optimization_level}")
     os.system(f"pyinstaller {flags} ../../{main_file}")
 
     print(f"\r{' '*wait_text_len}\n> COMPILATION IS SUCCESSFUL!\n{'─'*96}\n\n")
@@ -85,7 +84,6 @@ if __name__ == "__main__":
         program_name       = config["program-name"]
         console_disabled   = config["console-disabled"]
         data_folder        = config["data-folder"]
-        optimization_level = config["optimization-level"]
         pyinstaller_flags  = config["pyinstaller-flags"]
         lg                 = "--log-level "
         waiting_enabled    = any(flag in pyinstaller_flags for flag in [lg+"WARN", lg+"ERROR", lg+"FATAL"])

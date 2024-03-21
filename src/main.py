@@ -6,10 +6,10 @@
 # Импортируем:
 if True:
     # Ядро фреймворка:
-    import lgfw
-    from lgfw import files
-    from lgfw.math import *
-    from lgfw.graphics import Window, Camera2D, Sprite
+    import gdf
+    from gdf import files
+    from gdf.math import *
+    from gdf.graphics import Window, Camera2D, Sprite
 
 
 # Класс игры:
@@ -24,27 +24,27 @@ class GameClass(Window):
     # Создать окно:
     def init(self) -> None:
         super().__init__(
-            title      = "LibGFW Window",                                   # Заголовок окна.
-            icon       = files.load_image("./data/icons/runapp-icon.png"),  # Заголовочная иконка окна.
-            size       = (960, 540),                                        # Размер окна.
-            vsync      = False,                                             # Вертикальная синхронизация.
-            fps        = 60,     # Количество кадров в секунду (т.е. количество игровых циклов в секунду).
-            visible    = True,   # Отображаемость окна.
-            fullscreen = False,  # Окно на весь экран (разрешение экрана изменится на размер окна).
-            min_size   = (0, 0),                                            # Минимальный размер окна.
-            max_size   = (float("inf"), float("inf")),                      # Максимальный размер окна.
-            samples    = 4                                                  # Мульти-семплинг (0-16).
+            title      = "PyGDF Window",
+            icon       = files.load_image("./data/icons/runapp-icon.png"),
+            size       = (960, 540),
+            vsync      = False,
+            fps        = 60,
+            visible    = True,
+            fullscreen = False,
+            min_size   = (0, 0),
+            max_size   = (float("inf"), float("inf")),
+            samples    = 16  # 0 / 4 / 8 / 16.
         )
 
     # Вызывается при создании окна:
     def start(self) -> None:
         # 2D камера:
         self.camera = Camera2D(
-            width    = self.window.get_width(),   # Ширина камеры.
-            height   = self.window.get_height(),  # Высота камеры.
-            position = vec2(0, 0),                # Позиция камеры.
-            angle    = 0.0,                       # Угол наклона камеры.
-            zoom     = 1.0                        # Масштаб камеры.
+            width    = self.window.get_width(),
+            height   = self.window.get_height(),
+            position = vec2(0, 0),
+            angle    = 0.0,
+            zoom     = 1.0
         )
 
         # Загружаем текстуру, которую укажем в нашем спрайте чтобы её отрисовать:
@@ -54,7 +54,18 @@ class GameClass(Window):
         self.sprite = Sprite(texture)
 
     # Вызывается каждый кадр (игровой цикл):
-    def update(self, delta_time: float, events: list) -> None:
+    def update(self, delta_time: float, event_list: list) -> None:
+        for event in event_list:
+            # События окна.
+            pass
+
+        # Какой-то код (логика).
+
+        # Рисуем всё в окно:
+        self.render(delta_time)
+
+    # Вызывается в конце функции update чтобы отрисовать все изменения:
+    def render(self, delta_time: float) -> None:
         # Очищаем окно (значения цвета от 0 до 1):
         self.window.clear(0, 0, 0)
 
@@ -85,7 +96,7 @@ class GameClass(Window):
 if __name__ == "__main__":
 
     # Выводим текущую версию фреймворка:
-    version = lgfw.get_version()
-    print(f"LibGFW version: {version}")
+    version = gdf.get_version()
+    print(f"PyGDF version: {version}")
 
     game = GameClass()

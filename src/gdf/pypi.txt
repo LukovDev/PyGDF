@@ -1,0 +1,12 @@
+pygame
+
+pyopenal
+pyogg
+
+pyopengl
+pyopengl_accelerate
+
+numpy
+pyglm
+
+pymunk

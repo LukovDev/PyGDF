@@ -18,15 +18,14 @@ class Sprite:
         self.height = self.texture.height
 
     # Отрисовка:
-    def render(self, x: float, y: float, width: int = None, height: int = None,
-               angle: float = None, color: list = None) -> None:
-        wdth, hght = width, height
+    def render(self, x: float, y: float, width: int = 0, height: int = 0,
+               angle: float = 0.0, color: list = None) -> None:
         if color is None:  color = [1, 1, 1, 1]
-        if width is None:  wdth = self.width
-        if height is None: hght = self.height
+
+        wdth, hght = width or sprite.width, height or sprite.height
 
         # Вращаем вершины спрайта:
-        if angle is not None and angle != 0:
+        if angle != 0.0:
             center_x      = x + (wdth / 2)
             center_y      = y + (hght / 2)
             angle_rad     = -radians(angle)
@@ -59,7 +58,7 @@ class Sprite:
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture.id)
 
-        gl.glBegin(gl.GL_TRIANGLE_FAN)
+        gl.glBegin(gl.GL_QUADS)
         gl.glColor4f(*color)
         for index in range(len(vertices)//4):
             gl.glTexCoord2f(vertices[index*4+2], vertices[index*4+3])

@@ -9,7 +9,7 @@ if True:
     import tkinter as tk
     from tkinter import filedialog
     from .audio import Music, Sound
-    from .graphics import Image, Texture
+    from .graphics import Image, Texture, Sprite
 
 
 # Класс исключения:
@@ -37,6 +37,11 @@ def save_texture(file_path: str, texture: Texture) -> bool:
     try: texture.image.save(file_path)
     except IgnoreException: return False
     return True
+
+
+# Загружаем текстуру, а потом превращаем в спрайт:
+def load_sprite(file_path: str, is_flip_y: bool = False) -> Sprite:
+    return Sprite(load_texture(file_path, is_flip_y))
 
 
 # Загружаем музыку:

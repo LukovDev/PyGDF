@@ -5,16 +5,16 @@
 
 # Импортируем:
 if True:
-    import numpy as np
-    import numba as nb
     from .gl import *
     from .sprite import Sprite
+    from .texture import Texture
+    from .atlas import AtlasTexture
     from ..math import *
     from ..utils import *
 
 
 # Ускоренная функция поворота вершин спрайта:
-@nb.njit
+@numba.njit
 def __rotate_vertices__(x: float, y: float, wdth: int, hght: int, angle: float) -> list:
     center_x      = x + (wdth / 2)
     center_y      = y + (hght / 2)
@@ -56,8 +56,15 @@ class SpriteBatch:
         return self
 
     # Отрисовать спрайт:
-    def draw(self, sprite: Sprite, x: float, y: float, width: int = 0, height: int = 0,
-             angle: float = 0.0, cull_sprites: bool = False) -> "SpriteBatch":
+    def draw(self,
+             sprite:       Sprite | AtlasTexture,
+             x:            float,
+             y:            float,
+             width:        int   = 0,
+             height:       int   = 0,
+             angle:        float = 0.0,
+             cull_sprites: bool  = False
+             ) -> "SpriteBatch":
         if not self.__is_begin__:
             raise Exception(
                 "The \".begin()\" function was not called "
@@ -69,10 +76,10 @@ class SpriteBatch:
         # ИНОГДА, ЭТО МОЖЕТ НАОБОРОТ ЗАНИЗИТЬ СКОРОСТЬ ОТРИСОВКИ!
         if cull_sprites and self.camera2d is not None:
             zoom, meter = self.camera2d.zoom, self.camera2d.meter / 100
-            if not is_circle_rectangle((x+(wdth/2), y+(hght/2)), max(abs(wdth), abs(hght))/2 * 1.5,
-                                       (self.camera2d.position.x-(self.camera2d.width*zoom)/2*meter,
-                                        self.camera2d.position.y-(self.camera2d.height*zoom)/2*meter,
-                                        self.camera2d.width*zoom*meter, self.camera2d.height*zoom*meter)): return
+            if not is_circle_rectangle_2d((x+(wdth/2), y+(hght/2)), max(abs(wdth), abs(hght))/2 * 1.5,
+                                          (self.camera2d.position.x-(self.camera2d.width*zoom)/2*meter,
+                                          self.camera2d.position.y-(self.camera2d.height*zoom)/2*meter,
+                                          self.camera2d.width*zoom*meter, self.camera2d.height*zoom*meter)): return
 
         # Вращаем вершины спрайта:
         if angle != 0.0:
@@ -84,12 +91,13 @@ class SpriteBatch:
                 x + wdth, y + hght,  # Верхний правый угол.
                 x       , y + hght,  # Верхный левый угол.
             ]
-        
+
         # Если текстурки нет в уникальных текстурках:
         if sprite.texture.id not in self.texture_batches:
-            self.texture_batches[sprite.texture.id] = []
+            self.texture_batches[sprite.texture.id] = ([], [])
 
-        self.texture_batches[sprite.texture.id].extend(vertices)
+        self.texture_batches[sprite.texture.id][0].extend(vertices)
+        self.texture_batches[sprite.texture.id][1].extend(sprite.texcoords)
 
         return self
 
@@ -105,10 +113,10 @@ class SpriteBatch:
         gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
 
         # Пройдитесь по каждой текстуре и отрендерьте все квадраты с этой текстурой:
-        for texture, vertices in self.texture_batches.items():
+        for texture, (vertices, texcoords) in self.texture_batches.items():
             gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
-            gl.glVertexPointer(2, gl.GL_DOUBLE, 0, np.array(vertices))
-            gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, np.array([0, 1, 1, 1, 1, 0, 0, 0]*(len(vertices) // 8)))
+            gl.glVertexPointer(2, gl.GL_DOUBLE, 0, numpy.array(vertices))
+            gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, numpy.array(texcoords))
             gl.glDrawArrays(gl.GL_QUADS, 0, len(vertices) // 2)
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 

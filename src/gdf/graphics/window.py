@@ -148,11 +148,10 @@ class Window:
             # gl.glEnable(gl.GL_CULL_FACE)
 
             # Настраиваем соотношение сторон:
-            gl.glViewport(0, 0, self.get_size()[0], self.get_size()[1])
+            gl.glViewport(0, 0, self.get_width(), self.get_height())
             gl.glMatrixMode(gl.GL_PROJECTION)
             gl.glLoadIdentity()
-            aspect_ratio = self.get_size()[0] / self.get_size()[1]
-            glu.gluOrtho2D(-aspect_ratio, aspect_ratio, -1, 1)
+            glu.gluOrtho2D(0, self.get_width(), 0, self.get_height())
             gl.glMatrixMode(gl.GL_MODELVIEW)
 
         # Инициализируем OpenAL:

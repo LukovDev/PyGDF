@@ -28,7 +28,7 @@ class GameClass(Window):
             icon       = files.load_image("./data/icons/runapp-icon.png"),
             size       = (960, 540),
             vsync      = False,
-            fps        = -1,
+            fps        = 60,
             visible    = True,
             fullscreen = False,
             min_size   = (0, 0),
@@ -68,6 +68,9 @@ class GameClass(Window):
     def render(self, delta_time: float) -> None:
         # Очищаем окно (значения цвета от 0 до 1):
         self.window.clear(0, 0, 0)
+
+        # Обновляем камеру:
+        self.camera.update()
 
         # Отрисовываем наш спрайт (width и height можно убрать и тогда будет использоваться размер текстуры):
         self.sprite.render(x=-64, y=-64, width=128, height=128)

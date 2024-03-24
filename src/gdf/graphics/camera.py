@@ -30,6 +30,8 @@ class Camera2D:
         self.modelview = None
         self.projection = None
 
+        self.__is_ui_begin__ = False
+
         # Установка ортогональной проекции:
         self.resize(width, height)
 
@@ -41,10 +43,10 @@ class Camera2D:
         # Масштабирование, вращение и перемещение:
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
-        if self.zoom != 0: gl.glScaled(1 / self.zoom, 1 / self.zoom, 1)
-        else: gl.glScaled(0.0, 0.0, 0.0)
-        gl.glRotatef(self.angle, False, False, True)
-        gl.glTranslated(-self.position.x, -self.position.y, 0)
+        if self.zoom != 0: gl.glScale(1.0 / self.zoom, 1.0 / self.zoom, 1.0)
+        else: gl.glScale(0.0, 0.0, 0.0)
+        gl.glRotate(self.angle, False, False, True)
+        gl.glTranslate(-self.position.x, -self.position.y, 0)
 
         self.modelview  = gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX)
         self.projection = gl.glGetDoublev(gl.GL_PROJECTION_MATRIX)
@@ -64,6 +66,29 @@ class Camera2D:
         wdth, hght = width/2 * self.meter/100, height/2 * self.meter/100
         glu.gluOrtho2D(-wdth, wdth, -hght, hght)
 
+        return self
+
+    # Вызывайте эту функцию, когда хотите отрисовать интерфейс:
+    def ui_begin(self) -> "Camera2D":
+        if self.__is_ui_begin__:
+            raise Exception(
+                "Function \".ui_end()\" was not called in the last iteration of the loop.\n"
+                "The function \".ui_begin()\" cannot be called, since the last one "
+                "\".ui_begin()\" was not closed by the \".ui_end()\" function.")
+        self.__is_ui_begin__  = True
+
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glPushMatrix()
+        gl.glLoadIdentity()
+        gl.glTranslate(-self.width/2, -self.height/2, 0)
+        return self
+
+    # Вызывайте эту функцию, когда закончили рисовать интерфейс:
+    def ui_end(self) -> "Camera2D":
+        if self.__is_ui_begin__: self.__is_ui_begin__ = False
+        else: raise Exception("The \".ui_begin()\" function was not called before the \".ui_end()\" function.")
+
+        gl.glPopMatrix()
         return self
 
     # Получить позицию точки из окна в мировом пространстве:
@@ -101,7 +126,7 @@ class Camera3D:
         self.fov      = fov        # Угол обзора камеры.
         self.far      = far        # Дальнее отсечение.
         self.near     = near       # Ближнее отсечение.
-        self.yaw      = -90+yaw    # Рыскание камеры.
+        self.yaw      = -90 + yaw  # Рыскание камеры.
         self.pitch    = pitch      # Тангаж камеры.
         self.size = width, height  # Размер камеры.
 
@@ -167,10 +192,10 @@ class Camera3D:
 
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
-        gl.glScaled(1 / self.scale.x, 1 / self.scale.y, 1 / self.scale.z)
-        gl.glRotatef(-self.rotation.x, True, False, False)  # Вращаем камеру по X-оси.
-        gl.glRotatef(-self.rotation.y, False, True, False)  # Вращаем камеру по Y-оси.
-        gl.glRotatef(-self.rotation.z, False, False, True)  # Вращаем камеру по Z-оси.
-        gl.glTranslatef(-self.position.x, -self.position.y, -self.position.z)
+        gl.glScale(1 / self.scale.x, 1 / self.scale.y, 1 / self.scale.z)
+        gl.glRotate(-self.rotation.x, True, False, False)  # Вращаем камеру по X-оси.
+        gl.glRotate(-self.rotation.y, False, True, False)  # Вращаем камеру по Y-оси.
+        gl.glRotate(-self.rotation.z, False, False, True)  # Вращаем камеру по Z-оси.
+        gl.glTranslate(-self.position.x, -self.position.y, -self.position.z)
 
         return self

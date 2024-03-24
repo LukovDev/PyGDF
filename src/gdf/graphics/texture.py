@@ -24,7 +24,7 @@ class Texture:
 
         gl.glEnable(gl.GL_TEXTURE_2D)
 
-        self.set_filter()
+        self.set_linear()
         self.set_filter([gl.GL_TEXTURE_WRAP_S, gl.GL_TEXTURE_WRAP_T], gl.GL_CLAMP_TO_EDGE)
 
         wdth, hght = self.width, self.height
@@ -49,7 +49,7 @@ class Texture:
         return self
 
     # Установить фильтрацию текстуры:
-    def set_filter(self, name=[gl.GL_TEXTURE_MAG_FILTER, gl.GL_TEXTURE_MIN_FILTER], param=gl.GL_LINEAR) -> "Texture":
+    def set_filter(self, name: int, param: int) -> "Texture":
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
         if type(name) is list:
             for names in name: gl.glTexParameterf(gl.GL_TEXTURE_2D, names, param)
@@ -57,9 +57,15 @@ class Texture:
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         return self
 
+    # Установить сглаживание текстуры:
+    def set_linear(self) -> "Texture":
+        self.set_filter([gl.GL_TEXTURE_MAG_FILTER, gl.GL_TEXTURE_MIN_FILTER], gl.GL_LINEAR)
+        return self
+
     # Установить пикселизацию текстуры:
     def set_pixelized(self) -> "Texture":
-        return self.set_filter([gl.GL_TEXTURE_MAG_FILTER, gl.GL_TEXTURE_MIN_FILTER], gl.GL_NEAREST)
+        self.set_filter([gl.GL_TEXTURE_MAG_FILTER, gl.GL_TEXTURE_MIN_FILTER], gl.GL_NEAREST)
+        return self
 
     # Удалить текстуру:
     def destroy(self) -> None:

@@ -40,9 +40,9 @@ def __rotate_vertices__(x: float, y: float, wdth: int, hght: int, angle: float) 
 class Sprite:
     def __init__(self, texture: Texture | AtlasTexture) -> None:
         self.texture = texture
+        self.id = self.texture.id
         self.width  = self.texture.width
         self.height = self.texture.height
-        self.texcoords = [0, 1, 1, 1, 1, 0, 0, 0]
 
     # Отрисовка:
     def render(self, x: float, y: float, width: int = 0, height: int = 0,
@@ -73,7 +73,7 @@ class Sprite:
         # RIGHT | BOTTOM
         # RIGHT | TOP
         # LEFT  | TOP
-        texcoords = self.texcoords if type(self.texture) is Texture else self.texture.texcoords
+        texcoords = [0, 1, 1, 1, 1, 0, 0, 0] if type(self.texture) is Texture else self.texture.texcoords
 
         for index in range(0, len(vertices), 2):
             gl.glTexCoord2f(texcoords[index], texcoords[index+1])

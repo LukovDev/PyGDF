@@ -11,8 +11,8 @@ if True:
 # Класс текстуры атласа:
 class AtlasTexture:
     def __init__(self, atlas: Texture, width: int, height: int, texcoords: list) -> None:
-        self.id = atlas.id
-        self.texture = atlas
-        self.width = width
-        self.height = height
+        self.texture   = atlas
+        self.id        = self.texture.id
+        self.width     = width
+        self.height    = height
         self.texcoords = texcoords

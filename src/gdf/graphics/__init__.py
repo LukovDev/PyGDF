@@ -30,7 +30,7 @@ if True:
 
     # Импортируем основной функционал из скриптов:
     from .atlas   import AtlasTexture
-    from .batch   import SpriteBatch
+    from .batch   import SpriteBatch, AtlasTextureBatch
     from .buffers import SSBO, FrameBuffer
     from .camera  import Camera2D, Camera3D
     from .draw    import Draw2D, Draw3D

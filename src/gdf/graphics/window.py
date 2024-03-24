@@ -76,9 +76,13 @@ class Window:
             "width": size[0],
             "height": size[1],
             "vsync": vsync,
+            "settled-fps": fps,
             "visible": visible,
             "fullscreen": fullscreen,
-            "settled-fps": fps,
+            "min-size": min_size,
+            "max-size": max_size,
+            "samples": samples,
+
             "window-active": False,
             "monitor-size": (),
             "mouse-scroll": [0.0, 0.0],
@@ -88,10 +92,7 @@ class Window:
             "opengl-version": "",
             "delta-time": 1 / 60,
             "time": time.time(),
-            "min-size": min_size,
-            "max-size": max_size,
             "exiting": False,
-            "samples": samples
         }
 
         pygame.init()

@@ -77,8 +77,6 @@ class Music:
             return False
 
     # Освобождаем ресурсы:
-    def destroy(self) -> "Music":
-        if self.audio is None: return self
+    def destroy(self) -> None:
+        if self.audio is None: return
         self.audio = None
-
-        return self

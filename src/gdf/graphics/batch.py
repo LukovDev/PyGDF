@@ -46,17 +46,18 @@ class SpriteBatch:
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
 
     # Очистить все списки и пр. и начать подготовку к отрисовке:
-    def begin(self) -> None:
+    def begin(self) -> "SpriteBatch":
         if self.__is_begin__:
             raise Exception(
                 "Function \".end()\" was not called in the last iteration of the loop.\n"
                 "The function \".begin()\" cannot be called, since the last one "
                 "\".begin()\" was not closed by the \".end()\" function.")
         self.__is_begin__  = True
+        return self
 
     # Отрисовать спрайт:
     def draw(self, sprite: Sprite, x: float, y: float, width: int = 0, height: int = 0,
-             angle: float = 0.0, cull_sprites: bool = False) -> None:
+             angle: float = 0.0, cull_sprites: bool = False) -> "SpriteBatch":
         if not self.__is_begin__:
             raise Exception(
                 "The \".begin()\" function was not called "
@@ -90,8 +91,10 @@ class SpriteBatch:
 
         self.texture_batches[sprite.texture.id].extend(vertices)
 
+        return self
+
     # Отрисовать все спрайты:
-    def end(self) -> None:
+    def end(self) -> "SpriteBatch":
         if self.__is_begin__: self.__is_begin__ = False
         else: raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
 
@@ -114,3 +117,5 @@ class SpriteBatch:
         gl.glDisable(gl.GL_TEXTURE_2D)
 
         self.texture_batches.clear()
+
+        return self

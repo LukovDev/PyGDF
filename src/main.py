@@ -28,7 +28,7 @@ class GameClass(Window):
             icon       = files.load_image("./data/icons/runapp-icon.png"),
             size       = (960, 540),
             vsync      = False,
-            fps        = 60,
+            fps        = -1,
             visible    = True,
             fullscreen = False,
             min_size   = (0, 0),

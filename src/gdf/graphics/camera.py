@@ -37,7 +37,7 @@ class Camera2D:
         self.update()
 
     # Обновление камеры:
-    def update(self) -> None:
+    def update(self) -> "Camera2D":
         # Масштабирование, вращение и перемещение:
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
@@ -49,8 +49,10 @@ class Camera2D:
         self.modelview  = gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX)
         self.projection = gl.glGetDoublev(gl.GL_PROJECTION_MATRIX)
 
+        return self
+
     # Изменение размера камеры:
-    def resize(self, width: int, height: int) -> None:
+    def resize(self, width: int, height: int) -> "Camera2D":
         self.width = width
         self.height = height
         self.size = width, height
@@ -61,6 +63,8 @@ class Camera2D:
         gl.glLoadIdentity()
         wdth, hght = width/2 * self.meter/100, height/2 * self.meter/100
         glu.gluOrtho2D(-wdth, wdth, -hght, hght)
+
+        return self
 
     # Получить позицию точки из окна в мировом пространстве:
     def screen_to_world(self, point_pos: tuple) -> tuple:
@@ -112,7 +116,7 @@ class Camera3D:
         self.apply()
 
     # Обновление камеры:
-    def update(self) -> None:
+    def update(self) -> "Camera3D":
         self.rotation.xyz = self.rotation.x % 360, self.rotation.y % 360, self.rotation.z % 360
 
         if self.fov  > 179    : self.fov = 179
@@ -125,8 +129,10 @@ class Camera3D:
         self.modelview  = gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX)
         self.projection = gl.glGetDoublev(gl.GL_PROJECTION_MATRIX)
 
+        return self
+
     # Изменение размера камеры:
-    def resize(self, width: int, height: int) -> None:
+    def resize(self, width: int, height: int) -> "Camera3D":
         self.size = width, height
         self.width, self.height = width, height
         gl.glMatrixMode(gl.GL_PROJECTION)
@@ -135,8 +141,10 @@ class Camera3D:
         glu.gluPerspective(self.fov, float(self.width) / self.height, self.near, self.far)
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
+        return self
+
     # Применить настройки камеры:
-    def apply(self) -> None:
+    def apply(self) -> "Camera3D":
         # Преобразуем вектор направления:
         self.forward = normalize(vec3(
                 cos(radians(self.pitch)) * cos(radians(self.yaw)),
@@ -164,3 +172,5 @@ class Camera3D:
         gl.glRotatef(-self.rotation.y, False, True, False)  # Вращаем камеру по Y-оси.
         gl.glRotatef(-self.rotation.z, False, False, True)  # Вращаем камеру по Z-оси.
         gl.glTranslatef(-self.position.x, -self.position.y, -self.position.z)
+
+        return self

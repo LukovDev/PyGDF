@@ -68,19 +68,23 @@ class ShaderProgram:
         return self
 
     # Используем шейдер:
-    def begin(self) -> None:
+    def begin(self) -> "ShaderProgram":
         gl.glUseProgram(self.program)
 
+        return self
+
     # Не используем шейдер:
-    def end(self) -> None:
+    def end(self) -> "ShaderProgram":
         gl.glUseProgram(0)
+
+        return self
 
     # Получить номер униформы шейдера:
     def get_uniform(self, name: str) -> int:
         return gl.glGetUniformLocation(self.program, name)
 
     # Установить значение для униформы в шейдере:
-    def set_uniform(self, name: str, value: bool | int | float | list | tuple | numpy.ndarray) -> None:
+    def set_uniform(self, name: str, value: bool | int | float | list | tuple | numpy.ndarray) -> "ShaderProgram":
         if isinstance(value, (glm.vec2, glm.vec3, glm.vec4, tuple)): value = list(value)
         if type(value) is numpy.ndarray: value = value.tolist()
         location = self.get_uniform(name)
@@ -122,8 +126,10 @@ class ShaderProgram:
         if type(value) is list and len(value) == 4 and type(value[0]) is list:
             gl.glUniformMatrix4fv(location, 1, gl.GL_FALSE, value)
 
+        return self
+
     # Установить значение для униформы типа sampler2d:
-    def set_sampler2d(self, name: str, value: int) -> None:
+    def set_sampler2d(self, name: str, value: int) -> "ShaderProgram":
         global __texture_units__
         location = self.get_uniform(name)
         if location == -1: return
@@ -150,6 +156,8 @@ class ShaderProgram:
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
+        return self
+
     # Удаление шейдера:
     def destroy(self) -> None:
         gl.glDeleteProgram(self.program)
@@ -168,16 +176,22 @@ class ComputeShaderProgram:
         return self
 
     # Используем шейдер вычислений:
-    def begin(self) -> None:
+    def begin(self) -> "ComputeShaderProgram":
         gl.glUseProgram(self.program)
 
+        return self
+
     # Отправка на выполнение ядра вычислений:
-    def dispatch(self, num_groups_x, num_groups_y, num_groups_z) -> None:
+    def dispatch(self, num_groups_x, num_groups_y, num_groups_z) -> "ComputeShaderProgram":
         gl.glDispatchCompute(num_groups_x, num_groups_y, num_groups_z)
 
+        return self
+
     # Перестать использовать шейдер вычислений:
-    def end(self) -> None:
+    def end(self) -> "ComputeShaderProgram":
         gl.glUseProgram(0)
+
+        return self
 
     # Получить номер униформы шейдера:
     def get_uniform(self, name: str) -> int:

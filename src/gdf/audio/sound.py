@@ -288,9 +288,7 @@ class Sound:
         return self.sound.get_state() == al.AL_PLAYING
 
     # Освобождаем ресурсы:
-    def destroy(self) -> "Sound":
-        if self.sound is None: return self
+    def destroy(self) -> None:
+        if self.sound is None: return
         self.sound.close()
         self.sound.destroy()
-
-        return self

@@ -19,7 +19,7 @@ class Sprite:
 
     # Отрисовка:
     def render(self, x: float, y: float, width: int = 0, height: int = 0,
-               angle: float = 0.0, color: list = None) -> None:
+               angle: float = 0.0, color: list = None) -> "Sprite":
         if color is None:  color = [1, 1, 1, 1]
 
         wdth, hght = width or sprite.width, height or sprite.height
@@ -67,6 +67,8 @@ class Sprite:
 
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         gl.glDisable(gl.GL_TEXTURE_2D)
+
+        return self
 
     # Удалить спрайт:
     def destroy(self) -> None:

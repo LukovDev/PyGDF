@@ -45,7 +45,7 @@ class SkyBox:
             ]
 
         # Отрисовать скайбокс:
-        def render(self) -> None:
+        def render(self) -> "SkyBox.CubeMap":
             def draw_face(vertices: list, texture) -> None:
                 gl.glBindTexture(gl.GL_TEXTURE_2D, texture.id)
                 gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
@@ -77,6 +77,8 @@ class SkyBox:
             if is_enabled_lighting: gl.glEnable(gl.GL_LIGHTING)
             gl.glEnable(gl.GL_DEPTH_TEST)
             gl.glPopMatrix()
+
+            return self
 
     # Класс математически-вычисляемой атмосферы:
     class Atmosphere:
@@ -374,7 +376,7 @@ class SkyBox:
             ]
 
         # Отрисовать скайбокс:
-        def render(self) -> None:
+        def render(self) -> "SkyBox.Atmosphere":
             def draw_face(vertices: list) -> None:
                 gl.glBegin(gl.GL_QUADS)
                 for vert in vertices: gl.glVertex3d(vert[0], vert[1], vert[2])
@@ -423,3 +425,5 @@ class SkyBox:
             if is_enabled_lighting: gl.glEnable(gl.GL_LIGHTING)
             gl.glEnable(gl.GL_DEPTH_TEST)
             gl.glPopMatrix()
+
+            return self

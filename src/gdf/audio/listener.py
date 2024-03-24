@@ -12,7 +12,7 @@ if True:
 # Класс слушателя:
 class Listener:
     def __init__(self,
-                 position: vec3,
+                 position: vec3  = vec3(0, 0, 0),
                  look_at:  vec3  = vec3(0, 0, -1),
                  up:       vec3  = vec3(0, 1, 0),
                  volume:   float = 1.0) -> None:
@@ -59,3 +59,8 @@ class Listener:
     # Установить громкость слушателя (усиление слуха):
     def get_volume(self, volume: float) -> float:
         return self.volume
+
+    # Освобождаем ресурсы:
+    def destroy(self) -> None:
+        if self.listener is None: return
+        pass  # Просто функция-затычка.

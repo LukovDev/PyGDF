@@ -18,13 +18,17 @@ class SSBO:
         gl.glBindBuffer(gl.GL_SHADER_STORAGE_BUFFER, 0)
 
     # Использовать буфер:
-    def begin(self) -> None:
+    def begin(self) -> "SSBO":
         gl.glBindBufferBase(gl.GL_SHADER_STORAGE_BUFFER, 0, self.id)
         gl.glMemoryBarrier(gl.GL_SHADER_STORAGE_BARRIER_BIT)
 
+        return self
+
     # Перестать использовать буфер:
-    def end(self) -> None:
+    def end(self) -> "SSBO":
         gl.glBindBufferBase(gl.GL_SHADER_STORAGE_BUFFER, 0, 0)
+
+        return self
 
     # Удалить буфер:
     def destroy(self) -> None:
@@ -40,12 +44,16 @@ class FrameBuffer:
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
     # Использовать буфер:
-    def begin(self) -> None:
+    def begin(self) -> "FrameBuffer":
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.id)
 
+        return self
+
     # Перестать использовать буфер:
-    def end(self) -> None:
+    def end(self) -> "FrameBuffer":
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
+        return self
 
     # Удалить буфер:
     def destroy(self) -> None:

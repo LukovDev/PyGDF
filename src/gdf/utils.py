@@ -27,7 +27,21 @@ def get_pos_angle_2d(angle: float, radius: float) -> tuple:
 def get_delta_pos_angle_2d(angle: float, distance: float) -> tuple:
     """ Возвращает 2 числа для перемещения вектора в сторону угла """
 
-    return distance*sin(radians(angle)), distance*cos(radians(angle))
+    return (distance*sin(radians(angle)), distance*cos(radians(angle)))
+
+
+# Получить дельту для перемещения вектора в сторону вектора на расстояние:
+def get_delta_pos_vector_2d(vector: float, distance: float) -> tuple:
+    """ Возвращает 2 числа для перемещения вектора в сторону вектора """
+
+    return get_delta_pos_angle_2d(get_angle_points_2d((0, 0), normalize(vector)), distance)
+
+
+# Получить вектор направления из угла:
+def get_angle_to_direction_2d(angle: float) -> tuple:
+    """ Возвращает 2 числа в виде направления из угла """
+
+    return (-sin(radians(angle-90)), -cos(radians(angle-90)))
 
 
 # Получить расстояние между двумя точками:

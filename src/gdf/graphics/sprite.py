@@ -47,7 +47,7 @@ class Sprite:
     # Отрисовка:
     def render(self, x: float, y: float, width: int = 0, height: int = 0,
                angle: float = 0.0, color: list = None) -> "Sprite":
-        if color is None:  color = [1, 1, 1, 1]
+        if color is None: color = [1, 1, 1]
 
         wdth, hght = width or self.width, height or self.height
 
@@ -66,7 +66,7 @@ class Sprite:
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture.id)
 
         gl.glBegin(gl.GL_QUADS)
-        gl.glColor4f(*color)
+        gl.glColor(*color)
 
         # Структура текстурных координат:
         # LEFT  | BOTTOM

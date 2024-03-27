@@ -6,6 +6,7 @@
 # Импортируем:
 if True:
     import json
+    import zipfile
     import tkinter as tk
     from tkinter import filedialog
     from .audio import Music, Sound
@@ -72,6 +73,25 @@ def load_json(file_path: str, mode: str = "r+", encoding: str = "utf-8") -> dict
 # Сохраняем json файл:
 def save_json(file_path: str, data: dict, mode: str = "w+", encoding: str = "utf-8", indent: int = 4) -> None:
     with open(file_path, mode, encoding=encoding) as f: json.dump(data, f, indent=indent)
+
+
+# Создаем zip-файл и добавляем файлы и папки из списка:
+def create_zip_file(file_path: str, file_folder_list: list) -> None:
+    with zipfile.ZipFile(file_path, "w") as zipf:
+        for item in file_folder_list:
+            if os.path.isfile(item):
+                zipf.write(item, os.path.basename(item))
+            elif os.path.isdir(item):
+                for root, dirs, files in os.walk(item):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        zipf.write(file_path, os.path.relpath(file_path, os.path.join(item, "..")))
+
+
+# Извлекаем файлы из zip-файла:
+def extract_zip_file(file_path: str, output_dir: str) -> None:
+    with zipfile.ZipFile(file_path, "r") as zf:
+        zf.extractall(output_dir)
 
 
 # Выбрать файл:

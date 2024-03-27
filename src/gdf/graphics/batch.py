@@ -6,6 +6,7 @@
 # Импортируем:
 if True:
     from .gl import *
+    from .camera import Camera2D
     from .sprite import Sprite
     from .texture import Texture
     from .atlas import AtlasTexture
@@ -15,16 +16,16 @@ if True:
 
 # Ускоренная функция поворота вершин спрайта:
 @numba.njit
-def __rotate_vertices__(x: float, y: float, wdth: int, hght: int, angle: float) -> list:
-    center_x      = x + (wdth / 2)
-    center_y      = y + (hght / 2)
+def __rotate_vertices__(x: float, y: float, width: int, height: int, angle: float) -> list:
+    center_x      = x + (width / 2)
+    center_y      = y + (height / 2)
     angle_rad     = -radians(angle)
     angle_rad_sin = sin(angle_rad)
     angle_rad_cos = cos(angle_rad)
-    x1, y1        = ( x         - center_x), ( y         - center_y)
-    x2, y2        = ((x + wdth) - center_x), ( y         - center_y)
-    x3, y3        = ((x + wdth) - center_x), ((y + hght) - center_y)
-    x4, y4        = ( x         - center_x), ((y + hght) - center_y)
+    x1, y1        = ( x          - center_x), ( y           - center_y)
+    x2, y2        = ((x + width) - center_x), ( y           - center_y)
+    x3, y3        = ((x + width) - center_x), ((y + height) - center_y)
+    x4, y4        = ( x          - center_x), ((y + height) - center_y)
 
     return [
         (x1 * angle_rad_cos - y1 * angle_rad_sin) + center_x,
@@ -42,8 +43,8 @@ def __rotate_vertices__(x: float, y: float, wdth: int, hght: int, angle: float) 
 class SpriteBatch:
     """ Этот класс не поддерживает отрисовку текстур атласов. Для этого есть класс AtlasTextureBatch """
 
-    def __init__(self, camera2d = None) -> None:
-        self.camera2d        = camera2d  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
+    def __init__(self, camera: Camera2D = None) -> None:
+        self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
         self.__is_begin__    = False
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
 
@@ -62,8 +63,8 @@ class SpriteBatch:
              sprite:       Sprite | Texture,
              x:            float,
              y:            float,
-             width:        int   = 0,
-             height:       int   = 0,
+             width:        int,
+             height:       int,
              angle:        float = 0.0,
              cull_sprites: bool  = False
              ) -> "SpriteBatch":
@@ -72,25 +73,23 @@ class SpriteBatch:
                 "The \".begin()\" function was not called "
                 "before the \".draw()\" function.")
 
-        wdth, hght = width or sprite.width, height or sprite.height
-
         # Если камера не видит ваш спрайт, то мы пропускаем отрисовку спрайта:
         # ИНОГДА, ЭТО МОЖЕТ НАОБОРОТ ЗАНИЗИТЬ СКОРОСТЬ ОТРИСОВКИ!
-        if cull_sprites and self.camera2d is not None:
-            zoom, meter = self.camera2d.zoom, self.camera2d.meter / 100
-            if not is_circle_rectangle_2d((x+(wdth/2), y+(hght/2)), max(abs(wdth), abs(hght))/2 * 1.5,
-                                          (self.camera2d.position.x-(self.camera2d.width*zoom)/2*meter,
-                                          self.camera2d.position.y-(self.camera2d.height*zoom)/2*meter,
-                                          self.camera2d.width*zoom*meter, self.camera2d.height*zoom*meter)): return
+        if cull_sprites and self.camera is not None:
+            zoom, meter = self.camera.zoom, self.camera.meter / 100
+            if not is_circle_rectangle_2d((x+(width/2), y+(height/2)), max(abs(width), abs(height))/2 * 1.5,
+                                          (self.camera.position.x-(self.camera.width*zoom)/2*meter,
+                                          self.camera.position.y-(self.camera.height*zoom)/2*meter,
+                                          self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
 
         # Вращаем вершины спрайта:
-        if angle != 0.0: vertices = __rotate_vertices__(x, y, wdth, hght, angle)
+        if angle != 0.0: vertices = __rotate_vertices__(x, y, width, height, angle)
         else:
             vertices = [
-                x       , y       ,  # Нижний левый угол.
-                x + wdth, y       ,  # Нижний правый угол.
-                x + wdth, y + hght,  # Верхний правый угол.
-                x       , y + hght,  # Верхный левый угол.
+                x        , y         ,  # Нижний левый угол.
+                x + width, y         ,  # Нижний правый угол.
+                x + width, y + height,  # Верхний правый угол.
+                x        , y + height,  # Верхный левый угол.
             ]
 
         # Если текстурки нет в уникальных текстурках:
@@ -102,11 +101,11 @@ class SpriteBatch:
         return self
 
     # Отрисовать все спрайты:
-    def end(self) -> "SpriteBatch":
+    def end(self, color: list = None) -> "SpriteBatch":
         if self.__is_begin__: self.__is_begin__ = False
         else: raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
 
-        gl.glColor(1, 1, 1)
+        gl.glColor(*[1, 1, 1] if color is None else color)
 
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
@@ -133,8 +132,8 @@ class SpriteBatch:
 class AtlasTextureBatch:
     """ Этот класс не поддерживает отрисовку спрайтов. Для этого есть класс SpriteBatch """
 
-    def __init__(self, camera2d = None) -> None:
-        self.camera2d        = camera2d  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
+    def __init__(self, camera: Camera2D = None) -> None:
+        self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
         self.__is_begin__    = False
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
 
@@ -153,8 +152,8 @@ class AtlasTextureBatch:
              texture:      AtlasTexture,
              x:            float,
              y:            float,
-             width:        int   = 0,
-             height:       int   = 0,
+             width:        int,
+             height:       int,
              angle:        float = 0.0,
              cull_sprites: bool  = False
              ) -> "AtlasTextureBatch":
@@ -163,25 +162,23 @@ class AtlasTextureBatch:
                 "The \".begin()\" function was not called "
                 "before the \".draw()\" function.")
 
-        wdth, hght = width or texture.width, height or texture.height
-
         # Если камера не видит ваш спрайт, то мы пропускаем отрисовку спрайта:
         # ИНОГДА, ЭТО МОЖЕТ НАОБОРОТ ЗАНИЗИТЬ СКОРОСТЬ ОТРИСОВКИ!
-        if cull_sprites and self.camera2d is not None:
-            zoom, meter = self.camera2d.zoom, self.camera2d.meter / 100
-            if not is_circle_rectangle_2d((x+(wdth/2), y+(hght/2)), max(abs(wdth), abs(hght))/2 * 1.5,
-                                          (self.camera2d.position.x-(self.camera2d.width*zoom)/2*meter,
-                                          self.camera2d.position.y-(self.camera2d.height*zoom)/2*meter,
-                                          self.camera2d.width*zoom*meter, self.camera2d.height*zoom*meter)): return
+        if cull_sprites and self.camera is not None:
+            zoom, meter = self.camera.zoom, self.camera.meter / 100
+            if not is_circle_rectangle_2d((x+(width/2), y+(height/2)), max(abs(width), abs(height))/2 * 1.5,
+                                          (self.camera.position.x-(self.camera.width*zoom)/2*meter,
+                                          self.camera.position.y-(self.camera.height*zoom)/2*meter,
+                                          self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
 
         # Вращаем вершины спрайта:
-        if angle != 0.0: vertices = __rotate_vertices__(x, y, wdth, hght, angle)
+        if angle != 0.0: vertices = __rotate_vertices__(x, y, width, height, angle)
         else:
             vertices = [
-                x       , y       ,  # Нижний левый угол.
-                x + wdth, y       ,  # Нижний правый угол.
-                x + wdth, y + hght,  # Верхний правый угол.
-                x       , y + hght,  # Верхный левый угол.
+                x        , y         ,  # Нижний левый угол.
+                x + width, y         ,  # Нижний правый угол.
+                x + width, y + height,  # Верхний правый угол.
+                x        , y + height,  # Верхный левый угол.
             ]
 
         # Если текстурки нет в уникальных текстурках:
@@ -194,11 +191,11 @@ class AtlasTextureBatch:
         return self
 
     # Отрисовать все спрайты:
-    def end(self) -> "AtlasTextureBatch":
+    def end(self, color: list = None) -> "AtlasTextureBatch":
         if self.__is_begin__: self.__is_begin__ = False
         else: raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
 
-        gl.glColor(1, 1, 1)
+        gl.glColor(*[1, 1, 1] if color is None else color)
 
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)

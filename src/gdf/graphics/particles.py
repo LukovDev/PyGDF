@@ -16,15 +16,23 @@ if True:
 class ParticleEffect2D:
     # Частица:
     class Particle:
-        def __init__(self, texture: Texture | list, position: vec2, velocity: vec2, size: vec2, time: float) -> None:
-            self.texture  = texture
-            self.position = position
-            self.velocity = velocity
-            self.size     = size
-            self.time     = time
+        def __init__(self,
+                     texture:   Texture | list,
+                     position:  vec2,
+                     direction: vec2,
+                     size:      vec2,
+                     speed:     float,
+                     time:      float
+                     ) -> None:
+            self.texture   = texture
+            self.position  = position
+            self.direction = direction
+            self.size      = size
+            self.speed     = speed
+            self.time      = time
 
         # Получить скорость:
-        def get_speed(self) -> float: return (self.velocity.x ** 2 + self.velocity.y ** 2) ** 0.5
+        # def get_speed(self) -> float: return (self.velocity.x ** 2 + self.velocity.y ** 2) ** 0.5
 
     # Инициализация:
     def __init__(self,
@@ -45,7 +53,6 @@ class ParticleEffect2D:
         self.batch       = SpriteBatch()  # Пакетная отрисовка.
         self.particles   = None           # Список частиц.
         self.__old_pos__ = position       # Старая позиция.
-        self.__timer__   = 0.0            # Отсчёт до создания новой частицы.
 
         # Параметры отображения:
         self.texture      = texture       # Текстура частиц.
@@ -73,16 +80,18 @@ class ParticleEffect2D:
 
         ptxt = self.texture if type(self.texture) is Texture else random.choice(self.texture)
         ppos = self.position.xy
-        pvel = vec2(normalize(random_dir + direction) * random.uniform(*self.speed.xy))
+        pdir = normalize(random_dir + direction)
         psiz = self.size.xy
+        pspd = random.uniform(*self.speed.xy)
         ptfl = random.uniform(*self.duration.xy)
 
         # Частица:
         particle = ParticleEffect2D.Particle(
             ptxt,  # Текстура частицы.
             ppos,  # Позиция.
-            pvel,  # Вектор скорости.
+            pdir,  # Вектор скорости.
             psiz,  # Размер.
+            pspd,  # Скорость.
             ptfl   # Время жизни частицы.
         )
 
@@ -103,17 +112,16 @@ class ParticleEffect2D:
         delta_time = delta_time * 60
         gravity    = vec2(self.gravity.y, -self.gravity.x)
 
-        # Урезаем лишние частицы, если те есть:
+        # Урезаем лишние частицы:
         self.particles = self.particles[:self.count]
 
         # Если количество частиц меньше установленного, создаём новые:
         if len(self.particles) < self.count and self.is_infinite:
-            for i in range(int(self.count/(max(self.duration)*60))):
+            for i in range(int(self.count / (max(self.duration) * 60))):
                 self.__create_particle__()
 
         # Проходимся по частицам:
         for particle in self.particles:
-
             # Время жизни частицы. Если время вышло, удаляем частицу:
             particle.time -= 1.0 / 60 * delta_time
             if particle.time <= 0.0:
@@ -121,16 +129,19 @@ class ParticleEffect2D:
                 if self.is_infinite: self.__create_particle__()
                 continue  # Пропускаем итерацию.
 
-            # Применяем силу гравитации:
-            # particle.direction = lerp(particle.direction, gravity, self.damping)
+            # Применяем гравитацию к направлению частицы:
+            particle.direction += gravity * self.damping * delta_time
+                        
+            # Применяем гравитацию к скорости частицы:
+            if length(gravity) > 0:
+                speed = length(gravity * delta_time) * self.damping
+                if dot(particle.direction, gravity) < 0: particle.speed -= speed
+                else: particle.speed += speed
+            else: particle.speed += -(self.damping * particle.speed) * delta_time
 
-            # Смещаем позицию частицы, в сторону её направления:
-            particle.position += get_delta_pos_vector_2d(normalize(particle.velocity), particle.get_speed()*delta_time)
+            # Перемещаем частичку в сторону её направления на расстояние равной её скорости:
+            particle.position += get_delta_pos_vector_2d(particle.direction, particle.speed * delta_time)
             if self.is_local_pos: particle.position += self.position - self.__old_pos__
-
-            # Скорость частицы:
-            particle.velocity += gravity * self.damping * delta_time
-            # particle.velocity *= self.damping * particle.get_speed() * delta_time
 
         self.__old_pos__ = self.position
         return self
@@ -144,7 +155,7 @@ class ParticleEffect2D:
             # Получаем сокращённые параметры:
             ptxt = particle.texture
             ppos = particle.position
-            pdir = normalize(particle.velocity)
+            pdir = particle.direction
             psiz = particle.size
             angl = get_angle_points_2d((0, 0), pdir.xy) if self.is_dir_angle else 0.0
 

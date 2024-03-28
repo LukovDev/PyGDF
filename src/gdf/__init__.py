@@ -15,6 +15,7 @@ if True:
     # Модули и скрипты:
     from . import audio     # Модуль звука.
     from . import graphics  # Модуль графики.
+    from . import net       # Модуль сети.
     from . import physics   # Модуль физики.
     from . import files     # Скрипт отвечающий за файлы.
     from . import math      # Скрипт отвечающий за математику.

@@ -50,9 +50,11 @@ class ParticleEffect2D:
                  is_dir_angle: bool  = True,
                  angle_offset: float = 0.0
                  ) -> None:
+        # Внутренние переменные класса:
         self.batch       = SpriteBatch()  # Пакетная отрисовка.
+        self.__old_pos__ = position       # Старая позиция
+        self.__timer__   = 0.0            # Счётчик отсчитывающий время для создания новой частицы.
         self.particles   = None           # Список частиц.
-        self.__old_pos__ = position       # Старая позиция.
 
         # Параметры отображения:
         self.texture      = texture       # Текстура частиц.
@@ -117,7 +119,9 @@ class ParticleEffect2D:
 
         # Если количество частиц меньше установленного, создаём новые:
         if len(self.particles) < self.count and self.is_infinite:
-            for i in range(int(self.count / (max(self.duration) * 60))):
+            self.__timer__ -= 1.0 / 60 * delta_time
+            if self.__timer__ <= 0.0:
+                self.__timer__ = 1/(self.count/max(self.duration))
                 self.__create_particle__()
 
         # Проходимся по частицам:
@@ -133,6 +137,7 @@ class ParticleEffect2D:
             particle.direction += gravity * self.damping * delta_time
                         
             # Применяем гравитацию к скорости частицы:
+            # TODO: Мне не нравится эта реализация. Надо будет как нибуть потом переделать.
             if length(gravity) > 0:
                 speed = length(gravity * delta_time) * self.damping
                 if dot(particle.direction, gravity) < 0: particle.speed -= speed

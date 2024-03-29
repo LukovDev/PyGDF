@@ -52,10 +52,10 @@ def get_distance_2d(point1: tuple, point2: tuple) -> float:
 
 
 # Получить плавное перемещение:
-def get_smooth_move_2d(point: tuple, target: tuple, friction: float, delta_time: float) -> tuple:
+def get_interpolation_2d(point1: tuple, point2: tuple, friction: float, delta_time: float) -> tuple:
     """ Возвращает 2 значения, которые представляют из себя расстояние между объектами, которое было уменьшено. """
 
-    return ((target[0]-point[0])*1-friction)*(delta_time*60), ((target[1]-point[1])*(1-friction))*(delta_time*60)
+    return ((point2[0]-point1[0])*1-friction)*(delta_time*60), ((point2[1]-point1[1])*(1-friction))*(delta_time*60)
 
 
 # Получить точку в мировом пространстве при помощи луча:

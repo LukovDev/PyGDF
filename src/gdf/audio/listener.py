@@ -62,5 +62,4 @@ class Listener:
 
     # Освобождаем ресурсы:
     def destroy(self) -> None:
-        if self.listener is None: return
         pass  # Просто функция-затычка.

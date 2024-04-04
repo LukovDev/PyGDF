@@ -14,6 +14,24 @@ if True:
 
 # Класс 2D частиц:
 class ParticleEffect2D:
+    """ Пример использования:
+    particles = ParticleEffect2D(
+        texture      = particle_texture,
+        position     = vec2(0, 0),
+        direction    = vec2(0, 0),
+        size         = vec2(1, 1),
+        speed        = vec2(1, 3),
+        damping      = 0.01,
+        duration     = vec2(1, 2),
+        count        = 128,
+        gravity      = vec2(0, 0),
+        is_infinite  = False,
+        is_local_pos = False,
+        is_dir_angle = False,
+        angle_offset = 0.0
+    ).create()
+    """
+
     # Частица:
     class Particle:
         def __init__(self,
@@ -30,9 +48,6 @@ class ParticleEffect2D:
             self.size      = size
             self.speed     = speed
             self.time      = time
-
-        # Получить скорость:
-        # def get_speed(self) -> float: return (self.velocity.x ** 2 + self.velocity.y ** 2) ** 0.5
 
     # Инициализация:
     def __init__(self,

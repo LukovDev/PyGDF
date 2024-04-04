@@ -118,7 +118,7 @@ class Window:
         # Настройка OpenGL:
         if True:
             # Получаем версию OpenGL:
-            self.__params__["opengl-version"] = gl.glGetString(gl.GL_VERSION).decode()
+            self.__params__["opengl-version"] = gl.glGetString(gl.GL_VERSION).decode("utf-8")
 
             # Включаем поддержку альфа канала:
             gl.glEnable(gl.GL_ALPHA_TEST)
@@ -165,9 +165,9 @@ class Window:
             # Если хотят закрыть окно:
             if self.__params__["exiting"]:
                 self.destroy()  # Вызываем удаление пользовательских ресурсов.
-                pygame.quit()   # Закрываем окно PyGame.
-                gc.collect()    # Собираем мусор (на всякий).
                 al.oalQuit()    # Закрываем OpenAL.
+                pygame.quit()   # Закрываем окно PyGame.
+                gc.collect()    # Собираем мусор (на всякий случай).
                 return          # Возвращаемся из этого класса.
 
             start_time = self.get_time()

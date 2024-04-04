@@ -45,8 +45,14 @@ class Sprite:
         self.height = self.texture.height
 
     # Отрисовка:
-    def render(self, x: float, y: float, width: int = 0, height: int = 0,
-               angle: float = 0.0, color: list = None) -> "Sprite":
+    def render(self,
+               x:      float,
+               y:      float,
+               width:  int = 0,
+               height: int = 0,
+               angle:  float = 0.0,
+               color:  list = None
+               ) -> "Sprite":
         if color is None: color = [1, 1, 1]
 
         wdth, hght = width or self.width, height or self.height
@@ -76,8 +82,8 @@ class Sprite:
         texcoords = [0, 1, 1, 1, 1, 0, 0, 0] if type(self.texture) is Texture else self.texture.texcoords
 
         for index in range(0, len(vertices), 2):
-            gl.glTexCoord2f(texcoords[index], texcoords[index+1])
-            gl.glVertex2d(vertices[index], vertices[index+1])
+            gl.glTexCoord(texcoords[index], texcoords[index+1])
+            gl.glVertex(vertices[index], vertices[index+1])
         gl.glEnd()
 
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)

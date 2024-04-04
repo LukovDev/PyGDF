@@ -5,6 +5,7 @@ pyogg
 
 pyopengl
 pyopengl_accelerate
+gputil
 
 numpy
 numba

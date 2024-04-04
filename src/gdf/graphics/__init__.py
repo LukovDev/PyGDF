@@ -12,6 +12,11 @@ if True:
     from pygame import constants as Key
     from pygame import constants as Event
 
+    import GPUtil
+
+    # Получить название используемой видеокарты:
+    def get_videocard_name() -> str: return GPUtil.getGPUs()[0].name if GPUtil.getGPUs() else "Built-in videocard"
+
     # Импортируем скрипты:
     from . import atlas
     from . import batch
@@ -21,6 +26,7 @@ if True:
     from . import font
     from . import gl
     from . import image
+    from . import light
     from . import packer
     from . import particles
     from . import shader
@@ -37,6 +43,7 @@ if True:
     from .draw      import Draw2D, Draw3D
     from .font      import Font, SysFont, get_fonts, match_font
     from .image     import Image
+    from .light     import Light2D
     from .packer    import PackerTexture
     from .particles import ParticleEffect2D
     from .shader    import ShaderProgram, ComputeShaderProgram

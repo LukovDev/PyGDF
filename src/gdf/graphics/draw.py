@@ -18,7 +18,7 @@ class Draw2D:
         gl.glPointSize(size)
         gl.glColor(*color)
         gl.glBegin(gl.GL_POINTS)
-        gl.glVertex2d(*point)
+        gl.glVertex(*point)
         gl.glEnd()
 
     # Нарисовать линию:
@@ -29,8 +29,8 @@ class Draw2D:
         gl.glLineWidth(width)
         gl.glColor(*color)
         gl.glBegin(gl.GL_LINES)
-        gl.glVertex2d(*point1)
-        gl.glVertex2d(*point2)
+        gl.glVertex(*point1)
+        gl.glVertex(*point2)
         gl.glEnd()
         if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
 
@@ -42,7 +42,7 @@ class Draw2D:
         gl.glLineWidth(width)
         gl.glColor(*color)
         gl.glBegin(gl.GL_LINE_STRIP)
-        for p in points: gl.glVertex2d(*p)
+        for p in points: gl.glVertex(*p)
         gl.glEnd()
         if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
 
@@ -54,7 +54,7 @@ class Draw2D:
         gl.glLineWidth(width)
         gl.glColor(*color)
         gl.glBegin(gl.GL_LINE_LOOP)
-        for p in points: gl.glVertex2d(*p)
+        for p in points: gl.glVertex(*p)
         gl.glEnd()
         if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
 
@@ -64,7 +64,7 @@ class Draw2D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_TRIANGLES)
-        for v in vertices: gl.glVertex2d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать треугольники с общей стороной:
@@ -73,7 +73,7 @@ class Draw2D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_TRIANGLE_STRIP)
-        for v in vertices: gl.glVertex2d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать треугольники последняя вершина которой будет соединена с первой:
@@ -82,7 +82,7 @@ class Draw2D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_TRIANGLE_FAN)
-        for v in vertices: gl.glVertex2d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать квадрат из каждых 4-х вершин:
@@ -91,7 +91,7 @@ class Draw2D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_QUADS)
-        for v in vertices: gl.glVertex2d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать квадрат из каждых 4-х вершин с общей стороной:
@@ -100,7 +100,7 @@ class Draw2D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_QUAD_STRIP)
-        for v in vertices: gl.glVertex2d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать многоугольник:
@@ -185,7 +185,7 @@ class Draw3D:
         gl.glPointSize(size)
         gl.glColor(*color)
         gl.glBegin(gl.GL_POINTS)
-        gl.glVertex3d(*point)
+        gl.glVertex(*point)
         gl.glEnd()
 
     # Нарисовать линию:
@@ -196,8 +196,8 @@ class Draw3D:
         gl.glLineWidth(width)
         gl.glColor(*color)
         gl.glBegin(gl.GL_LINES)
-        gl.glVertex3d(*point1)
-        gl.glVertex3d(*point2)
+        gl.glVertex(*point1)
+        gl.glVertex(*point2)
         gl.glEnd()
         if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
 
@@ -209,7 +209,7 @@ class Draw3D:
         gl.glLineWidth(width)
         gl.glColor(*color)
         gl.glBegin(gl.GL_LINE_STRIP)
-        for p in points: gl.glVertex3d(*p)
+        for p in points: gl.glVertex(*p)
         gl.glEnd()
         if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
 
@@ -221,7 +221,7 @@ class Draw3D:
         gl.glLineWidth(width)
         gl.glColor(*color)
         gl.glBegin(gl.GL_LINE_LOOP)
-        for p in points: gl.glVertex3d(*p)
+        for p in points: gl.glVertex(*p)
         gl.glEnd()
         if smooth: gl.glDisable(gl.GL_LINE_SMOOTH)
 
@@ -231,7 +231,7 @@ class Draw3D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_TRIANGLES)
-        for v in vertices: gl.glVertex3d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать треугольники с общей стороной:
@@ -240,7 +240,7 @@ class Draw3D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_TRIANGLE_STRIP)
-        for v in vertices: gl.glVertex3d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать треугольники последняя вершина которой будет соединена с первой:
@@ -249,7 +249,7 @@ class Draw3D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_TRIANGLE_FAN)
-        for v in vertices: gl.glVertex3d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать квадрат из каждых 4-х вершин:
@@ -258,7 +258,7 @@ class Draw3D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_QUADS)
-        for v in vertices: gl.glVertex3d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать квадрат из каждых 4-х вершин с общей стороной:
@@ -267,7 +267,7 @@ class Draw3D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_QUAD_STRIP)
-        for v in vertices: gl.glVertex3d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()
 
     # Нарисовать многоугольник:
@@ -276,5 +276,5 @@ class Draw3D:
         if not color: color = [1, 1, 1]
         gl.glColor(*color)
         gl.glBegin(gl.GL_POLYGON)
-        for v in vertices: gl.glVertex3d(*v)
+        for v in vertices: gl.glVertex(*v)
         gl.glEnd()

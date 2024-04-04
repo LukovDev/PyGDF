@@ -115,7 +115,7 @@ class SkyBox:
             self.is_atmosphere_offset_camera = is_atmosphere_offset  # Смещение атмосферы вверх или вниз от камеры.
 
             # Вершинный шейдер:
-            self.vertex_shader = """
+            vertex_shader = """
             #version 330 core
 
             // Входные переменные:
@@ -136,7 +136,7 @@ class SkyBox:
             """
 
             # Фрагментный шейдер:
-            self.fragment_shader = """
+            fragment_shader = """
             #version 330 core
 
             // Входные переменные:
@@ -360,8 +360,8 @@ class SkyBox:
             }
             """
 
-            # Компилируем шейдер атмосферы:
-            self.shader = ShaderProgram(frag=self.fragment_shader, vert=self.vertex_shader).compile()
+            # Компилируем шейдер:
+            self.shader = ShaderProgram(frag=fragment_shader, vert=vertex_shader).compile()
 
             s = box_size  # Половина размера куба неба.
 

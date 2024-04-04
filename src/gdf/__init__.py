@@ -15,13 +15,14 @@ if True:
     def get_platform() -> str: return platform.platform()
 
     # Модули и скрипты:
-    from . import audio     # Модуль звука.
-    from . import graphics  # Модуль графики.
-    from . import net       # Модуль сети.
-    from . import physics   # Модуль физики.
-    from . import files     # Скрипт отвечающий за файлы.
-    from . import math      # Скрипт отвечающий за математику.
-    from . import utils     # Скрипт отвечающий за полезные функции.
+    from . import audio        # Модуль звука.
+    from . import graphics     # Модуль графики.
+    from . import net          # Модуль сети.
+    from . import physics      # Модуль физики.
+    from . import controllers  # Контроллеры камеры.
+    from . import files        # Скрипт отвечающий за файлы.
+    from . import math         # Скрипт отвечающий за математику.
+    from . import utils        # Скрипт отвечающий за полезные функции.
 
 
 # Если ваша версия питона ниже 3.11.0:

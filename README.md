@@ -4,7 +4,7 @@
 #### Представляет из себя Python Program Framework структуру, в которой есть встроенный python-модуль (ядро)</br>в котором собраны разные скрипты, которые работают воедино, и создают единую среду для разработки игр.
 Этот фреймворк разрабатывался вдохновлёнными фреймворками, такими как ```LibGDX``` и ```LwJGL```
 
-### TODO лист есть в [конце](https://github.com/LukovDev/PyGDF/edit/master/README.md#todo) этого ReadMe файла.
+### TODO лист есть в [конце](https://github.com/LukovDev/PyGDF?tab=readme-ov-file#todo) этого ReadMe файла.
 
 #
 

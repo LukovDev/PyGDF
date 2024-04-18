@@ -5,96 +5,113 @@
 
 # Импортируем:
 if True:
-    # from .gl import *
-    # from .camera import Camera2D
-    # from .shader import ShaderProgram
-    # from ..math import *
-    ...
+    from .gl import *
+    from .draw import Draw2D
+    from .camera import Camera2D
+    from .shader import ShaderProgram
+    from ..math import *
 
 
 # Класс 2D освещения:
 class Light2D:
+    # Слой света. Просто текстура на которой отрисовываются все источники света:
+    class RenderLayer:
+        def __init__(self, camera: Camera2D, ambient: list = None) -> None:
+            if ambient is None: ambient = [0, 0, 0, 0]
+
+            self.camera        = camera   # Ваша 2д камера.
+            self.ambient_color = ambient  # Цвет окружающего света.
+            self.lights = []              # Список источников света.
+
+            # Вершинный шейдер:
+            vertex_shader = """
+            #version 330 core
+
+            // Позиция вершины:
+            layout (location = 0) in vec3 a_position;
+
+            // Основная функция:
+            void main(void) {
+                gl_Position = vec4(a_position, 1.0);
+            }
+            """
+
+            # Фрагментный шейдер точечного источника света:
+            fragment_shader = """
+            #version 330 core
+
+            // Входные переменные:
+            uniform vec2 u_resolution;  // Разрешение окна.
+            uniform int  u_type;        // Тип освещения.
+
+            // Общие параметры источника света:
+            uniform vec2 u_position;    // Позиция источника света.
+            uniform vec3 u_color;       // Цвет источника света.
+            uniform vec4 u_ambient;     // Цвет окружения.
+
+            // Point Light:
+            uniform float u_inner_radius;  // Внутренний радиус где яркость 100%.
+            uniform float u_outer_radius;  // Внешний радиус где яркость 0%.
+
+            // Выходной цвет:
+            out vec4 FragColor;
+
+            // Основная функция:
+            void main(void) {
+                vec2 uv = ((gl_FragCoord.xy / u_resolution.xy) - 0.5) * u_resolution.xy;
+
+                // Итоговый цвет пикселя:
+                vec4 final_color;
+
+                // Тип освещения 1 - Point Light:
+                if (u_type == 1) {
+                    // Высчитываем яркость пикселя:
+                    float innrad = u_inner_radius;
+                    float intensity = clamp((length(uv-u_position)-innrad)/(u_outer_radius-innrad), 0, 1);
+
+                    // Умножаем цвет источника света на интенсивность и добавляем его к окончательному цвету:
+                    final_color = vec4(u_color * (1.0 - intensity), length(u_color));
+
+                    // Если вдруг внутренний радиус будет больше чем наружный, то мы просто рисуем обычный круг:
+                    if (u_inner_radius >= u_outer_radius) {
+                        if (length(uv-u_position) <= u_outer_radius)
+                            final_color = vec4(u_color.rgb, 1.0);
+                        else final_color = u_ambient;
+                    }
+                }
+
+                // Задаем окончательный цвет:
+                FragColor = final_color;
+            }
+            """
+
+            # Компилируем шейдер:
+            self.shader = ShaderProgram(frag=fragment_shader, vert=vertex_shader).compile()
+
+        # Отрисовываем световое окружение:
+        def render(self) -> None:
+            self.shader.begin()
+
+            # Обновляем параметры шейдера:
+            self.shader.set_uniform("u_resolution", (self.camera.width, self.camera.height))
+            self.shader.set_uniform("u_type", 1)
+            self.shader.set_uniform("u_position", vec2(0, 0))
+            self.shader.set_uniform("u_color", vec3(1, 1, 1))
+            self.shader.set_uniform("u_ambient", vec4(0, 0, 0, 0.5))
+            self.shader.set_uniform("u_inner_radius", 16.0)
+            self.shader.set_uniform("u_outer_radius", 128.0)
+
+            Draw2D.quads([1, 1, 1], [(-1, -1), (+1, -1), (+1, +1), (-1, +1)])
+            self.shader.end()
+
+        # Удаляем световое окружение:
+        def destroy(self) -> None:
+            self.shader.destroy()
+
     # Класс точечного источника света:
     class PointLight:
         def __init__(self) -> None:
             pass
-
-    # # Класс световое окружение:
-    # class LightEnvironment:
-    #     def __init__(self, camera: Camera2D, ambient_intensity: float = 1.0, ambient_color: list = None) -> None:
-    #         if ambient_color is None: ambient_color = [0.1, 0.1, 0.1]
-
-    #         self.camera = camera                        # Ваша 2д камера.
-    #         self.ambient_intensity = ambient_intensity  # Сила окружающего света.
-    #         self.ambient_color     = ambient_color      # Цвет окружающего света.
-    #         self.lights = []                            # Список источников света.
-
-    #         # Вершинный шейдер:
-    #         vertex_shader_main = """
-    #         #version 330 core
-
-    #         // Позиция вершины:
-    #         layout (location = 0) in vec3 a_position;
-
-    #         // Основная функция:
-    #         void main(void) {
-    #             gl_Position = vec4(a_position, 1.0);
-    #         }
-    #         """
-
-    #         # Фрагментный шейдер точечного источника света:
-    #         fragment_shader_point_light = """
-    #         #version 330 core
-
-    #         // Входные переменные:
-    #         uniform vec2 u_resolution;  // Разрешение окна.
-    #         uniform vec3 u_color;       // Цвет.
-
-    #         // Выходной цвет:
-    #         out vec4 FragColor;
-
-    #         // Основная функция:
-    #         void main(void) {
-    #             vec2 uv = (gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0) * u_resolution / u_resolution.y;
-                
-    #             vec2 position = vec2(0, 0);
-    #             float intensity = 1.0;
-    #             vec3 color = vec3(1, 1, 1);
-    #             float inner_radius = 0.25;
-    #             float outer_radius = 1.0;
-
-    #             float lightIntensity = 1.0-clamp((length(uv-position)-inner_radius)/(outer_radius-inner_radius), 0, 1);
-
-    #             // Умножаем цвет источника света на интенсивность и добавляем его к окончательному цвету:
-    #             vec3 finalColor = color * lightIntensity;
-
-    #             // Задаем окончательный цвет:
-    #             FragColor = vec4(finalColor, 1.0);
-    #         }
-    #         """
-
-    #         # Компилируем шейдер:
-    #         self.shader = ShaderProgram(frag=fragment_shader_point_light, vert=vertex_shader_main).compile()
-
-    #         self.__vertices__ = [(-1, -1), (+1, -1), (+1, +1), (-1, +1)]
-
-    #     # Отрисовываем световое окружение:
-    #     def render(self) -> None:
-    #         self.shader.begin()
-
-    #         # Обновляем параметры шейдера:
-    #         self.shader.set_uniform("u_resolution", (self.camera.width, self.camera.height))
-    #         self.shader.set_uniform("u_color", [1, 0, 0])
-
-    #         gl.glColor(1, 1, 1)
-    #         gl.glBegin(gl.GL_QUADS)
-    #         for v in self.__vertices__: gl.glVertex(*v)
-    #         gl.glEnd()
-    #         self.shader.end()
-
-    #     # Удаляем световое окружение:
-    #     def destroy(self) -> None:
-    #         self.shader.destroy()
 
     # # Класс точечного источника света:
     # class PointLight:

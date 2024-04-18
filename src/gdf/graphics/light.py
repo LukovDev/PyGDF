@@ -64,7 +64,7 @@ class Light2D:
                 vec4 final_color;
 
                 // Тип освещения 1 - Point Light:
-                if (u_type == 1) {
+                if (u_type == 0) {
                     // Высчитываем яркость пикселя:
                     float innrad = u_inner_radius;
                     float intensity = clamp((length(uv-u_position)-innrad)/(u_outer_radius-innrad), 0, 1);
@@ -77,9 +77,17 @@ class Light2D:
                         if (length(uv-u_position) <= u_outer_radius)
                             final_color = vec4(u_color.rgb, 1.0);
                         else final_color = u_ambient;
-                    } else {
-                        discard;  // Пропускаем отрисовку света.
                     }
+                }
+
+                // Тип освещения 2 - Пока что ничего:
+                else if (u_type == 1) {
+                    // ...
+                }
+
+                // Тип не выбран или недоступен:
+                else {
+                    discard;  // Пропускаем отрисовку света.
                 }
 
                 // Задаем окончательный цвет:
@@ -96,7 +104,7 @@ class Light2D:
 
             # Обновляем параметры шейдера:
             self.shader.set_uniform("u_resolution", (self.camera.width, self.camera.height))
-            self.shader.set_uniform("u_type", 1)
+            self.shader.set_uniform("u_type", 0)
             self.shader.set_uniform("u_position", vec2(0, 0))
             self.shader.set_uniform("u_color", vec3(1, 1, 1))
             self.shader.set_uniform("u_ambient", vec4(0, 0, 0, 0.5))

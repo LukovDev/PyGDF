@@ -14,7 +14,10 @@ if True:
 
 # Класс 2D освещения:
 class Light2D:
-    ...  # TODO: Сделать поддержку 2D света.
+    # Класс точечного источника света:
+    class PointLight:
+        def __init__(self) -> None:
+            pass
 
     # # Класс световое окружение:
     # class LightEnvironment:

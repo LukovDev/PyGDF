@@ -21,7 +21,7 @@ class Light2D:
 
             self.camera        = camera   # Ваша 2д камера.
             self.ambient_color = ambient  # Цвет окружающего света.
-            self.lights = []              # Список источников света.
+            self.lights        = []       # Список источников света.
 
             # Вершинный шейдер:
             vertex_shader = """
@@ -77,6 +77,8 @@ class Light2D:
                         if (length(uv-u_position) <= u_outer_radius)
                             final_color = vec4(u_color.rgb, 1.0);
                         else final_color = u_ambient;
+                    } else {
+                        discard;  // Пропускаем отрисовку света.
                     }
                 }
 

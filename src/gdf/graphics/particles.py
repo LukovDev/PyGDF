@@ -5,7 +5,7 @@
 
 # Импортируем:
 if True:
-    from .batch import SpriteBatch
+    from .batch import SpriteBatch2D
     from .camera import Camera2D
     from .texture import Texture
     from ..math import *
@@ -66,29 +66,29 @@ class ParticleEffect2D:
                  angle_offset: float = 0.0
                  ) -> None:
         # Внутренние переменные класса:
-        self.batch       = SpriteBatch()  # Пакетная отрисовка.
-        self.__old_pos__ = position       # Старая позиция
-        self.__timer__   = 0.0            # Счётчик отсчитывающий время для создания новой частицы.
-        self.particles   = None           # Список частиц.
+        self.batch       = SpriteBatch2D()  # Пакетная отрисовка.
+        self.__old_pos__ = position         # Старая позиция
+        self.__timer__   = 0.0              # Счётчик отсчитывающий время для создания новой частицы.
+        self.particles   = None             # Список частиц.
 
         # Параметры отображения:
-        self.texture      = texture       # Текстура частиц.
-        self.is_dir_angle = is_dir_angle  # Поворачивать ли частицу в сторону направления движения.
-        self.angle_offset = angle_offset  # Смещения угла поворота частицы.
+        self.texture      = texture         # Текстура частиц.
+        self.is_dir_angle = is_dir_angle    # Поворачивать ли частицу в сторону направления движения.
+        self.angle_offset = angle_offset    # Смещения угла поворота частицы.
 
         # Параметры частиц:
-        self.position     = position      # Позиция эффекта частиц.
-        self.direction    = direction     # Вектор направления частиц.
-        self.size         = size          # Размер частиц.
-        self.speed        = speed         # Начальная скорость частицы. Случайно от X до Y.
-        self.damping      = damping       # Сила затухания скорости частицы.
-        self.duration     = duration      # Сколько должна жить частица (в секундах). Случайно от X до Y.
+        self.position     = position        # Позиция эффекта частиц.
+        self.direction    = direction       # Вектор направления частиц.
+        self.size         = size            # Размер частиц.
+        self.speed        = speed           # Начальная скорость частицы. Случайно от X до Y.
+        self.damping      = damping         # Сила затухания скорости частицы.
+        self.duration     = duration        # Сколько должна жить частица (в секундах). Случайно от X до Y.
 
         # Прочие параметры:
-        self.count        = count         # Количество частиц.
-        self.gravity      = gravity       # Сила гравитации на частицы.
-        self.is_infinite  = is_infinite   # Бесконечные ли частицы.
-        self.is_local_pos = is_local_pos  # Частицы в локальном пространстве.
+        self.count        = count           # Количество частиц.
+        self.gravity      = gravity         # Сила гравитации на частицы.
+        self.is_infinite  = is_infinite     # Бесконечные ли частицы.
+        self.is_local_pos = is_local_pos    # Частицы в локальном пространстве.
 
     # Создать одну частицу. Используется строго внутри этого класса:
     def __create_particle__(self) -> None:

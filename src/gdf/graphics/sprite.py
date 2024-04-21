@@ -37,7 +37,7 @@ def __rotate_vertices__(x: float, y: float, wdth: int, hght: int, angle: float) 
 
 
 # Класс спрайта:
-class Sprite:
+class Sprite2D:
     def __init__(self, texture: Texture | AtlasTexture) -> None:
         self.texture = texture
         self.id = self.texture.id
@@ -52,7 +52,7 @@ class Sprite:
                height: int = 0,
                angle:  float = 0.0,
                color:  list = None
-               ) -> "Sprite":
+               ) -> "Sprite2D":
         if color is None: color = [1, 1, 1]
 
         wdth, hght = width or self.width, height or self.height

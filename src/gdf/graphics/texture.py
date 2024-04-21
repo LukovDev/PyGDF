@@ -15,7 +15,8 @@ class Texture:
     def __init__(self, image: Image, is_flip_y: bool = False, size: tuple = None) -> None:
         self.image  = image
         self.id     = int
-        if image.surface is None: surface = pygame.Surface(size if size is not None else (1, 1))
+        if image is None or image.surface is None:
+            surface = pygame.Surface(size if size is not None else (1, 1))
         else: surface = image.surface
         self.data   = pygame.image.tostring(surface, "RGBA", is_flip_y)
         self.width  = surface.get_width()

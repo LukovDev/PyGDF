@@ -8,7 +8,7 @@ if True:
     import pygame
     from .image import Image
     from .texture import Texture
-    from .sprite import Sprite
+    from .sprite import Sprite2D
 
 
 # Получить какие шрифты есть в системе:
@@ -30,7 +30,7 @@ class Font:
 
     # Получить спрайт текста:
     def get_sprite(self, text: str, color: list, bg_color: list = None,
-                   offset_x: int = 0, offset_y: int = 0, smooth: bool = True) -> Sprite:
+                   offset_x: int = 0, offset_y: int = 0, smooth: bool = True) -> Sprite2D:
         if bg_color is None: bg_color = [0, 0, 0, 0]
         srf = self.font.render(text, smooth, color[:3])
         srf.set_alpha(color[3])
@@ -39,7 +39,7 @@ class Font:
         bg_surface.fill(bg_color)
         bg_surface.blit(srf, (offset_x, offset_y))
         texture = Texture(Image(surface=bg_surface))
-        return Sprite(texture)
+        return Sprite2D(texture)
 
 
 # Класс системного шрифта:
@@ -49,7 +49,7 @@ class SysFont:
 
     # Получить спрайт текста:
     def get_sprite(self, text: str, color: list, bg_color: list = None,
-                   offset_x: int = 0, offset_y: int = 0, smooth: bool = True) -> Sprite:
+                   offset_x: int = 0, offset_y: int = 0, smooth: bool = True) -> Sprite2D:
         if bg_color is None: bg_color = [0, 0, 0, 0]
         srf = self.font.render(text, smooth, color[:3])
         srf.set_alpha(color[3])
@@ -58,4 +58,4 @@ class SysFont:
         bg_surface.fill(bg_color)
         bg_surface.blit(srf, (offset_x, offset_y))
         texture = Texture(Image(surface=bg_surface))
-        return Sprite(texture)
+        return Sprite2D(texture)

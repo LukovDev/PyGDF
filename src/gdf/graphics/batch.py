@@ -7,7 +7,7 @@
 if True:
     from .gl import *
     from .camera import Camera2D
-    from .sprite import Sprite
+    from .sprite import Sprite2D
     from .texture import Texture
     from .atlas import AtlasTexture
     from ..math import *
@@ -40,7 +40,7 @@ def __rotate_vertices__(x: float, y: float, width: int, height: int, angle: floa
 
 
 # Класс пакетной отрисовки спрайтов:
-class SpriteBatch:
+class SpriteBatch2D:
     """ Этот класс не поддерживает отрисовку текстур атласов. Для этого есть класс AtlasTextureBatch """
 
     def __init__(self, camera: Camera2D = None) -> None:
@@ -49,7 +49,7 @@ class SpriteBatch:
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
 
     # Очистить все списки и пр. и начать подготовку к отрисовке:
-    def begin(self) -> "SpriteBatch":
+    def begin(self) -> "SpriteBatch2D":
         if self.__is_begin__:
             raise Exception(
                 "Function \".end()\" was not called in the last iteration of the loop.\n"
@@ -60,14 +60,14 @@ class SpriteBatch:
 
     # Отрисовать спрайт:
     def draw(self,
-             sprite:       Sprite | Texture,
+             sprite:       Sprite2D | Texture,
              x:            float,
              y:            float,
              width:        int,
              height:       int,
              angle:        float = 0.0,
              cull_sprites: bool  = False
-             ) -> "SpriteBatch":
+             ) -> "SpriteBatch2D":
         if not self.__is_begin__:
             raise Exception(
                 "The \".begin()\" function was not called "
@@ -101,7 +101,7 @@ class SpriteBatch:
         return self
 
     # Отрисовать все спрайты:
-    def end(self, color: list = None) -> "SpriteBatch":
+    def end(self, color: list = None) -> "SpriteBatch2D":
         if self.__is_begin__: self.__is_begin__ = False
         else: raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
 
@@ -129,8 +129,8 @@ class SpriteBatch:
 
 
 # Класс пакетной отрисовки атласовых текстур:
-class AtlasTextureBatch:
-    """ Этот класс не поддерживает отрисовку спрайтов. Для этого есть класс SpriteBatch """
+class AtlasTextureBatch2D:
+    """ Этот класс не поддерживает отрисовку спрайтов. Для этого есть класс SpriteBatch2D """
 
     def __init__(self, camera: Camera2D = None) -> None:
         self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
@@ -138,7 +138,7 @@ class AtlasTextureBatch:
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
 
     # Очистить все списки и пр. и начать подготовку к отрисовке:
-    def begin(self) -> "AtlasTextureBatch":
+    def begin(self) -> "AtlasTextureBatch2D":
         if self.__is_begin__:
             raise Exception(
                 "Function \".end()\" was not called in the last iteration of the loop.\n"
@@ -156,7 +156,7 @@ class AtlasTextureBatch:
              height:       int,
              angle:        float = 0.0,
              cull_sprites: bool  = False
-             ) -> "AtlasTextureBatch":
+             ) -> "AtlasTextureBatch2D":
         if not self.__is_begin__:
             raise Exception(
                 "The \".begin()\" function was not called "
@@ -191,7 +191,7 @@ class AtlasTextureBatch:
         return self
 
     # Отрисовать все спрайты:
-    def end(self, color: list = None) -> "AtlasTextureBatch":
+    def end(self, color: list = None) -> "AtlasTextureBatch2D":
         if self.__is_begin__: self.__is_begin__ = False
         else: raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
 

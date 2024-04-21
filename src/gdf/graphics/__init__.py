@@ -29,6 +29,7 @@ if True:
     from . import light
     from . import packer
     from . import particles
+    from . import renderer
     from . import shader
     from . import skybox
     from . import sprite
@@ -37,7 +38,7 @@ if True:
 
     # Импортируем основной функционал из скриптов:
     from .atlas     import AtlasTexture
-    from .batch     import SpriteBatch, AtlasTextureBatch
+    from .batch     import SpriteBatch2D, AtlasTextureBatch2D
     from .buffers   import SSBO, FrameBuffer
     from .camera    import Camera2D, Camera3D
     from .draw      import Draw2D, Draw3D
@@ -46,8 +47,9 @@ if True:
     from .light     import Light2D
     from .packer    import PackerTexture
     from .particles import ParticleEffect2D
+    from .renderer  import Renderer2D
     from .shader    import ShaderProgram, ComputeShaderProgram
     from .skybox    import SkyBox
-    from .sprite    import Sprite
+    from .sprite    import Sprite2D
     from .texture   import Texture
     from .window    import Window

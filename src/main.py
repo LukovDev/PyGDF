@@ -9,7 +9,7 @@ if True:
     import gdf
     from gdf import files
     from gdf.math import *
-    from gdf.graphics import Window, Camera2D, Sprite
+    from gdf.graphics import Window, Camera2D, Sprite2D
 
 
 # Класс игры:
@@ -51,7 +51,7 @@ class GameClass(Window):
         texture = files.load_texture("./data/icons/runapp-icon.png")
 
         # Наш спрайт. Принимает текстуру, которую будет отрисовывать:
-        self.sprite = Sprite(texture)
+        self.sprite = Sprite2D(texture)
 
     # Вызывается каждый кадр (игровой цикл):
     def update(self, delta_time: float, event_list: list) -> None:

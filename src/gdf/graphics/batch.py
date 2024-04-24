@@ -45,17 +45,17 @@ class SpriteBatch2D:
 
     def __init__(self, camera: Camera2D = None) -> None:
         self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
-        self.__is_begin__    = False
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
+        self.__is_begin__    = False
 
-    # Очистить все списки и пр. и начать подготовку к отрисовке:
+    # Начать отрисовку:
     def begin(self) -> "SpriteBatch2D":
         if self.__is_begin__:
             raise Exception(
                 "Function \".end()\" was not called in the last iteration of the loop.\n"
                 "The function \".begin()\" cannot be called, since the last one "
                 "\".begin()\" was not closed by the \".end()\" function.")
-        self.__is_begin__  = True
+        self.__is_begin__ = True
         return self
 
     # Отрисовать спрайт:
@@ -100,10 +100,23 @@ class SpriteBatch2D:
 
         return self
 
+    # Закончить отрисовку:
+    def end(self) -> "SpriteBatch2D":
+        if self.__is_begin__:
+            self.__is_begin__ = False
+        else:
+            raise Exception(
+                "The \".begin()\" function was not called before the \".end()\" function."
+            )
+
+        return self
+
     # Отрисовать все спрайты:
-    def end(self, color: list = None) -> "SpriteBatch2D":
-        if self.__is_begin__: self.__is_begin__ = False
-        else: raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
+    def render(self, color: list = None) -> "SpriteBatch2D":
+        if self.__is_begin__:
+            raise Exception(
+                "You cannot call the \".render()\" function after \".begin()\" and not earlier than \".end()\""
+            )
 
         gl.glColor(*[1, 1, 1] if color is None else color)
 
@@ -134,17 +147,17 @@ class AtlasTextureBatch2D:
 
     def __init__(self, camera: Camera2D = None) -> None:
         self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
-        self.__is_begin__    = False
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
+        self.__is_begin__    = False
 
-    # Очистить все списки и пр. и начать подготовку к отрисовке:
+    # Начать отрисовку:
     def begin(self) -> "AtlasTextureBatch2D":
         if self.__is_begin__:
             raise Exception(
                 "Function \".end()\" was not called in the last iteration of the loop.\n"
                 "The function \".begin()\" cannot be called, since the last one "
                 "\".begin()\" was not closed by the \".end()\" function.")
-        self.__is_begin__  = True
+        self.__is_begin__ = True
         return self
 
     # Отрисовать спрайт:
@@ -190,10 +203,21 @@ class AtlasTextureBatch2D:
 
         return self
 
-    # Отрисовать все спрайты:
+    # Закончить отрисовку:
     def end(self, color: list = None) -> "AtlasTextureBatch2D":
-        if self.__is_begin__: self.__is_begin__ = False
-        else: raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
+        if self.__is_begin__:
+            self.__is_begin__ = False
+        else:
+            raise Exception(
+                "The \".begin()\" function was not called before the \".end()\" function."
+            )
+
+    # Отрисовать все спрайты:
+    def render(self, color: list = None) -> "AtlasTextureBatch2D":
+        if self.__is_begin__:
+            raise Exception(
+                "You cannot call the \".render()\" function after \".begin()\" and not earlier than \".end()\""
+            )
 
         gl.glColor(*[1, 1, 1] if color is None else color)
 

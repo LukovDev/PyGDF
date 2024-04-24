@@ -68,6 +68,13 @@ def get_world_space_ray_3d(position: vec3, matproj, matview, screen_size: tuple,
     return vec3(position+rd*length)
 
 
+# Получить список однотипных элементов списка:
+def get_only_type_list(list: list, type: any) -> list:
+    """ Возвращает список в котором только те типы, которые нам нужны. """
+
+    return [i for i in list if isinstance(i, type)]
+
+
 # Функция для проверки пересечения круга с повёрнутым прямоугольником:
 def is_circle_rot_rectangle_2d(center: tuple, radius: float, rect: list, angle: float) -> bool:
     """ Возвращает логическое значение при пересечении круга с повёрнутым прямоугольником """

@@ -123,11 +123,11 @@ class Window:
             # Включаем поддержку альфа канала:
             gl.glEnable(gl.GL_ALPHA_TEST)
 
-            # Включаем смешивание цветов (например, для альфа канала):
+            # Включаем смешивание цветов:
             gl.glEnable(gl.GL_BLEND)
             
-            # Позволяет корректно накладывать альфа каналы:
-            gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+            # Устанавливаем режим смешивания:
+            self.set_blend_mode()
 
             # Включаем сглаживание точек чтобы вместо квадратов были круги:
             gl.glEnable(gl.GL_POINT_SMOOTH)
@@ -473,6 +473,31 @@ class Window:
         w, h = s = self.get_size()
         p = np.frombuffer(gl.glReadPixels(0, 0, *s, gl.GL_RGB, gl.GL_UNSIGNED_BYTE), dtype=np.uint8).reshape((h, w, 3))
         return Image(surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
+
+    # Установить режим смешивания:
+    @staticmethod
+    def set_blend_mode(sfactor: int = None, dfactor: int = None) -> None:
+        """
+        Все возможные режимы для sfactor и dfactor функции glBlendFunc():
+        DST - Существующий пиксель.
+        SRC - Накладываемый пиксель.
+        1.  GL_ZERO:                Фактор равен нулю.
+        2.  GL_ONE:                 Фактор равен единице.
+        3.  GL_SRC_COLOR:           Фактор равен цвету источника.
+        4.  GL_DST_COLOR:           Фактор равен цвету приемника.
+        5.  GL_SRC_ALPHA:           Фактор равен альфа-каналу источника.
+        6.  GL_DST_ALPHA:           Фактор равен альфа-каналу приемника.
+        7.  GL_ONE_MINUS_SRC_COLOR: Фактор равен единице минус цвет источника.
+        8.  GL_ONE_MINUS_DST_COLOR: Фактор равен единице минус цвет приемника.
+        9.  GL_ONE_MINUS_SRC_ALPHA: Фактор равен единице минус альфа-канал источника.
+        10. GL_ONE_MINUS_DST_ALPHA: Фактор равен единице минус альфа-канал приемника.
+        """
+        # Простой режим смешивания. Альфа канал из фрагмента будет использоваться как коэффициент смешивания:
+        sfactor = gl.GL_SRC_ALPHA           if sfactor is None else sfactor
+        dfactor = gl.GL_ONE_MINUS_SRC_ALPHA if dfactor is None else dfactor
+
+        # Устанавливаем режим:
+        gl.glBlendFunc(sfactor, dfactor)
 
     # Вызовите, когда хотите закрыть окно:
     def exit(self) -> None:

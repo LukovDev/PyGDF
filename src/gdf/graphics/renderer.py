@@ -75,6 +75,12 @@ class Renderer2D:
 
         return self
 
+    # Отрисовать шейдер на всей текстуре:
+    def shader(self, color: list = None) -> None:
+        if color is None: color = [1, 1, 1]
+
+        Draw2D.quads(color, [(-1, -1), (+1, -1), (+1, +1), (-1, +1)])
+
     # Изменить размер текстурки конвейера рендеринга:
     def resize(self, width: int, height: int) -> "Renderer2D":
         # Останавливаем использование кадрового буфера:

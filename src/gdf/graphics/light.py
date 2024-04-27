@@ -35,22 +35,24 @@ class Light2D:
             # Закрашиваем текстуру кадрового буфера в фоновый цвет освещения:
             self.renderer.fill(self.ambient)
             
-            # Начинаем рисовать источники света в окружении (слое света):
-            self.renderer.begin()
-
-            # Устанавливаем специальный режим смешивания:
-            gl_set_blend_mode(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-
-            # Рисуем точечные источники света:
+            # Предварительно рисуем точечные источники света:
             self.batch.begin()
             for light in get_only_type_list(self.lights, Light2D.PointLight):
+                light.__update__()
                 self.batch.draw(
                     light.renderer.texture,
                     light.position.x - light.outer_radius / 2,
                     light.position.y - light.outer_radius / 2,
                     light.outer_radius, light.outer_radius)
-                # light.__update__()
             self.batch.end()
+
+            # Начинаем рисовать источники света в окружении (слое света):
+            self.renderer.begin()
+            
+            # Устанавливаем специальный режим смешивания:
+            gl_set_blend_mode(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+
+            # Рисуем точечные источники света:
             self.batch.render()
 
             # Рисуем спрайтовыые источники света:
@@ -109,23 +111,24 @@ class Light2D:
             #version 330 core
 
             // Входные переменные:
-            uniform float u_inner_alpha;   // Сила альфа канала внутри круга.
-            uniform vec3  u_color_inner;   // Цвет источника света внутри.
-            uniform vec3  u_color_outer;   // Цвет источника света снаружи.
-            uniform float u_inner_radius;  // Внутренний радиус где яркость 100%.
-            uniform float u_outer_radius;  // Внешний радиус где яркость 0%.
+            uniform vec4  u_ambient_color;  // Фоновый цвет света.
+            uniform float u_inner_alpha;    // Сила альфа канала внутри круга.
+            uniform vec3  u_color_inner;    // Цвет источника света внутри.
+            uniform vec3  u_color_outer;    // Цвет источника света снаружи.
+            uniform float u_inner_radius;   // Внутренний радиус где яркость 100%.
+            uniform float u_outer_radius;   // Внешний радиус где яркость 0%.
 
             // Выходной цвет:
             out vec4 FragColor;
 
             // Основная функция:
             void main(void) {
-                vec2 uv = ((gl_FragCoord.xy / u_outer_radius) - 0.5) * u_outer_radius;
+                vec2 uv = ((gl_FragCoord.xy / u_outer_radius) - 0.5) * u_outer_radius * 2;
 
                 vec3  color;  // Финальный цвет пикселя.
                 float alpha;  // Альфа финального пикселя.
 
-                // Высчитываем альфа канал:
+                // Вычисляем альфа канал:
                 alpha = clamp((length(uv)-u_inner_radius)/(u_outer_radius-u_inner_radius), 0, 1);
 
                 // Высчитываем цвет пикселя:
@@ -136,8 +139,14 @@ class Light2D:
                     color = u_color_inner.rgb;
                 }
 
+                // Если мы вышли за радиус круга, рисуем фоновый цвет:
+                if (length(uv) >= u_outer_radius) {
+                    FragColor = u_ambient_color;
+                    return;
+                }
+
                 // Задаём окончательный цвет:
-                FragColor = vec4(color, mix(0.0, u_inner_alpha, 1.0-alpha));
+                FragColor = mix(vec4(color, mix(0.0, u_inner_alpha, 1.0-alpha)), u_ambient_color, alpha);
             }
             """
 
@@ -148,6 +157,10 @@ class Light2D:
             self.color_outer  = color_outer   # Цвет снаружи.
             self.inner_radius = inner_radius  # Внутренний радиус освещения.
             self.outer_radius = outer_radius  # Внешний радиус освещения.
+
+            # Старые размеры внутреннего и наружного радиуса:
+            self.__old_inner_radius__ = self.inner_radius
+            self.__old_outer_radius__ = self.outer_radius
 
             # Конвейер рендеринга источника света:
             self.renderer = Renderer2D(self.layer.camera)
@@ -168,12 +181,19 @@ class Light2D:
 
             # Указываем основные параметры:
             self.shader.begin()
-            self.shader.set_uniform("u_inner_alpha",  self.intensity)
-            self.shader.set_uniform("u_color_inner",  self.color_inner)
-            self.shader.set_uniform("u_color_outer",  self.color_outer)
-            self.shader.set_uniform("u_inner_radius", float(self.inner_radius))
-            self.shader.set_uniform("u_outer_radius", float(self.outer_radius))
+            self.shader.set_uniform("u_ambient_color", self.layer.ambient)
+            self.shader.set_uniform("u_inner_alpha",   self.intensity)
+            self.shader.set_uniform("u_color_inner",   self.color_inner)
+            self.shader.set_uniform("u_color_outer",   self.color_outer)
+            self.shader.set_uniform("u_inner_radius",  float(self.inner_radius))
+            self.shader.set_uniform("u_outer_radius",  float(self.outer_radius))
             self.shader.end()
+
+            # Меняем размер текстуры шейдера, если наружный радиус или внутренний радиус были изменены:
+            if self.__old_inner_radius__ != self.inner_radius or self.__old_outer_radius__ != self.outer_radius:
+                self.renderer.resize(self.outer_radius, self.outer_radius)
+                self.__old_inner_radius__ = self.inner_radius
+                self.__old_outer_radius__ = self.outer_radius
 
             # Рисуем шейдер на текстурке:
             self.renderer.fill()

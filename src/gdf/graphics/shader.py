@@ -95,36 +95,39 @@ class ShaderProgram:
             gl.glUniform1i(location, value)
 
         # Тип int:
-        if type(value) is int:
+        elif type(value) is int:
             gl.glUniform1i(location, value)
 
         # Тип float:
-        if type(value) is float:
+        elif type(value) is float:
             gl.glUniform1f(location, value)
 
         # Тип vec2:
-        if type(value) is list and len(value) == 2 and not type(value[0]) is list:
+        elif type(value) is list and len(value) == 2 and not type(value[0]) is list:
             gl.glUniform2f(location, *value[:2])
 
         # Тип vec3:
-        if type(value) is list and len(value) == 3 and not type(value[0]) is list:
+        elif type(value) is list and len(value) == 3 and not type(value[0]) is list:
             gl.glUniform3f(location, *value[:3])
 
         # Тип vec4:
-        if type(value) is list and len(value) == 4 and not type(value[0]) is list:
+        elif type(value) is list and len(value) == 4 and not type(value[0]) is list:
             gl.glUniform4f(location, *value[:4])
 
         # Тип mat2:
-        if type(value) is list and len(value) == 2 and type(value[0]) is list:
+        elif type(value) is list and len(value) == 2 and type(value[0]) is list:
             gl.glUniformMatrix2fv(location, 1, gl.GL_FALSE, value)
 
         # Тип mat3:
-        if type(value) is list and len(value) == 3 and type(value[0]) is list:
+        elif type(value) is list and len(value) == 3 and type(value[0]) is list:
             gl.glUniformMatrix3fv(location, 1, gl.GL_FALSE, value)
 
         # Тип mat4:
-        if type(value) is list and len(value) == 4 and type(value[0]) is list:
+        elif type(value) is list and len(value) == 4 and type(value[0]) is list:
             gl.glUniformMatrix4fv(location, 1, gl.GL_FALSE, value)
+
+        # Иначе, если неизвестный тип данных:
+        else: raise ValueError(f"Unsupported data type. Your data type: {type(value)}")
 
         return self
 

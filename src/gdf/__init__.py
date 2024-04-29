@@ -9,7 +9,7 @@ if True:
     import platform
 
     # Получить версию библиотеки:
-    def get_version() -> str: return "v1.0"
+    def get_version() -> str: return "v1.0-beta-1"
 
     # Получить полное название системы:
     def get_platform() -> str: return platform.platform()

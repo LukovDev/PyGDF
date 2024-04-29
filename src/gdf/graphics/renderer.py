@@ -20,14 +20,14 @@ if True:
 
 # Класс конвейера рендеринга 2D:
 class Renderer2D:
-    def __init__(self, camera: Camera2D) -> None:
+    def __init__(self, camera: Camera2D, size: tuple = None) -> None:
         self.camera       = camera
         self.texture      = None
         self.framebuffer  = None
         self.sprite       = None
         self.__is_begin__ = False
 
-        self.resize(self.camera.width, self.camera.height)
+        self.resize(*size if size is not None else (self.camera.width, self.camera.height))
 
     # Начать рисовать на текстуре конвейера рендеринга:
     def begin(self) -> "Renderer2D":
@@ -57,7 +57,7 @@ class Renderer2D:
             )
 
         self.camera.ui_begin()
-        self.sprite.render(0, self.camera.height, self.camera.width, -self.camera.height)
+        self.sprite.render(0, self.texture.height, self.texture.width, -self.texture.height)
         self.camera.ui_end()
         return self
 
@@ -67,7 +67,7 @@ class Renderer2D:
 
         self.begin()
         self.camera.ui_begin()
-        w, h = self.camera.width, self.camera.height
+        w, h = self.texture.width, self.texture.height
         Draw2D.quads([0, 0, 0, 1], [(0, 0), (+w, 0), (+w, +h), (0, +h)])
         Draw2D.quads(color       , [(0, 0), (+w, 0), (+w, +h), (0, +h)])
         self.camera.ui_end()
@@ -88,7 +88,7 @@ class Renderer2D:
 
         # Пересоздаём текстурку кадрового буфера:
         if self.texture is not None: self.texture.destroy() ; self.texture = None
-        if self.texture is     None: self.texture = Texture(None, size=(width, height))
+        if self.texture is     None: self.texture = Texture(None, size=(2048, 2048))
 
         # Пересоздаём кадровый буфер, так как скорее всего, id текстуры уже другой:
         if self.framebuffer is not None: self.framebuffer.destroy() ; self.framebuffer = None

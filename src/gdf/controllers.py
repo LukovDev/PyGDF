@@ -74,7 +74,6 @@ class CameraController2D:
 
 
 # Класс управления 3D камеры:
-# TODO: Сделать чтобы камера могла накрениться.
 class CameraController3D:
     def __init__(self, window, keys, camera,
                  mouse_sensitivity: float = 1.0,
@@ -107,7 +106,7 @@ class CameraController3D:
         self.is_pressed = False
 
     # Обновление контроллера:
-    def update(self, delta_time: float, pressed_pass: bool) -> None:
+    def update(self, delta_time: float, pressed_pass: bool = False) -> None:
         # Получаем смещение мыши:
         mouse_delta_xy = self.window.get_mouse_rel()
 

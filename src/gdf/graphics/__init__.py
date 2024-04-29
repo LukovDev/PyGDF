@@ -51,6 +51,7 @@ if True:
     from . import font
     from . import gl
     from . import image
+    from . import imgui
     from . import light
     from . import packer
     from . import particles
@@ -69,6 +70,7 @@ if True:
     from .draw      import Draw2D, Draw3D
     from .font      import Font, SysFont, get_fonts, match_font
     from .image     import Image
+    from .imgui     import GUIAPI, PyImGUI
     from .light     import Light2D
     from .packer    import PackerTexture
     from .particles import ParticleEffect2D

@@ -116,8 +116,8 @@ class Camera3D:
                  fov:      int   = 60,
                  far:      float = 1000,
                  near:     float = 0.01,
-                 yaw:      float = 0,
-                 pitch:    float = 0) -> None:
+                 yaw:      float = 0.0,
+                 pitch:    float = 0.0) -> None:
         self.width    = width      # Ширина камеры.
         self.height   = height     # Высота камеры.
         self.position = position   # Позиция камеры.
@@ -128,7 +128,7 @@ class Camera3D:
         self.near     = near       # Ближнее отсечение.
         self.yaw      = -90 + yaw  # Рыскание камеры.
         self.pitch    = pitch      # Тангаж камеры.
-        self.size = width, height  # Размер камеры.
+        # self.roll     = roll       # Крен камеры.
 
         self.modelview = None
         self.projection = None
@@ -158,7 +158,6 @@ class Camera3D:
 
     # Изменение размера камеры:
     def resize(self, width: int, height: int) -> "Camera3D":
-        self.size = width, height
         self.width, self.height = width, height
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()

@@ -8,32 +8,7 @@ if True:
     from .gl import *
     from .texture import Texture
     from .atlas import AtlasTexture
-    from ..math import *
-
-
-# Ускоренная функция поворота вершин спрайта:
-@numba.njit
-def __rotate_vertices__(x: float, y: float, wdth: int, hght: int, angle: float) -> list:
-    center_x      = x + (wdth / 2)
-    center_y      = y + (hght / 2)
-    angle_rad     = -radians(angle)
-    angle_rad_sin = sin(angle_rad)
-    angle_rad_cos = cos(angle_rad)
-    x1, y1        = ( x         - center_x), ( y         - center_y)
-    x2, y2        = ((x + wdth) - center_x), ( y         - center_y)
-    x3, y3        = ((x + wdth) - center_x), ((y + hght) - center_y)
-    x4, y4        = ( x         - center_x), ((y + hght) - center_y)
-
-    return [
-        (x1 * angle_rad_cos - y1 * angle_rad_sin) + center_x,
-        (x1 * angle_rad_sin + y1 * angle_rad_cos) + center_y,
-        (x2 * angle_rad_cos - y2 * angle_rad_sin) + center_x,
-        (x2 * angle_rad_sin + y2 * angle_rad_cos) + center_y,
-        (x3 * angle_rad_cos - y3 * angle_rad_sin) + center_x,
-        (x3 * angle_rad_sin + y3 * angle_rad_cos) + center_y,
-        (x4 * angle_rad_cos - y4 * angle_rad_sin) + center_x,
-        (x4 * angle_rad_sin + y4 * angle_rad_cos) + center_y,
-    ]
+    from . import __rotate_vertices__
 
 
 # Класс спрайта:

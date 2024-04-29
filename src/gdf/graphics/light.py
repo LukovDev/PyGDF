@@ -148,7 +148,7 @@ class Light2D:
                 float outer_rad = u_outer_radius * (1.0 / u_cam_zoom);  // Настраиваем наружный радиус.
 
                 // Если вдруг внутренний радиус будет больше чем наружный:
-                if (inner_rad > outer_rad - offset_pixel) {
+                if (inner_rad >= outer_rad - offset_pixel) {
                     inner_rad = outer_rad - offset_pixel;
                 }
 
@@ -156,7 +156,7 @@ class Light2D:
                 alpha = smoothstep(inner_rad, outer_rad, length(uv));
 
                 // Вычисляем цвет пикселя:
-                color = mix(u_color_inner, u_color_outer*(alpha+1), alpha);
+                color = mix(u_color_inner, u_color_outer * (alpha+1), alpha);
 
                 // Задаём окончательный цвет:
                 FragColor = mix(vec4(color, mix(0.0, u_intensity, 1.0-alpha)), u_ambient_color, alpha);

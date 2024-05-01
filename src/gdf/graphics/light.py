@@ -43,7 +43,7 @@ class Light2D:
             self.ambient[3] = min(max(self.ambient[3], 0.0), 1.0)
 
             # Закрашиваем текстуру кадрового буфера в фоновый цвет освещения:
-            self.renderer.fill(self.ambient)
+            self.renderer.clear(self.ambient)
 
             # Начинаем рисовать источники света в окружении (слое света):
             self.renderer.begin()

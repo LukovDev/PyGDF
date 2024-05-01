@@ -61,14 +61,14 @@ class Renderer2D:
         self.camera.ui_end()
         return self
 
-    # Закрасить кадровый буфер:
-    def fill(self, color: list = None) -> "Renderer2D":
+    # Очистить кадровый буфер:
+    def clear(self, color: list = None) -> "Renderer2D":
         if color is None: color = [0, 0, 0, 1]
 
         # Ограничиваем альфа-канал от 0 до 1:
         color[3] = min(max(color[3], 0.0), 1.0)
 
-        # Закрашиваем:
+        # Очищаем:
         self.begin()
         self.camera.ui_begin()
         w, h = self.texture.width, self.texture.height

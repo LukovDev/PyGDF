@@ -13,11 +13,17 @@ if True:
 
 # Класс спрайта:
 class Sprite2D:
-    def __init__(self, texture: Texture | AtlasTexture) -> None:
+    def __init__(self, texture: Texture | AtlasTexture = None) -> None:
         self.texture = texture
-        self.id = self.texture.id
-        self.width  = self.texture.width
-        self.height = self.texture.height
+        self.id      = 0
+        self.width   = 1
+        self.height  = 1
+
+        # Если текстурка указана:
+        if self.texture is not None:
+            self.id     = self.texture.id
+            self.width  = self.texture.width
+            self.height = self.texture.height
 
     # Отрисовка:
     def render(self,
@@ -29,6 +35,12 @@ class Sprite2D:
                color:  list = None
                ) -> "Sprite2D":
         if color is None: color = [1, 1, 1]
+
+        # Если текстурка указана:
+        if self.texture is not None:
+            self.id     = self.texture.id
+            self.width  = self.texture.width
+            self.height = self.texture.height
 
         wdth, hght = width or self.width, height or self.height
 
@@ -43,19 +55,21 @@ class Sprite2D:
                 x       , y + hght,
             ]
 
-        gl.glEnable(gl.GL_TEXTURE_2D)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture.id)
-
-        gl.glBegin(gl.GL_QUADS)
-        gl.glColor(*color)
-
         # Структура текстурных координат:
         # LEFT  | BOTTOM
         # RIGHT | BOTTOM
         # RIGHT | TOP
         # LEFT  | TOP
-        texcoords = [0, 1, 1, 1, 1, 0, 0, 0] if type(self.texture) is Texture else self.texture.texcoords
+        if type(self.texture) is Texture or self.texture is None:
+            texcoords = [0, 1, 1, 1, 1, 0, 0, 0]
+        else: texcoords = self.texture.texcoords
 
+        # Рисуем спрайт:
+        gl.glEnable(gl.GL_TEXTURE_2D)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
+
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_QUADS)
         for index in range(0, len(vertices), 2):
             gl.glTexCoord(texcoords[index], texcoords[index+1])
             gl.glVertex(vertices[index], vertices[index+1])

@@ -17,11 +17,6 @@ def get_fonts() -> list:
     return pygame.font.get_fonts()
 
 
-# Получить адрес конкретного шрифта:
-def match_font(font_name: str) -> str:
-    return pygame.font.match_font(font_name)
-
-
 # Класс шрифта:
 class Font:
     def __init__(self, font_path: str, font_size: int) -> None:
@@ -30,8 +25,8 @@ class Font:
         else: self.font = pygame.font.SysFont("Arial", font_size)
         self.texture = None
 
-    # Получить спрайт текста:
-    def get_sprite(self, text: str, color: list, bg_color: list = None,
+    # Получить текстуру текста:
+    def get_texture(self, text: str, color: list, bg_color: list = None,
                    offset_x: int = 0, offset_y: int = 0, smooth: bool = True) -> Sprite2D:
         if bg_color is None: bg_color = [0, 0, 0, 0]
         bg_color = bg_color[0]*255, bg_color[1]*255, bg_color[2]*255, bg_color[3]*255
@@ -47,7 +42,7 @@ class Font:
             self.texture = None
         if self.texture is None:
             self.texture = Texture(Image(surface=bg_surface))
-        return Sprite2D(self.texture)
+        return self.texture
 
 
 # Класс системного шрифта:
@@ -56,8 +51,8 @@ class SysFont:
         self.font = pygame.font.SysFont(font_name, font_size)
         self.texture = None
 
-    # Получить спрайт текста:
-    def get_sprite(self, text: str, color: list, bg_color: list = None,
+    # Получить текстуру текста:
+    def get_texture(self, text: str, color: list, bg_color: list = None,
                    offset_x: int = 0, offset_y: int = 0, smooth: bool = True) -> Sprite2D:
         if bg_color is None: bg_color = [0, 0, 0, 0]
         bg_color = bg_color[0]*255, bg_color[1]*255, bg_color[2]*255, bg_color[3]*255
@@ -73,4 +68,4 @@ class SysFont:
             self.texture = None
         if self.texture is None:
             self.texture = Texture(Image(surface=bg_surface))
-        return Sprite2D(self.texture)
+        return self.texture

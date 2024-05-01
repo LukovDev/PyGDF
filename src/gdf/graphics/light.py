@@ -29,8 +29,19 @@ class Light2D:
             self.batch    = SpriteBatch2D(camera)  # Пакетная отрисовка спрайтов.
             self.renderer = Renderer2D(camera)     # Конвейер рендеринга.
 
+            # Старый размер камеры:
+            self.__old_size__ = (self.camera.width, self.camera.height)
+
         # Отрисовываем световое окружение:
-        def render(self, s, t) -> None:
+        def render(self) -> "Light2D.LightLayer":
+            # Если размер камеры отличается от старого размера:
+            if self.__old_size__ != (self.camera.width, self.camera.height):
+                self.renderer.resize(self.camera.width, self.camera.height)
+                self.__old_size__ = (self.camera.width, self.camera.height)
+
+            # Ограничиваем альфа-канал окружения от 0 до 1:
+            self.ambient[3] = min(max(self.ambient[3], 0.0), 1.0)
+
             # Закрашиваем текстуру кадрового буфера в фоновый цвет освещения:
             self.renderer.fill(self.ambient)
 
@@ -72,9 +83,7 @@ class Light2D:
             self.renderer.end()
             self.renderer.render()
 
-        # Вызывается при изменении размера окна:
-        def resize(self, width: int, height: int) -> None:
-            self.renderer.resize(width, height)
+            return self
 
         # Удаляем световое окружение:
         def destroy(self) -> None:
@@ -156,7 +165,7 @@ class Light2D:
                 alpha = smoothstep(inner_rad, outer_rad, length(uv));
 
                 // Вычисляем цвет пикселя:
-                color = mix(u_color_inner, u_color_outer * (alpha+1), alpha);
+                color = mix(u_color_inner, u_color_outer, alpha);
 
                 // Задаём окончательный цвет:
                 FragColor = mix(vec4(color, mix(0.0, u_intensity, 1.0-alpha)), u_ambient_color, alpha);
@@ -177,21 +186,19 @@ class Light2D:
             # Добавляем этот источник света в список источников света:
             self.layer.lights.append(self)
 
-        # Обновить источник света:
+        # Отрисовать источник света:
         def __render__(self) -> None:
             """ Эта функция не нуждается в ручном вызове. Она вызывается в слое света автоматически. """
-
-            camera = self.layer.camera
 
             # Устанавливаем переменные шейдера:
             if True:
                 # Входные переменные:
                 self.shader.begin()
-                self.shader.set_uniform("u_modelview",     camera.modelview)
-                self.shader.set_uniform("u_projection",    camera.projection)
-                self.shader.set_uniform("u_resolution",    [camera.width, camera.height])
-                self.shader.set_uniform("u_cam_position",  camera.position.xy)
-                self.shader.set_uniform("u_cam_zoom",      camera.zoom)
+                self.shader.set_uniform("u_modelview",     self.layer.camera.modelview)
+                self.shader.set_uniform("u_projection",    self.layer.camera.projection)
+                self.shader.set_uniform("u_resolution",    [self.layer.camera.width, self.layer.camera.height])
+                self.shader.set_uniform("u_cam_position",  self.layer.camera.position.xy)
+                self.shader.set_uniform("u_cam_zoom",      self.layer.camera.zoom)
 
                 # Параметры источника света:
                 self.shader.set_uniform("u_position",      self.position.xy)
@@ -209,6 +216,11 @@ class Light2D:
             x, y = self.position.xy
             Draw2D.quads([1, 1, 1], [(-w + x, -h + y), (+w + x, -h + y), (+w + x, +h + y), (-w + x, +h + y)])
             self.shader.end()
+
+        # Удалить этот источник света из слоя света:
+        def destroy(self) -> None:
+            if self in self.layer.lights:
+                self.layer.lights.remove(self)
 
     # Класс спрайтного источника света:
     class SpriteLight:
@@ -237,3 +249,8 @@ class Light2D:
 
             # Добавляем этот источник света в список источников света:
             self.layer.lights.append(self)
+
+        # Удалить этот источник света из слоя света:
+        def destroy(self) -> None:
+            if self in self.layer.lights:
+                self.layer.lights.remove(self)

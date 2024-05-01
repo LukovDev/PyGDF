@@ -91,19 +91,6 @@ class Camera2D:
         gl.glPopMatrix()
         return self
 
-    # Получить позицию точки из окна в мировом пространстве:
-    def screen_to_world(self, point_pos: tuple) -> tuple:
-        # Позиция нижнего левого угла камеры с учётом метра и зума камеры:
-        camera_posx = self.position.x - ((self.width  * self.zoom) / 2) * (self.meter / 100)
-        camera_posy = self.position.y - ((self.height * self.zoom) / 2) * (self.meter / 100)
-
-        # Позиция точки с учётом метра и зума камеры (Y координату точки инвертируем):
-        point_posx = (point_pos[0]                * (self.meter / 100)) * self.zoom
-        point_posy = (-(point_pos[1]-self.height) * (self.meter / 100)) * self.zoom
-
-        # Складываем и возвращаем результат:
-        return camera_posx + point_posx, camera_posy + point_posy
-
 
 # Класс 3D камеры:
 class Camera3D:

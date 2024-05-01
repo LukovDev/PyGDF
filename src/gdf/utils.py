@@ -5,8 +5,8 @@
 
 # Импортируем:
 if True:
+    from .graphics.camera import Camera2D
     from .math import *
-
 
 
 # Найти угол наклона из двух координат:
@@ -73,6 +73,20 @@ def get_only_type_list(list: list, type: any) -> list:
     """ Возвращает список в котором только те типы, которые нам нужны. """
 
     return [i for i in list if isinstance(i, type)]
+
+
+# Получить позицию точки из окна в мировом пространстве:
+def screen_to_world_2d(camera: Camera2D, point_pos: tuple) -> tuple:
+    # Позиция нижнего левого угла камеры с учётом метра и зума камеры:
+    camera_posx = camera.position.x - ((camera.width  * camera.zoom) / 2) * (camera.meter / 100)
+    camera_posy = camera.position.y - ((camera.height * camera.zoom) / 2) * (camera.meter / 100)
+
+    # Позиция точки с учётом метра и зума камеры (Y координату точки инвертируем):
+    point_posx = (point_pos[0]                * (camera.meter / 100)) * camera.zoom
+    point_posy = (-(point_pos[1]-camera.height) * (camera.meter / 100)) * camera.zoom
+
+    # Складываем и возвращаем результат:
+    return camera_posx + point_posx, camera_posy + point_posy
 
 
 # Функция для проверки пересечения круга с повёрнутым прямоугольником:

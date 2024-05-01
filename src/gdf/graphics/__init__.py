@@ -43,6 +43,7 @@ if True:
     __rotate_vertices__(0, 0, 1, 1, 0.0)
 
     # Импортируем скрипты:
+    from . import animation
     from . import atlas
     from . import batch
     from . import buffers
@@ -63,12 +64,13 @@ if True:
     from . import window
 
     # Импортируем основной функционал из скриптов:
+    from .animation import Animation2D
     from .atlas     import AtlasTexture
     from .batch     import SpriteBatch2D, AtlasTextureBatch2D
     from .buffers   import SSBO, FrameBuffer
     from .camera    import Camera2D, Camera3D
     from .draw      import Draw2D, Draw3D
-    from .font      import Font, SysFont, get_fonts, match_font
+    from .font      import Font, SysFont, get_fonts
     from .image     import Image
     from .imgui     import GUIAPI, PyImGUI
     from .light     import Light2D

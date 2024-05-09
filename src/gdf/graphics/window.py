@@ -8,7 +8,7 @@ if True:
     import gc
     import time
     import pygame
-    import numpy as np
+    from ..math import numpy as np
 
     from .gl import *
     from .image import Image
@@ -71,28 +71,29 @@ class Window:
         self.clock = pygame.time.Clock()
         self.window = self
         self.__params__ = {
-            "title": title,
-            "icon": icon,
-            "width": size[0],
-            "height": size[1],
-            "vsync": vsync,
+            # Основные переменные:
+            "title":       title,
+            "icon":        icon,
+            "width":       size[0],
+            "height":      size[1],
+            "vsync":       vsync,
             "settled-fps": fps,
-            "visible": visible,
-            "fullscreen": fullscreen,
-            "min-size": min_size,
-            "max-size": max_size,
-            "samples": samples,
+            "visible":     visible,
+            "fullscreen":  fullscreen,
+            "min-size":    min_size,
+            "max-size":    max_size,
+            "samples":     samples,
 
+            # Внутренние переменные:
             "window-active": False,
-            "monitor-size": (),
-            "mouse-scroll": [0.0, 0.0],
-            "mouse-rel": [0, 0],
+            "monitor-size":  (),
+            "mouse-scroll":  [0.0, 0.0],
+            "mouse-rel":     [0, 0],
             "mouse-pressed": [False, False, None],
             "mouse-visible": True,
-            "opengl-version": "",
-            "delta-time": 1 / 60,
-            "time": time.time(),
-            "exiting": False,
+            "delta-time":    1 / 60,
+            "start-time":    time.time(),
+            "is-exit":       False,
         }
 
         pygame.init()
@@ -117,9 +118,6 @@ class Window:
 
         # Настройка OpenGL:
         if True:
-            # Получаем версию OpenGL:
-            self.__params__["opengl-version"] = gl.glGetString(gl.GL_VERSION).decode("utf-8")
-
             # Включаем поддержку альфа канала:
             gl.glEnable(gl.GL_ALPHA_TEST)
 
@@ -163,7 +161,7 @@ class Window:
         # Основной цикл окна:
         while True:
             # Если хотят закрыть окно:
-            if self.__params__["exiting"]:
+            if self.__params__["is-exit"]:
                 self.destroy()  # Вызываем удаление пользовательских ресурсов.
                 al.oalQuit()    # Закрываем OpenAL.
                 pygame.quit()   # Закрываем окно PyGame.
@@ -408,7 +406,7 @@ class Window:
 
     # Получить время:
     def get_time(self) -> float:
-        return time.time() - self.__params__["time"]
+        return time.time() - self.__params__["start-time"]
 
     # Установить позицию мыши:
     @staticmethod
@@ -463,10 +461,14 @@ class Window:
     
     # Получить версию OpenGL:
     def get_opengl_version(self) -> str:
-        return self.__params__["opengl-version"]
+        return gl.glGetString(gl.GL_VERSION).decode("utf-8")
+
+    # Получить рендерер OpenGL:
+    def get_opengl_renderer(self) -> str:
+        return gl.glGetString(gl.GL_RENDERER).decode("utf-8")
 
     # Получить кадр как изображение:
-    def get_frame_image(self, front: bool = False) -> Image:
+    def get_frame(self, front: bool = False) -> Image:
         # Всего есть 2 буфера. Отображаемый на экране и тот что в процессе рисовки:
         if front: gl.glReadBuffer(gl.GL_FRONT)  # Передний (отображаемый) буфер.
         else:     gl.glReadBuffer(gl.GL_BACK)   # Задний (в процессе рисовки) буфер.
@@ -476,17 +478,13 @@ class Window:
 
     # Вызовите, когда хотите закрыть окно:
     def exit(self) -> None:
-        self.__params__["exiting"] = True
+        self.__params__["is-exit"] = True
 
     # Очистка окна (цвета от 0 до 1):
     @staticmethod
     def clear(red: float = 0, green: float = 0, blue: float = 0) -> None:
         gl.glClearColor(abs(red), abs(green), abs(blue), 1.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
-    # Очистка окна (цвета от 0 до 255):
-    def clear255(self, red: int = 0, green: int = 0, blue: int = 0) -> None:
-        self.clear(red=(red % 256)/255, green=(green % 256)/255, blue=(blue % 256)/255)
 
     # Отрисовка окна:
     def display(self) -> None:

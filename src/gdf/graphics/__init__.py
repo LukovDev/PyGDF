@@ -8,14 +8,10 @@ if True:
     import os
     os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
-    import GPUtil
     import pygame
     from pygame import constants as Key
     from pygame import constants as Event
     from ..math import numba, radians, sin, cos
-
-    # Получить название используемой видеокарты:
-    def get_videocard_name() -> str: return GPUtil.getGPUs()[0].name if GPUtil.getGPUs() else "Built-in videocard"
 
     # Ускоренная функция поворота вершин спрайта:
     @numba.njit
@@ -77,7 +73,7 @@ if True:
     from .packer    import PackerTexture
     from .particles import ParticleEffect2D
     from .renderer  import Renderer2D
-    from .shader    import ShaderProgram, ComputeShaderProgram
+    from .shader    import ShaderProgram
     from .skybox    import SkyBox
     from .sprite    import Sprite2D
     from .texture   import Texture

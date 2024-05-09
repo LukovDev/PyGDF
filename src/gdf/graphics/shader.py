@@ -23,6 +23,7 @@ class ShaderProgram:
         self.vert = vert
         self.geom = geom
         self.program = gls.glCreateProgram()
+        self.__id_before_begin__ = gl.glGetIntegerv(gl.GL_CURRENT_PROGRAM)
 
     # Скомпилировать шейдер:
     def compile(self) -> "ShaderProgram":
@@ -69,13 +70,14 @@ class ShaderProgram:
 
     # Используем шейдер:
     def begin(self) -> "ShaderProgram":
+        self.__id_before_begin__ = gl.glGetIntegerv(gl.GL_CURRENT_PROGRAM)
         gl.glUseProgram(self.program)
 
         return self
 
     # Не используем шейдер:
     def end(self) -> "ShaderProgram":
-        gl.glUseProgram(0)
+        gl.glUseProgram(self.__id_before_begin__)
 
         return self
 
@@ -127,7 +129,7 @@ class ShaderProgram:
             gl.glUniformMatrix4fv(location, 1, gl.GL_FALSE, value)
 
         # Иначе, если неизвестный тип данных:
-        else: raise ValueError(f"Unsupported data type. Your data type: {type(value)}")
+        else: raise ValueError(f"Unsupported data type. Your data type: {type(value)}, not supported.")
 
         return self
 
@@ -167,6 +169,7 @@ class ShaderProgram:
 
 
 # Класс вычислительного шейдера:
+""" Блок кода не был проверен на правильность реализации, и был вырезан из ядра.
 class ComputeShaderProgram:
     def __init__(self, compute: str) -> None:
         self.compute_src = compute
@@ -203,3 +206,4 @@ class ComputeShaderProgram:
     # Удаление шейдера:
     def destroy(self) -> None:
         gl.glDeleteProgram(self.program)
+"""

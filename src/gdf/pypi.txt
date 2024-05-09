@@ -1,11 +1,9 @@
-pygame
-
 pyopenal
 pyogg
 
+pygame
 pyopengl
 pyopengl_accelerate
-gputil
 
 numpy
 numba

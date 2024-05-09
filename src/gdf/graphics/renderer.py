@@ -20,14 +20,15 @@ if True:
 
 # Класс конвейера рендеринга 2D:
 class Renderer2D:
-    def __init__(self, camera: Camera2D, size: tuple = None) -> None:
+    def __init__(self, camera: Camera2D, width: int = None, height: int = None) -> None:
         self.camera       = camera
         self.texture      = None
         self.framebuffer  = None
         self.sprite       = None
         self.__is_begin__ = False
 
-        self.resize(*size if size is not None else (self.camera.width, self.camera.height))
+        if width is not None and height is not None: self.resize(width, height)
+        else: self.resize(self.camera.width, self.camera.height)
 
     # Начать рисовать на текстуре конвейера рендеринга:
     def begin(self) -> "Renderer2D":
@@ -61,29 +62,29 @@ class Renderer2D:
         self.camera.ui_end()
         return self
 
-    # Очистить кадровый буфер:
-    def clear(self, color: list = None) -> "Renderer2D":
-        if color is None: color = [0, 0, 0, 1]
-
-        # Ограничиваем альфа-канал от 0 до 1:
-        color[3] = min(max(color[3], 0.0), 1.0)
-
-        # Очищаем:
-        self.begin()
-        self.camera.ui_begin()
-        w, h = self.texture.width, self.texture.height
-        gl.glClearColor(*color)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-        self.camera.ui_end()
-        self.end()
-
-        return self
-
     # Отрисовать шейдер на всей текстуре:
     def shader(self, color: list = None) -> None:
         if color is None: color = [1, 1, 1]
 
         Draw2D.quads(color, [(-1, -1), (+1, -1), (+1, +1), (-1, +1)])
+
+    # Очистить кадровый буфер:
+    def clear(self, color: list = None) -> "Renderer2D":
+        if color is None: color = [0, 0, 0, 1]
+
+        # Ограничиваем альфа-канал от 0 до 1:
+        if len(color) > 3: color[3] = min(max(color[3], 0.0), 1.0)
+
+        # Очищаем:
+        self.begin()
+        self.camera.ui_begin()
+        w, h = self.texture.width, self.texture.height
+        gl.glClearColor(*color if len(color) > 3 else (*color, 1.0))
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        self.camera.ui_end()
+        self.end()
+
+        return self
 
     # Изменить размер текстурки конвейера рендеринга:
     def resize(self, width: int, height: int) -> "Renderer2D":

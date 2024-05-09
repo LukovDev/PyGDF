@@ -190,28 +190,26 @@ class Light2D:
         def __render__(self) -> None:
             """ Эта функция не нуждается в ручном вызове. Она вызывается в слое света автоматически. """
 
-            # Устанавливаем переменные шейдера:
-            if True:
-                # Входные переменные:
-                self.shader.begin()
-                self.shader.set_uniform("u_modelview",     self.layer.camera.modelview)
-                self.shader.set_uniform("u_projection",    self.layer.camera.projection)
-                self.shader.set_uniform("u_resolution",    [self.layer.camera.width, self.layer.camera.height])
-                self.shader.set_uniform("u_cam_position",  self.layer.camera.position.xy)
-                self.shader.set_uniform("u_cam_zoom",      self.layer.camera.zoom)
+            self.shader.begin()
 
-                # Параметры источника света:
-                self.shader.set_uniform("u_position",      self.position.xy)
-                self.shader.set_uniform("u_intensity",     self.intensity)
-                self.shader.set_uniform("u_ambient_color", self.layer.ambient)
-                self.shader.set_uniform("u_color_inner",   self.color_inner)
-                self.shader.set_uniform("u_color_outer",   self.color_outer)
-                self.shader.set_uniform("u_inner_radius",  float(self.inner_radius))
-                self.shader.set_uniform("u_outer_radius",  float(self.outer_radius))
-                self.shader.end()
+            # Устанавливаем переменные шейдера:
+            # Входные переменные:
+            self.shader.set_uniform("u_modelview",     self.layer.camera.modelview)
+            self.shader.set_uniform("u_projection",    self.layer.camera.projection)
+            self.shader.set_uniform("u_resolution",    [self.layer.camera.width, self.layer.camera.height])
+            self.shader.set_uniform("u_cam_position",  self.layer.camera.position.xy)
+            self.shader.set_uniform("u_cam_zoom",      self.layer.camera.zoom)
+
+            # Параметры источника света:
+            self.shader.set_uniform("u_position",      self.position.xy)
+            self.shader.set_uniform("u_intensity",     self.intensity)
+            self.shader.set_uniform("u_ambient_color", self.layer.ambient)
+            self.shader.set_uniform("u_color_inner",   self.color_inner)
+            self.shader.set_uniform("u_color_outer",   self.color_outer)
+            self.shader.set_uniform("u_inner_radius",  float(self.inner_radius))
+            self.shader.set_uniform("u_outer_radius",  float(self.outer_radius))
 
             # Рисуем шейдер:
-            self.shader.begin()
             w = h = self.outer_radius / 2
             x, y = self.position.xy
             Draw2D.quads([1, 1, 1], [(-w + x, -h + y), (+w + x, -h + y), (+w + x, +h + y), (-w + x, +h + y)])

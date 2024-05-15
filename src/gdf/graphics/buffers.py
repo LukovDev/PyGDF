@@ -57,6 +57,21 @@ class FrameBuffer:
 
         return self
 
+    # Очистить кадровый буфер:
+    def clear(self, color: list = None) -> "FrameBuffer":
+        if color is None: color = [0, 0, 0, 1]
+
+        # Ограничиваем альфа-канал от 0 до 1:
+        if len(color) > 3: color[3] = min(max(color[3], 0.0), 1.0)
+
+        # Очищаем:
+        self.begin()
+        gl.glClearColor(*color if len(color) > 3 else (*color, 1.0))
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        self.end()
+
+        return self
+
     # Удалить буфер:
     def destroy(self) -> None:
         gl.glDeleteFramebuffers(1, [self.id])

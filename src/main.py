@@ -26,18 +26,24 @@ class GameClass(Window):
         super().__init__(
             title      = "PyGDF Window",
             icon       = files.load_image("./data/icons/runapp-icon.png"),
-            size       = (960, 540),
+            size       = vec2(960, 540),
             vsync      = False,
             fps        = 60,
             visible    = True,
             fullscreen = False,
-            min_size   = (0, 0),
-            max_size   = (float("inf"), float("inf")),
-            samples    = 16  # 0 / 4 / 8 / 16.
+            min_size   = vec2(0, 0),
+            max_size   = vec2(float("inf"), float("inf")),
+            samples    = 16  # [ 0 | 4 | 8 | 16 ]
         )
 
     # Вызывается при создании окна:
     def start(self) -> None:
+        # Выводим версию OpenGL:
+        print(f"OpenGL Version: {self.window.get_opengl_version()}\n")
+
+        # Выводим рендерер OpenGL:
+        print(f"OpenGL Renderer: {self.window.get_opengl_renderer()}\n")
+
         # 2D камера:
         self.camera = Camera2D(
             width    = self.window.get_width(),
@@ -69,6 +75,8 @@ class GameClass(Window):
         # Очищаем окно (значения цвета от 0 до 1):
         self.window.clear(0, 0, 0)
 
+        # Какой-то код (отрисовка).
+
         # Обновляем камеру:
         self.camera.update()
 
@@ -97,9 +105,10 @@ class GameClass(Window):
 
 # Если этот скрипт запускают:
 if __name__ == "__main__":
-
     # Выводим текущую версию фреймворка:
-    version = gdf.get_version()
-    print(f"PyGDF version: {version}")
+    print(f"PyGDF: {gdf.get_version()}\n")
+
+    # Выводим название платформы:
+    print(f"Platform: {gdf.get_platform()}\n")
 
     game = GameClass()

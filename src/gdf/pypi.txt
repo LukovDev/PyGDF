@@ -10,3 +10,6 @@ numba
 pyglm
 
 pymunk
+
+pypresence
+imgui[pygame]

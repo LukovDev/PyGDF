@@ -66,7 +66,11 @@ class Renderer2D:
     def shader(self, color: list = None) -> None:
         if color is None: color = [1, 1, 1]
 
-        Draw2D.quads(color, [(-1, -1), (+1, -1), (+1, +1), (-1, +1)])
+        verts = [(-1, -1), (+1, -1), (+1, +1), (-1, +1)]
+        gl.glColor(*color)
+        gl.glBegin(gl.GL_QUADS)
+        for i in range(4): gl.glVertex(*verts[i])
+        gl.glEnd()
 
     # Очистить кадровый буфер:
     def clear(self, color: list = None) -> "Renderer2D":

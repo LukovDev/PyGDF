@@ -40,8 +40,8 @@ class PackerTexture:
         else: raise KeyError(f"Texture \"{name}\" not found.")
 
     # Собрать атлас текстур:
-    def pack(self, pixelized: bool = False, padding: int = 1) -> "PackerTexture":
-        # INFO: padding применяется только по ширине, между текстурами.
+    def pack(self, pixelized: bool = False, offset: int = 1) -> "PackerTexture":
+        # INFO: offset применяется только по ширине, между текстурами.
 
         # Если текстура атласа уже была создана:
         if self.atlas is not None:
@@ -52,7 +52,7 @@ class PackerTexture:
         sorted_textures = sorted(self.textures.items(), key=lambda item: item[1].width * item[1].height, reverse=True)
 
         # Подсчёт размеров атласа:
-        width = sum(texture.width for _, texture in sorted_textures) + (len(sorted_textures) - 1) * padding
+        width = sum(texture.width for _, texture in sorted_textures) + (len(sorted_textures) - 1) * offset
         height = max(texture.height for _, texture in sorted_textures)
 
         # Создаём поверхность на которой будем рисовать текстуры:
@@ -66,7 +66,7 @@ class PackerTexture:
             atlas.blit(texture.image.surface, (x_offset, 0))
 
             # Увеличиваем смещение x для следующей текстуры:
-            x_offset += texture.width + padding
+            x_offset += texture.width + offset
 
             # Добавляем UV-координаты:
             # Структура текстурных координат:
@@ -75,10 +75,10 @@ class PackerTexture:
             # RIGHT | TOP
             # LEFT  | TOP
             self.tex_uv[name] = [
-                (x_offset - texture.width - padding) / width, texture.height / height,
-                (x_offset - padding)                 / width, texture.height / height,
-                (x_offset - padding)                 / width, 0,
-                (x_offset - texture.width - padding) / width, 0,
+                (x_offset - texture.width - offset) / width, texture.height / height,
+                (x_offset - offset)                 / width, texture.height / height,
+                (x_offset - offset)                 / width, 0,
+                (x_offset - texture.width - offset) / width, 0,
             ]
 
         # Создаём текстуру атласа:

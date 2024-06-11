@@ -18,7 +18,8 @@ class IgnoreException(Exception): pass
 
 
 # Загружаем изображение:
-def load_image(file_path: str) -> Image: return Image().load(file_path)
+def load_image(file_path: str) -> Image:
+    return Image().load(file_path)
 
 
 # Сохраняем изображение:

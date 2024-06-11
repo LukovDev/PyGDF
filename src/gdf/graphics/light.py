@@ -6,7 +6,6 @@
 # Импортируем:
 if True:
     from .gl import *
-    from .draw import Draw2D
     from .camera import Camera2D
     from .shader import ShaderProgram
     from .sprite import Sprite2D
@@ -138,9 +137,6 @@ class Light2D:
             uniform float u_inner_radius;   // Внутренний радиус.
             uniform float u_outer_radius;   // Внешний радиус.
 
-            // Константы:
-            const float offset_pixel = 4.0;  // Смещение между внутренним и наружным радиусом в пикселях.
-
             // Выходной цвет:
             out vec4 FragColor;
 
@@ -157,8 +153,8 @@ class Light2D:
                 float outer_rad = u_outer_radius * (1.0 / u_cam_zoom);  // Настраиваем наружный радиус.
 
                 // Если вдруг внутренний радиус будет больше чем наружный:
-                if (inner_rad >= outer_rad - offset_pixel) {
-                    inner_rad = outer_rad - offset_pixel;
+                if (inner_rad >= outer_rad) {
+                    inner_rad = outer_rad;
                 }
 
                 // Вычисляем альфа канал:
@@ -168,7 +164,7 @@ class Light2D:
                 color = mix(u_color_inner, u_color_outer, alpha);
 
                 // Задаём окончательный цвет:
-                FragColor = mix(vec4(color, mix(0.0, u_intensity, 1.0-alpha)), u_ambient_color, alpha);
+                FragColor = vec4(color.rgb, 1.0 - alpha) * min(u_intensity * 0.9, 0.9);
             }
             """
 
@@ -210,9 +206,13 @@ class Light2D:
             self.shader.set_uniform("u_outer_radius",  float(self.outer_radius))
 
             # Рисуем шейдер:
-            w = h = self.outer_radius / 2
-            x, y = self.position.xy
-            Draw2D.quads([1, 1, 1], [(-w + x, -h + y), (+w + x, -h + y), (+w + x, +h + y), (-w + x, +h + y)])
+            w = h = self.outer_radius / 2 ; x, y = self.position.xy
+            verts = [(-w + x, -h + y), (+w + x, -h + y), (+w + x, +h + y), (-w + x, +h + y)]
+
+            gl.glColor(1, 1, 1)
+            gl.glBegin(gl.GL_QUADS)
+            for i in range(4): gl.glVertex(*verts[i])
+            gl.glEnd()
             self.shader.end()
 
         # Удалить этот источник света из слоя света:

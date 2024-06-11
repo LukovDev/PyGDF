@@ -5,7 +5,7 @@
 
 # Импортируем:
 if True:
-    import glm
+    from .math import *
 
 
 # Проверяем и перемещаем курсор мыши если тот рядом с границей окна:
@@ -35,7 +35,7 @@ class CameraController2D:
         self.min_zoom = min_zoom
         self.max_zoom = max_zoom
         self.friction = friction
-        self.target_pos = glm.vec2(self.camera.position.xy)
+        self.target_pos = vec2(self.camera.position.xy)
 
     # Обновление камеры:
     def update(self, delta_time: float, gui_pressed_pass: bool = False) -> None:
@@ -100,7 +100,7 @@ class CameraController3D:
         self.pitch_max         = pitch_max
         self.move_up_forward   = move_up_forward
 
-        self.camera_target = glm.vec3(self.camera.position.xyz)
+        self.camera_target = vec3(self.camera.position.xyz)
 
         self.pressed_pass = False
         self.is_pressed = False
@@ -136,7 +136,7 @@ class CameraController3D:
             self.camera.position += ((self.camera_target-self.camera.position)*1/fr) * delta_time
         else: self.camera.position = self.camera_target
 
-        if round(glm.length(self.camera_target-self.camera.position), 4) > 0.001 or \
+        if round(length(self.camera_target-self.camera.position), 4) > 0.001 or \
            (not (mdxy[0] == 0 and mdxy[1] == 0) and self.window.get_mouse_pressed()[2]):
             self.is_movement = True
         else: self.is_movement = False
@@ -151,7 +151,7 @@ class CameraController3D:
         check_mouse_pos(self.window, 16, 16)  # Проверяем позицию мыши.
 
         # Ограничиваем угол обзора камеры (вверх и вниз):
-        self.camera.pitch = glm.clamp(self.camera.pitch, self.pitch_min, self.pitch_max)
+        self.camera.pitch = clamp(self.camera.pitch, self.pitch_min, self.pitch_max)
 
     # Управление с помощью клавиатуры:
     def keyboard_control(self, delta_time: float) -> None:
@@ -166,11 +166,11 @@ class CameraController3D:
         else: speed = self.speed * delta_time
 
         # Настраиваем вектора:
-        self.camera.right = glm.normalize(glm.cross(self.camera.forward, glm.vec3(0, 1, 0)))
+        self.camera.right = normalize(cross(self.camera.forward, vec3(0, 1, 0)))
 
         if not self.move_up_forward:
-            self.camera.forward = -glm.normalize(glm.cross(self.camera.right, glm.vec3(0, 1, 0)))
-        else: self.camera.up = glm.cross(-self.camera.forward, self.camera.right)
+            self.camera.forward = -normalize(cross(self.camera.right, vec3(0, 1, 0)))
+        else: self.camera.up = cross(-self.camera.forward, self.camera.right)
 
         # Управление клавишами:
         if keys[self.keys.K_w]: self.camera_target += self.camera.forward * speed

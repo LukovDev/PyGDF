@@ -11,16 +11,17 @@ if True:
     from .texture import Texture
     from .atlas import AtlasTexture
     from . import __rotate_vertices__
+    from ..math import *
     from ..utils import *
 
 
 # Класс пакетной отрисовки спрайтов:
 class SpriteBatch2D:
-    """ Этот класс не поддерживает отрисовку текстур атласов. Для этого есть класс AtlasTextureBatch """
+    """ Этот класс не поддерживает отрисовку текстур атласов. Для этого есть класс AtlasTextureBatch2D """
 
     def __init__(self, camera: Camera2D = None) -> None:
         self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
-        self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
+        self.texture_batches = {}      # Словарь хранит уникальные текстурки, и их вершины.
         self.__is_begin__    = False
 
     # Начать отрисовку:
@@ -52,10 +53,10 @@ class SpriteBatch2D:
         # ИНОГДА, ЭТО МОЖЕТ НАОБОРОТ ЗАНИЗИТЬ СКОРОСТЬ ОТРИСОВКИ!
         if cull_sprites and self.camera is not None:
             zoom, meter = self.camera.zoom, self.camera.meter / 100
-            if not is_circle_rectangle_2d((x+(width/2), y+(height/2)), max(abs(width), abs(height))/2 * 1.5,
-                                          (self.camera.position.x-(self.camera.width*zoom)/2*meter,
-                                          self.camera.position.y-(self.camera.height*zoom)/2*meter,
-                                          self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
+            if not Intersects.circle_rectangle(vec2(x+(width/2), y+(height/2)), max(abs(width), abs(height))/2 * 1.5,
+                                               (self.camera.position.x-(self.camera.width*zoom)/2*meter,
+                                               self.camera.position.y-(self.camera.height*zoom)/2*meter,
+                                               self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
 
         # Вращаем вершины спрайта:
         if angle != 0.0: vertices = __rotate_vertices__(x, y, width, height, angle)
@@ -154,10 +155,10 @@ class AtlasTextureBatch2D:
         # ИНОГДА, ЭТО МОЖЕТ НАОБОРОТ ЗАНИЗИТЬ СКОРОСТЬ ОТРИСОВКИ!
         if cull_sprites and self.camera is not None:
             zoom, meter = self.camera.zoom, self.camera.meter / 100
-            if not is_circle_rectangle_2d((x+(width/2), y+(height/2)), max(abs(width), abs(height))/2 * 1.5,
-                                          (self.camera.position.x-(self.camera.width*zoom)/2*meter,
-                                          self.camera.position.y-(self.camera.height*zoom)/2*meter,
-                                          self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
+            if not Intersects.circle_rectangle(vec2(x+(width/2), y+(height/2)), max(abs(width), abs(height))/2 * 1.5,
+                                               (self.camera.position.x-(self.camera.width*zoom)/2*meter,
+                                               self.camera.position.y-(self.camera.height*zoom)/2*meter,
+                                               self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
 
         # Вращаем вершины спрайта:
         if angle != 0.0: vertices = __rotate_vertices__(x, y, width, height, angle)

@@ -5,8 +5,8 @@
 
 # Импортируем:
 if True:
-    import numpy as np
     from .gl import *
+    from ..math import numpy as np
     from ..math import *
 
 
@@ -27,7 +27,7 @@ class Camera2D:
         self.meter    = meter          # Масштаб единицы измерения.
         self.size     = width, height  # Размер камеры.
 
-        self.modelview = None
+        self.modelview  = None
         self.projection = None
 
         self.__is_ui_begin__ = False
@@ -59,7 +59,7 @@ class Camera2D:
         self.height = height
         self.size = width, height
         gl.glDisable(gl.GL_DEPTH_TEST)
-        # gl.glEnable(gl.GL_CULL_FACE)
+        # gl.glEnable(gl.GL_CULL_FACE)  # Вырезать невидимые грани.
         gl.glViewport(0, 0, self.width, self.height)
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()
@@ -117,7 +117,7 @@ class Camera3D:
         self.pitch    = pitch      # Тангаж камеры.
         # self.roll     = roll       # Крен камеры.
 
-        self.modelview = None
+        self.modelview  = None
         self.projection = None
 
         self.up      = vec3(0, 1, 0)

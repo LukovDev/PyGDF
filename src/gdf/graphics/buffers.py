@@ -5,8 +5,8 @@
 
 # Импортируем:
 if True:
-    import numpy as np
     from .gl import *
+    from ..math import numpy as np
 
 
 # Shader Storage Buffer Object:

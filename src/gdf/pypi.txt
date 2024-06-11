@@ -1,13 +1,13 @@
 pyopenal
 pyogg
 
-pygame
-pyopengl
-pyopengl_accelerate
-
 numpy
 numba
 pyglm
+
+pygame
+pyopengl
+pyopengl_accelerate
 
 pymunk
 

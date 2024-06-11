@@ -10,7 +10,7 @@ if True:
 
 
 # Получить версию библиотеки:
-def get_version() -> str: return "v1.0-beta-1"
+def get_version() -> str: return "v1.0-private-beta-2"
 
 
 # Получить полное название системы:

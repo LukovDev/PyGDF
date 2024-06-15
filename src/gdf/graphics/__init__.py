@@ -74,7 +74,7 @@ from .image     import Image
 from .imgui     import ImGUI
 from .light     import Light2D
 from .packer    import PackerTexture
-from .particles import ParticleEffect2D
+from .particles import SimpleParticleEffect2D
 from .renderer  import Renderer2D
 from .shader    import ShaderProgram
 from .skybox    import SkyBox

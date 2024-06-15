@@ -72,24 +72,24 @@ class Window:
         self.window = self
         self.__winvars__ = {
             # Основные переменные:
-            "title":       title,
-            "icon":        icon,
-            "width":       min(max(size.x, min_size.x), max_size.x),
-            "height":      min(max(size.y, min_size.y), max_size.y),
-            "vsync":       vsync,
-            "settled-fps": fps,
-            "visible":     visible,
-            "fullscreen":  fullscreen,
-            "min-size":    min_size,
-            "max-size":    max_size,
-            "samples":     samples,
+            "title":      title,
+            "icon":       icon,
+            "width":      min(max(size.x, min_size.x), max_size.x),
+            "height":     min(max(size.y, min_size.y), max_size.y),
+            "vsync":      vsync,
+            "setted-fps": fps,
+            "visible":    visible,
+            "fullscreen": fullscreen,
+            "min-size":   min_size,
+            "max-size":   max_size,
+            "samples":    samples,
 
             # Внутренние переменные:
             "window-active": False,
             "monitor-size":  vec2(0),
             "mouse-scroll":  vec2(0),
             "mouse-rel":     vec2(0),
-            "mouse-pressed": [False, False, None],
+            "mouse-btn-up": [False, False, False],
             "mouse-visible": True,
             "dtime":         1 / 60,
             "old-dtime":     1 / 60,
@@ -174,7 +174,7 @@ class Window:
             start_frame_time = self.get_time()
             self.__winvars__["mouse-scroll"] = vec2(0)
             self.__winvars__["mouse-rel"] = vec2(pygame.mouse.get_rel())
-            self.__winvars__["mouse-pressed"][1:] = [False, None]
+            self.__winvars__["mouse-btn-up"] = [False, False, False]
 
             # Цикл, собирающий события:
             event_list = pygame.event.get()
@@ -208,13 +208,9 @@ class Window:
                 # Если колёсико мыши провернулось:
                 elif event.type == pygame.MOUSEWHEEL: self.__winvars__["mouse-scroll"] = vec2(event.x, event.y)
 
-                # Если нажимают любую кнопку мыши:
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.__winvars__["mouse-pressed"] = [True, False, event.button-1]
-
                 # Если отпускают любую кнопку мыши
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    self.__winvars__["mouse-pressed"] = [False, True, event.button-1]
+                    self.__winvars__["mouse-btn-up"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
 
             # Вызываем функцию цикла:
             try: self.update(self.get_delta_time(), event_list)
@@ -226,7 +222,7 @@ class Window:
             else: self.__winvars__["dtime"] = self.__winvars__["old-dtime"]  # Использовать DT прошлого кадра.
 
             # Делаем задержку между кадрами:
-            self.clock.tick(self.__winvars__["settled-fps"]) if not self.__winvars__["vsync"] else self.clock.tick(0)
+            self.clock.tick(self.__winvars__["setted-fps"]) if not self.__winvars__["vsync"] else self.clock.tick(0)
 
     # Установить режим окна:
     def __set_mode__(self, flags: int, vsync: bool, size: tuple | vec2 = None) -> None:
@@ -317,15 +313,15 @@ class Window:
 
     # Установить FPS:
     def set_fps(self, fps: int) -> None:
-        self.__winvars__["settled-fps"] = int(fps)
+        self.__winvars__["setted-fps"] = int(fps)
 
     # Получить текущий FPS:
     def get_fps(self) -> float:
         return 1.0 / self.__winvars__["dtime"]
 
     # Получить установленный FPS:
-    def get_settled_fps(self) -> int:
-        return self.__winvars__["settled-fps"]
+    def get_setted_fps(self) -> int:
+        return self.__winvars__["setted-fps"]
 
     # Получить дельту времени:
     def get_delta_time(self) -> float:
@@ -427,18 +423,12 @@ class Window:
         return list(pygame.mouse.get_pressed())
 
     # Получить нажатие кнопки мыши:
-    def get_mouse_button_down(self, button: int = None) -> bool:
-        a = self.__winvars__["mouse-pressed"][0]
-        b = self.get_mouse_pressed()
-        if button is not None and b is not None: return a and b[button]
-        return a
+    def get_mouse_button_down(self) -> list:
+        return list(pygame.mouse.get_pressed())
 
     # Получить отжатие кнопки мыши:
-    def get_mouse_button_up(self, button: int = None) -> bool:
-        a = self.__winvars__["mouse-pressed"][1]
-        b = self.__winvars__["mouse-pressed"][2]
-        if button is not None and b is not None: return a and button == b
-        return a
+    def get_mouse_button_up(self) -> list:
+        return list(self.__winvars__["mouse-btn-up"])
 
     # Получить вращение мыши:
     def get_mouse_scroll(self) -> vec2:

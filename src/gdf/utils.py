@@ -109,6 +109,13 @@ class Utils2D:
 
         return vec2(-sin(radians(angle-90)), -cos(radians(angle-90)))
 
+    # Получить скорость из вектора:
+    @staticmethod
+    def get_speed_vector(vector: vec2) -> float:
+        """ Возвращает скорость в виде float значения из вектора """
+
+        return sqrt(vector.x**2 + vector.y**2)
+
 
 # 2D пересечения геометрических объектов:
 class Intersects:

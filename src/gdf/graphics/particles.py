@@ -148,7 +148,7 @@ class SimpleParticleEffect2D:
 
             # Применяем гравитацию к направлению частицы:
             particle.velocity += self.gravity * dt
-            particle.velocity *= 1-(self.damping)
+            particle.velocity *= 1.0 - self.damping
 
             # Перемещаем частичку в сторону её направления умноженное на её скорость:
             particle.position += normalize(particle.velocity) * particle.speed * dt

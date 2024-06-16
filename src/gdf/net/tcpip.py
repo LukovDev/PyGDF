@@ -8,8 +8,8 @@ if True:
     pass
 
 
-# Класс сети TCP:
-class NetTCP:
+# Класс сети TCP/IP:
+class NetTCPIP:
     def __init__(self) -> None:
         ...
 

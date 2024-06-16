@@ -148,7 +148,7 @@ class SimpleParticleEffect2D:
 
             # Применяем гравитацию к направлению частицы:
             particle.velocity += self.gravity * dt
-            particle.velocity *= self.damping
+            particle.velocity *= 1-(self.damping)
 
             # Перемещаем частичку в сторону её направления умноженное на её скорость:
             particle.position += normalize(particle.velocity) * particle.speed * dt
@@ -158,11 +158,11 @@ class SimpleParticleEffect2D:
         return self
 
     # Отрисовка частиц:
-    def render(self) -> "SimpleParticleEffect2D":
+    def render(self, color: list = None) -> "SimpleParticleEffect2D":
         # Проходимся по частицам:
         self.batch.begin()
         for particle in self.particles:
-            angl = Utils2D.get_angle_points(vec2(0), normalize(particle.velocity)) if self.is_dir_angle else 0.0
+            angl = Utils2D.get_angle_points(vec2(0), normalize(particle.velocity)) + 90 if self.is_dir_angle else 0.0
 
             # Рисуем частицу:
             self.batch.draw(
@@ -171,11 +171,11 @@ class SimpleParticleEffect2D:
                 y      = particle.position.y - (particle.size.y/2),
                 width  = particle.size.x,
                 height = particle.size.y,
-                angle  = angl + 90 + self.angle_offset
+                angle  = angl + self.angle_offset
             )
         self.batch.end()
 
-        self.batch.render()
+        self.batch.render(color)
         return self
 
     # Удалить систему частиц:

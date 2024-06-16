@@ -33,7 +33,7 @@ class GameClass(Window):
             fullscreen = False,
             min_size   = vec2(0, 0),
             max_size   = vec2(float("inf"), float("inf")),
-            samples    = 16  # [ 0 | 4 | 8 | 16 ]
+            samples    = 8  # [ 0 | 4 | 8 | 16 ] - MultiSampling (Anti-Aliasing).
         )
 
     # Вызывается при создании окна:

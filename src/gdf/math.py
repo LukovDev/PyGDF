@@ -6,6 +6,7 @@
 # Импортируем:
 if True:
     import glm
+    import math
     import numpy
     import numba
     import random
@@ -21,3 +22,6 @@ class vec3(glm.vec3): pass
 
 # Класс четырёхмерного вектора:
 class vec4(glm.vec4): pass
+
+# Удаляем округление от glm:
+del round

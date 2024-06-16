@@ -94,11 +94,12 @@ class SimpleParticleEffect2D:
 
     # Создать одну частицу. Используется строго внутри этого класса:
     def __create_particle__(self) -> None:
-        random_dir = vec2(random.uniform(-1.0, +1.0), random.uniform(-1.0, +1.0))  # Случайное направление.
+        a = random.uniform(0, 2*math.pi)  # Случайный угол.
+        rdir = vec2(sin(a), cos(a))       # Случайный вектор.
 
         ptxt = self.texture if type(self.texture) is Texture else random.choice(self.texture)
         ppos = self.position.xy
-        pvel = normalize(random_dir + self.direction) * random.uniform(*self.speed.xy)
+        pvel = normalize(rdir+self.direction) * random.uniform(*self.speed.xy)
         psiz = self.size.xy
         ptfl = random.uniform(*self.duration.xy)
 
@@ -125,29 +126,32 @@ class SimpleParticleEffect2D:
 
     # Обновление частиц:
     def update(self, delta_time: float) -> "SimpleParticleEffect2D":
-        # Урезаем лишние частицы:
-        self.particles = self.particles[:self.count]
+        dt = min(delta_time, 1/5)*60
 
         # Если количество частиц меньше установленного, создаём новые:
         if len(self.particles) < self.count and self.is_infinite:
+            self.__timer__ -= delta_time
             while self.__timer__ <= 0.0:
                 self.__create_particle__()
-                self.__timer__ += (self.duration.x+self.duration.y) / 2 / self.count
-            self.__timer__ -= delta_time
+                self.__timer__ += (sum(self.duration) / 2) / self.count
+
+        # Урезаем лишние частицы:
+        self.particles = self.particles[:self.count]
 
         # Проходимся по частицам:
         for particle in self.particles:
             # Время жизни частицы. Если время вышло, удаляем частицу:
-            particle.time -= 1.0 / 60 * (delta_time*60)
+            particle.time -= delta_time
             if particle.time <= 0.0:
                 self.particles.remove(particle)
                 if self.is_infinite: self.__create_particle__()
 
             # Применяем гравитацию к направлению частицы:
-            particle.velocity += (self.gravity * self.damping) * (min(delta_time, 1/5)*60)
+            particle.velocity += self.gravity * dt
+            particle.velocity *= self.damping
 
             # Перемещаем частичку в сторону её направления умноженное на её скорость:
-            particle.position += normalize(particle.velocity) * particle.speed * (min(delta_time, 1/5)*60)
+            particle.position += normalize(particle.velocity) * particle.speed * dt
             if self.is_local_pos: particle.position += self.position - self.__old_pos__
 
         self.__old_pos__.xy = self.position.xy
@@ -158,20 +162,15 @@ class SimpleParticleEffect2D:
         # Проходимся по частицам:
         self.batch.begin()
         for particle in self.particles:
-            # Получаем сокращённые параметры:
-            ptxt = particle.texture
-            ppos = particle.position
-            pvel = particle.velocity
-            psiz = particle.size
-            angl = Utils2D.get_angle_points(vec2(0), pvel) if self.is_dir_angle else 0.0
+            angl = Utils2D.get_angle_points(vec2(0), normalize(particle.velocity)) if self.is_dir_angle else 0.0
 
             # Рисуем частицу:
             self.batch.draw(
-                sprite = ptxt,
-                x      = ppos.x - (psiz.x/2),
-                y      = ppos.y - (psiz.y/2),
-                width  = psiz.x,
-                height = psiz.y,
+                sprite = particle.texture,
+                x      = particle.position.x - (particle.size.x/2),
+                y      = particle.position.y - (particle.size.y/2),
+                width  = particle.size.x,
+                height = particle.size.y,
                 angle  = angl + 90 + self.angle_offset
             )
         self.batch.end()

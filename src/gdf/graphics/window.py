@@ -32,7 +32,7 @@ class Window:
     def update(self, delta_time: float, event_list: list) -> None:
         pass
 
-    # Вызывается в конце функции update чтобы отрисовать все изменения:
+    # Вызывается после функции update чтобы отрисовать все изменения:
     def render(self, delta_time: float) -> None:
         pass
 
@@ -85,16 +85,16 @@ class Window:
             "samples":    samples,
 
             # Внутренние переменные:
-            "window-active": False,
-            "monitor-size":  vec2(0),
-            "mouse-scroll":  vec2(0),
-            "mouse-rel":     vec2(0),
-            "mouse-btn-up": [False, False, False],
-            "mouse-visible": True,
-            "dtime":         1 / 60,
-            "old-dtime":     1 / 60,
-            "is-exit":       False,
-            "start-time":    time.time(),
+            "window-active":  False,
+            "monitor-size":   vec2(0),
+            "mouse-scroll":   vec2(0),
+            "mouse-rel":      vec2(0),
+            "mouse-btn-up":   [False, False, False],
+            "cursor-visible": True,
+            "dtime":          1 / 60,
+            "old-dtime":      1 / 60,
+            "is-exit":        False,
+            "start-time":     0.0,
         }
 
         pygame.init()
@@ -107,6 +107,7 @@ class Window:
             visible_flag = pygame.SHOWN if self.get_visible() else pygame.HIDDEN
             mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
             self.__set_mode__(mode_flags, self.get_vsync(), (self.__winvars__["width"], self.__winvars__["height"]))
+            self.set_samples(self.__winvars__["samples"])
 
             # Устанавливаем версию контекста OpenGL:
             pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, gl_major)
@@ -159,6 +160,10 @@ class Window:
         # Инициализируем OpenAL:
         al.oalInit()
 
+        # Инициализация времени программы:
+        self.__winvars__["start-time"] = time.time()
+
+        # Функция старта программы:
         self.start()
 
         # Основной цикл окна:
@@ -171,7 +176,7 @@ class Window:
                 gc.collect()    # Собираем мусор (на всякий случай).
                 return          # Возвращаемся из этого класса.
 
-            start_frame_time = self.get_time()
+            start_frame_time = time.time()
             self.__winvars__["mouse-scroll"] = vec2(0)
             self.__winvars__["mouse-rel"] = vec2(pygame.mouse.get_rel())
             self.__winvars__["mouse-btn-up"] = [False, False, False]
@@ -216,17 +221,20 @@ class Window:
             try: self.update(self.get_delta_time(), event_list)
             except KeyboardInterrupt: self.exit()
 
-            # Получаем дельту времени (время кадра или же время обработки одного цикла окна):
-            dt = self.get_time() - start_frame_time
-            if dt > 0.0: self.__winvars__["old-dtime"] = self.__winvars__["dtime"] = dt
-            else: self.__winvars__["dtime"] = self.__winvars__["old-dtime"]  # Использовать DT прошлого кадра.
+            # Вызываем функцию отрисовки:
+            try: self.render(self.get_delta_time())
+            except KeyboardInterrupt: self.exit()
 
             # Делаем задержку между кадрами:
             self.clock.tick(self.__winvars__["setted-fps"]) if not self.__winvars__["vsync"] else self.clock.tick(0)
 
+            # Получаем дельту времени (время кадра или же время обработки одного цикла окна):
+            dt = time.time() - start_frame_time
+            if dt > 0.0: self.__winvars__["old-dtime"] = self.__winvars__["dtime"] = dt
+            else: self.__winvars__["dtime"] = self.__winvars__["old-dtime"]  # Использовать DT прошлого кадра.
+
     # Установить режим окна:
     def __set_mode__(self, flags: int, vsync: bool, size: tuple | vec2 = None) -> None:
-        self.set_samples(self.__winvars__["samples"])
         if size is None: size = (self.__winvars__["width"], self.__winvars__["height"])
         flags = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE + flags
         pygame.display.set_mode(size, flags, vsync=vsync)
@@ -435,13 +443,13 @@ class Window:
         return vec2(self.__winvars__["mouse-scroll"])
 
     # Установить видимость курсора мыши:
-    def set_mouse_visible(self, visible: bool) -> None:
-        self.__winvars__["mouse-visible"] = visible
+    def set_cursor_visible(self, visible: bool) -> None:
+        self.__winvars__["cursor-visible"] = visible
         pygame.mouse.set_visible(visible)
 
     # Получить видимость курсора мыши:
-    def get_mouse_visible(self) -> bool:
-        return self.__winvars__["mouse-visible"]
+    def get_cursor_visible(self) -> bool:
+        return self.__winvars__["cursor-visible"]
 
     # Получить нажатие клавиш клавиатуры:
     @staticmethod

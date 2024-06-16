@@ -10,6 +10,8 @@ if True:
 
 
 # Импортируем скрипты:
+from . import tcpip
 
 
 # Импортируем основной функционал из скриптов:
+from .tcpip import NetTCP

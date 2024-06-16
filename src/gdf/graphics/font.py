@@ -9,63 +9,70 @@ if True:
     import pygame
     from .image import Image
     from .texture import Texture
-    from .sprite import Sprite2D
 
 
-# Получить какие шрифты есть в системе:
-def get_fonts() -> list:
-    return pygame.font.get_fonts()
-
-
-# Класс шрифта:
-class Font:
-    def __init__(self, font_path: str, font_size: int) -> None:
-        if font_path is not None and os.path.isfile(font_path):
-            self.font = pygame.font.Font(font_path, font_size)
-        else: self.font = pygame.font.SysFont("Arial", font_size)
+# Класс генератора текста из шрифта:
+class FontGenerator:
+    def __init__(self, file_path: str = None) -> None:
+        self.__font_path__ =  file_path
         self.texture = None
 
-    # Получить текстуру текста:
-    def get_texture(self, text: str, color: list, bg_color: list = None,
-                   offset_x: int = 0, offset_y: int = 0, smooth: bool = True) -> Sprite2D:
+    # Запечь текст шрифта на текстуре:
+    def bake_texture(self,
+                     text:      str,
+                     font_size: int,
+                     color:     list = None,
+                     bg_color:  list = None,
+                     padding_x: int  = 0,
+                     padding_y: int  = 0,
+                     smooth:    bool = True
+                     ) -> "Font":
+        # Настраиваем цвета:
+        if color    is None: color    = [1, 1, 1, 1]
         if bg_color is None: bg_color = [0, 0, 0, 0]
-        bg_color = bg_color[0]*255, bg_color[1]*255, bg_color[2]*255, bg_color[3]*255
-        color = color[0]*255, color[1]*255, color[2]*255, color[3]*255
-        srf = self.font.render(text, smooth, color[:3])
-        srf.set_alpha(color[3])
-        srf_size = srf.get_width()+offset_x*2, srf.get_height()+offset_y*2
-        bg_surface = pygame.Surface(srf_size, pygame.SRCALPHA)
-        bg_surface.fill(bg_color)
-        bg_surface.blit(srf, (offset_x, offset_y))
+        color    = [c * 255 for c in color]
+        bg_color = [c * 255 for c in bg_color]
+
+        # Удаляем старую текстуру текста:
         if self.texture is not None:
             self.texture.destroy()
             self.texture = None
-        if self.texture is None:
-            self.texture = Texture(Image(surface=bg_surface))
+
+        # Создаём экземпляр шрифта:
+        if self.__font_path__ is not None and os.path.isfile(self.__font_path__):
+            font = pygame.font.Font(self.__font_path__, font_size)
+        else: font = pygame.font.SysFont("Arial", font_size)
+
+        # Создаём и получаем битмап текста из шрифта:
+        bitmap = font.render(text, smooth, color[:3])
+        bitmap.set_alpha(color[3])
+        bitmap_size = bitmap.get_width()+padding_x*2, bitmap.get_height()+padding_y*2
+
+        # Создаём фон текста, и рисуем на нём основной текст:
+        text_bitmap = pygame.Surface(bitmap_size, pygame.SRCALPHA)
+        text_bitmap.fill(bg_color)
+        text_bitmap.blit(bitmap, (padding_x, padding_y))
+
+        # Создаём текстуру из битмапа:
+        if self.texture is None: self.texture = Texture(Image(surface=text_bitmap))
+
+        self.texture.set_linear() if smooth else self.texture.set_pixelized()
+
+        return self
+
+    # Получить текстуру:
+    def get_texture(self) -> Texture:
         return self.texture
 
+    # Получить ширину текста:
+    def get_width(self) -> int:
+        return self.texture.width if self.texture is not None else 0
 
-# Класс системного шрифта:
-class SysFont:
-    def __init__(self, font_name: str, font_size: int) -> None:
-        self.font = pygame.font.SysFont(font_name, font_size)
-        self.texture = None
+    # Получить высоту текста:
+    def get_height(self) -> int:
+        return self.texture.height if self.texture is not None else 0
 
-    # Получить текстуру текста:
-    def get_texture(self, text: str, color: list, bg_color: list = None,
-                   offset_x: int = 0, offset_y: int = 0, smooth: bool = True) -> Sprite2D:
-        if bg_color is None: bg_color = [0, 0, 0, 0]
-        bg_color = bg_color[0]*255, bg_color[1]*255, bg_color[2]*255, bg_color[3]*255
-        color = color[0]*255, color[1]*255, color[2]*255, color[3]*255
-        srf = self.font.render(text, smooth, color[:3])
-        srf.set_alpha(color[3])
-        srf_size = srf.get_width()+offset_x*2, srf.get_height()+offset_y*2
-        bg_surface = pygame.Surface(srf_size, pygame.SRCALPHA)
-        bg_surface.fill(bg_color)
-        bg_surface.blit(srf, (offset_x, offset_y))
+    # Удалить шрифт:
+    def destroy(self) -> None:
         if self.texture is not None:
             self.texture.destroy()
-            self.texture = None
-        if self.texture is None:
-            self.texture = Texture(Image(surface=bg_surface))
-        return self.texture

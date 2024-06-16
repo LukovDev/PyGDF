@@ -28,7 +28,7 @@ class Renderer2D:
         self.__is_begin__ = False
 
         if width is not None and height is not None: self.resize(width, height)
-        else: self.resize(self.camera.width, self.camera.height)
+        elif self.camera is not None: self.resize(self.camera.width, self.camera.height)
 
     # Начать рисовать на текстуре конвейера рендеринга:
     def begin(self) -> "Renderer2D":

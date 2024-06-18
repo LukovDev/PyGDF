@@ -13,3 +13,4 @@ pymunk
 
 pypresence
 imgui[pygame]
+requests

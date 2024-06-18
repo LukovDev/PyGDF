@@ -7,6 +7,7 @@
 if True:
     import json
     import zipfile
+    import requests
     import tkinter as tk
     from tkinter import filedialog
     from .audio import Music, Sound
@@ -104,3 +105,16 @@ def get_file_path_gialog(file_types: list[tuple] = [("all files:" "*.*")], icon_
     else: fp = filedialog.askopenfilename()
     root.destroy()
     return fp
+
+
+# Скачать файл из интернета:
+def download_file(url: str, file_path: str, chunk_size: int = 8192) -> None:
+    # Отправляем HTTP GET запрос на URL:
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()  # Проверяем, что запрос прошел успешно.
+
+        # Открываем локальный файл для записи в бинарном режиме:
+        with open(file_path, "wb") as f:
+            # Постепенно загружаем данные и записываем их в файл:
+            for chunk in r.iter_content(chunk_size=chunk_size):
+                f.write(chunk)

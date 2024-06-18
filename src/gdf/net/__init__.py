@@ -41,6 +41,8 @@ if True:
     012 - Server disconnected you because it is full           - Сервер отключил вас, потому что он переполнен.
 
     013 - Connection was not established for an unknown reason - Соединение не было установлено по неизвестной причине.
+
+    014 - Error when handling server             - Неизвестная ошибка при работе с сервером на стороне клиента.
 """
 
 """ Все сообщения отправляемые от сервера к клиенту:
@@ -71,7 +73,7 @@ class NetTimeOut(NetException): pass
 
 
 # Сетевое исключение потери соединения:
-class NetConnectLost(NetException): pass
+class NetConnectionLost(NetException): pass
 
 
 # Сетевое исключение отказа узла от соединения:
@@ -114,7 +116,7 @@ class NetSocket:
 
     # Установить таймаут:
     def set_time_out(self, timeout: float) -> "NetSocket":
-        self.socket.settimeout(timeout)
+        self.socket.settimeout(float(timeout))
         return self
 
     # Создать сервер:
@@ -128,7 +130,7 @@ class NetSocket:
 
     # Максимальная очередь на присоединение:
     def listen(self, listen: int) -> "NetSocket":
-        self.socket.listen(listen)
+        self.socket.listen(int(listen))
         return self
 
     # Подключиться к серверу:

@@ -23,7 +23,7 @@ class NetServerTCP:
             "clients":       [],      # Список клиентов.
             "connect-limit": int,     # Максимальное количество клиентов.
             "entry-key":     str,     # Ключ входа.
-            "tps-limit":     int,     # Частота цикла обработки клиента (сколько раз в сек обработать).
+            "tps-limit":     float,   # Частота цикла обработки клиента (сколько раз в сек обработать).
             "timeout":       float,   # Время ожидания ответа между клиентом и сервером.
             "de-encoding":   "utf-8"  # Кодировка обменивания личными сообщениями между клиентом и сервером.
         }
@@ -34,31 +34,35 @@ class NetServerTCP:
     # Обработчик клиентов в отдельном потоке:
     def __client_handler__(self, client: NetSocket, address: tuple) -> None:
         try:
-            client.set_time_out(self.__netvars__["timeout"])  # Установка таймаута на ожидание ответа от клиента.
+            # Установка таймаута на ожидание ответа от клиента:
+            client.set_time_out(self.__netvars__["timeout"])
+
+            # Пингуем клиента, чтобы запустить бесконечный круг обменивания минимальной информацией:
+            client.send_data("PING", self.__netvars__["de-encoding"])
 
             while True:
                 try:
                     # Получаем данные от клиента:
-                    try: data = client.socket.recv(1024).decode("utf-8")
+                    try: data = client.socket.recv(1024).decode(self.__netvars__["de-encoding"])
                     except OSError as error: break
 
                     # Обрабатываем отключение клиента:
                     if not data: break
+                    else: data = data[4:]
 
                     # Если мы получили Понг от клиента, отвечаем пингом:
-                    if data == "PONG":
-                        pass
+                    if data == "PONG": client.send_data("PING", self.__netvars__["de-encoding"])
 
                     # Обрабатываем клиента:
                     self.client_handler(client, address)
                 except socket.timeout:
-                    client.send_data("timeout-disconnect", "utf-8")
+                    client.send_data("timeout-disconnect", self.__netvars__["de-encoding"])
                     break  # Выходим из бесконечного цикла обработки.
 
                 # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
                 time.sleep(1/self.__netvars__["tps-limit"])
         except (ConnectionResetError, BrokenPipeError):
-            raise NetConnectLost(f"[009] Connection Lost (with {address[0]}:{address[1]})")
+            raise NetConnectionLost(f"[009] Connection Lost (with {address[0]}:{address[1]})")
         except Exception as error:
             raise NetException(f"[008] Error when handling client (with {address[0]}:{address[1]}): {error}")
         finally:
@@ -90,7 +94,7 @@ class NetServerTCP:
                             client.set_time_out(self.__netvars__["timeout"])
 
                             # Получаем ключ и преобразовываем его:
-                            client_key = client.recv_data(1024, "utf-8")
+                            client_key = client.recv_data(1024, self.__netvars__["de-encoding"])
                             server_key = str(self.__netvars__["entry-key"])
 
                             # Проверяем ключ:
@@ -99,7 +103,7 @@ class NetServerTCP:
                                 self.__netvars__["clients"].append(client)
 
                                 # Сообщаем клиенту, что тот прошёл:
-                                client.send_data("key-success", "utf-8")
+                                client.send_data("key-success", self.__netvars__["de-encoding"])
 
                                 # Обрабатываем подключение клиента:
                                 self.connect_handler(client, address)
@@ -108,15 +112,15 @@ class NetServerTCP:
                                 Thread(target=self.__client_handler__, args=(client, address), daemon=True).start()
                             else:
                                 # Если ключ клиента не подходит, то сообщаем ему об этом, и отключаем от сервера:
-                                client.send_data("key-wrong", "utf-8")
+                                client.send_data("key-wrong", self.__netvars__["de-encoding"])
                                 client.close()
                         except socket.timeout:
                             # Если клиент не успел предоставить ключ, то сообщаем ему об этом и отключаем его:
-                            client.send_data("key-timeout-error", "utf-8")
+                            client.send_data("key-timeout-error", self.__netvars__["de-encoding"])
                             client.close()
                     else:
                         # Если сервер переполнен:
-                        client.send_data("server-overflow", "utf-8")
+                        client.send_data("server-overflow", self.__netvars__["de-encoding"])
                         client.close()
                 except socket.timeout:
                     raise NetTimeOut("[002] Connection Timeout. The client is not responding.")
@@ -135,7 +139,7 @@ class NetServerTCP:
                host:          str,
                port:          int,
                key:           str   = None,
-               tps:           int   = 60,
+               tps:           float = 60.0,
                connect_limit: int   = 4,
                listen_limit:  int   = 4,
                timeout:       float = 10.0
@@ -220,18 +224,64 @@ class NetClientTCP:
         self.connect_handler    = connect_handler     # Вызывается при подключении к серверу.
         self.server_handler     = server_handler      # Вызывается каждый 1/TPS раз в отдельном потоке.
         self.disconnect_handler = disconnect_handler  # Вызывается при отключении от сервера.
+        
+        # Внутренние переменные:
+        self.__netvars__ = {
+            "tps-limit":   float,   # Частота цикла обработки сервера (сколько раз в сек обработать).
+            "timeout":     float,   # Время ожидания ответа между клиентом и сервером.
+            "de-encoding": "utf-8"  # Кодировка обменивания личными сообщениями между клиентом и сервером.
+        }
 
         # Создаём сокет клиента (AF_INET это IPv4 | SOCK_STREAM это TCP):
         self.socket = NetSocket(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
 
     # Обработчик сервера в отдельном потоке:
     def __server_handler__(self, server: NetSocket, address: tuple) -> None:
-        pass
+        try:
+            # Установка таймаута на ожидание ответа от сервера:
+            server.set_time_out(self.__netvars__["timeout"])
+
+            while True:
+                try:
+                    # Получаем данные от сервера:
+                    try: data = server.socket.recv(1024).decode(self.__netvars__["de-encoding"])
+                    except OSError as error: break
+
+                    # Обрабатываем отключение сервера:
+                    if not data: break
+                    else: data = data[4:]
+
+                    # Если мы получили Пинг от сервера, отвечаем понгом:
+                    if data == "PING": server.send_data("PONG", self.__netvars__["de-encoding"])
+
+                    # Обрабатываем сервер:
+                    self.server_handler(server, address)
+                except socket.timeout:
+                    break  # Выходим из бесконечного цикла обработки.
+
+                # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
+                time.sleep(1/self.__netvars__["tps-limit"])
+        except (ConnectionResetError, BrokenPipeError):
+            raise NetConnectionLost(f"[009] Connection Lost (with {address[0]}:{address[1]})")
+        except Exception as error:
+            raise NetException(f"[014] Error when handling server (with {address[0]}:{address[1]}): {error}")
+        finally:
+            # Обрабатываем отключение от сервера:
+            self.disconnect_handler(server, address)
+
+            # Закрываем сокет клиента (соединение с клиентом) в любом случае:
+            server.close()
 
     # Подключиться к серверу:
-    def connect(self, host: str, port: int, key: str = None, timeout: float = 10.0) -> "NetClientTCP":
+    def connect(self,
+                host:    str,
+                port:    int,
+                key:     str   = None,
+                tps:     float = 60.0,
+                timeout: float = 10.0
+                ) -> "NetClientTCP":
         # Устанавливаем тайм-аут на ожидание подтверждения подключения к серверу:
-        self.socket.set_time_out(timeout+0.1)
+        self.socket.set_time_out(timeout+1.0)  # +1.0 секунда, на всякий случай.
 
         try:
             # Подключаемся к серверу:
@@ -239,10 +289,10 @@ class NetClientTCP:
             server_address = self.socket.get_peer_name()
 
             # Сразу отправляем ключ входа:
-            self.socket.send_data(key, "utf-8")
+            self.socket.send_data(key,  self.__netvars__["de-encoding"])
 
             # Получаем ответ от сервера:
-            data = self.socket.recv_data(1024, "utf-8")
+            data = self.socket.recv_data(1024,  self.__netvars__["de-encoding"])
 
             # Если ключ не правильный:
             if data == "key-wrong":
@@ -252,6 +302,15 @@ class NetClientTCP:
             elif data == "server-overflow":
                 raise NetServerOverflow("[012] Server disconnected you because it is full.")
             elif data == "key-success":
+                # Устанавливаем максимальное время ожидания ответа от сервера:
+                self.set_timeout(timeout)
+
+                # TPS клиента:
+                self.__netvars__["tps-limit"] = tps
+
+                # Обрабатываем подключение:
+                self.connect_handler(self.socket, server_address)
+
                 # Создаём новый демонический поток для обработки сервера:
                 Thread(target=self.__server_handler__, args=(self.socket, server_address), daemon=True).start()
             else: raise NetException("[013] Connection was not established for an unknown reason.")
@@ -259,18 +318,30 @@ class NetClientTCP:
         except socket.gaierror:
             self.socket.close()
             raise NetException("[004] The specified hostname does not exist or cannot be resolved.")
+
         except socket.timeout:
             self.socket.close()
             raise NetTimeOut("[002] Connection Timeout. Server too long to process the connection.")
+
         except ConnectionRefusedError:
             self.socket.close()
             raise NetConnectionRefused("[003] Connection refused.")
+
+        except ConnectionResetError:
+            self.socket.close()
+            raise NetConnectionLost(f"[009] Connection Lost (with {server_address[0]}:{server_address[1]})")
+
         except OSError as error:
             self.socket.close()
             if error.errno == 10049:
                 raise NetException("[001] Invalid server address.")
             else: raise NetException(f"[000] Unknown error: {error}")
 
+        return self
+
+    # Установить таймаута ожидания ответа:
+    def set_timeout(self, timeout: float) -> "NetClientTCP":
+        self.__netvars__["timeout"] = timeout
         return self
 
     # Получить ip клиента:

@@ -12,89 +12,87 @@ if True:
     import socket
 
 
-# Сетевые ошибки:
-net_error_codes = {
-    "000": "Unknown error",
-    "001": "",
-    "002": "",
-    "003": "",
-    "004": "",
-    "005": "",
-    "006": "",
-    "007": "",
-    "008": "",
-    "009": "",
-    "010": "",
-    "011": "",
-    "012": "",
-    "013": "",
-    "014": "",
-    "015": "",
-}
-
-
-""" Коды ошибок:
-
-    000 - Unknown error                          - Неизвестная сетевая ошибка.
-
-    001 - Invalid server address                 - Адрес сервера не правильный (ip или порт сервера).
-
-    002 - Connection Timeout                     - Время ожидания соединения с сервером или клиентом истекло.
-
-    003 - Connection refused                     - Отказано в соединении. Либо очередь переполнена, либо сервера нет.
-
-    004 - The specified hostname does not exist  - Имя хоста не существует или не может быть разрешён.
-
-    005 - Server Error                           - Неизвестная ошибка в работе сервера.
-
-    006 - The selected Port is already occupied  - Выбранный порт уже занят.
-
-    007 - Address server is being created is invalid - Адрес на котором создаётся сервер, неправильный или недопустим.
-
-    008 - Error when handling client             - Неизвестная ошибка при работе с клиентом на стороне сервера.
-
-    009 - Connection Lost                        - Соединение с сервером или клиентом прервано.
-
-    010 - Server disconnected you due to an incorrect password - Сервер отключил вас, потому что пароль неверен.
-
-    011 - Server disconnected you because it didn't wait for the password - Сервер слишком долго ждал от вас пароль.
-
-    012 - Server disconnected you because server is full       - Сервер отключил вас, потому что он переполнен.
-
-    013 - Connection was not established for an unknown reason - Соединение не было установлено по неизвестной причине.
-
-    014 - Error when handling server             - Неизвестная ошибка при работе с сервером на стороне клиента.
-
-    015 - Server disconnected you because it waited too long for a response - Сервер слишком долго ждал ответа.
-"""
+# Ниже 15 классов-исключений (4 из которых пока что не используются):
 
 
 # Сетевое исключение:
 class NetException(Exception): pass
 
 
-# Сетевое исключение тайм-аута:
-class NetTimeOut(NetException): pass
+# Сетевое исключение неправильного ключа-пароля от клиента:
+class NetClientKeyWrong(NetException): pass
 
 
-# Сетевое исключение тайм-аута соединения:
-class NetConnectionTimeOut(NetException): pass
-
-
-# Сетевое исключение потери соединения:
-class NetConnectionLost(NetException): pass
-
-
-# Сетевое исключение отказа узла от соединения:
-class NetConnectionRefused(NetException): pass
+# Сетевое исключение превышения ожидания ключа от клиента:
+class NetClientKeyTimeout(NetException): pass
 
 
 # Сетевое исключение отказа от подключения из за переполнения сервера:
 class NetServerOverflow(NetException): pass
 
 
-# Сетевое исключение неправильного ключа-пароля от клиента:
-class NetClientKeyWrong(NetException): pass
+# Сетевое исключение ошибки подключения к сокету, связанная с адресом (socket.gaierror):
+class NetAddressRelatedError(NetException): pass
+
+
+# Сетевое исключение превышено время ожидания соединения (socket.timeout):
+class NetConnectionTimeout(NetException): pass
+
+
+# Сетевое исключение соединение отклонено (ConnectionRefusedError):
+class NetConnectionRefused(NetException): pass
+
+
+# Сетевое исключение соединение прервано (ConnectionAbortedError):
+class NetConnectionAborted(NetException): pass
+
+
+# Сетевое исключение соединение сброшено (ConnectionResetError):
+class NetConnectionResetError(NetException): pass
+
+
+# Сетевое исключение недействительного адреса (OSError Errno 10049):
+class NetAddressInvalid(NetException): pass
+
+
+# Сетевое исключение недоступной сети (OSError Errno ENETUNREACH):
+class NetUnavailable(NetException): pass
+
+
+# Сетевое исключение сетевой путь к хосту недоступен (OSError Errno EHOSTUNREACH):
+class NetHostUnreachable(NetException): pass
+
+
+# Сетевое исключение от системы:
+class NetOSError(NetException): pass
+
+
+# Сетевое исключение разорванного сокета:
+class NetBrokenPipeError(NetException): pass
+
+
+# Сетевое исключение потери соединения:
+class NetConnectionLost(NetException): pass
+
+
+# ---------------- Неиспользуемые исключения: ----------------
+
+# Сетевое исключение связанное с сокетом:
+class NetSocketError(NetException): pass
+
+
+# Сетевое исключение тайм-аута:
+class NetTimeOut(NetException): pass
+
+
+# Сетевое исключение адрес уже занят (OSError Errno EADDRINUSE):
+class NetAddressOccupied(NetException): pass
+
+
+# Сетевое исключение операция заблокирована (BlockingIOError):
+class NetOperationBlocked(NetException): pass
+
+# ------------------------------------------------------------
 
 
 # Класс сокета:

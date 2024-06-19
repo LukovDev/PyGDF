@@ -66,6 +66,23 @@ if True:
 """
 
 
+""" Где какие исключения могут возникать:
+    На стороне сервера:
+    - NetException
+    - NetConnectionTimeOut
+    - NetConnectionLost
+
+    На стороне клиента:
+    - NetException
+    - NetTimeOut
+    - NetConnectionTimeOut
+    - NetConnectionLost
+    - NetConnectionRefused
+    - NetServerOverflow
+    - NetClientKeyWrong
+"""
+
+
 # Сетевое исключение:
 class NetException(Exception): pass
 

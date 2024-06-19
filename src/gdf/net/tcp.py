@@ -50,6 +50,9 @@ class NetServerTCP:
     # Обработчик клиентов в отдельном потоке:
     def __client_handler__(self, client: NetSocket, address: tuple) -> None:
         try:
+            # Обрабатываем подключение клиента:
+            self.connect_handler(client, address)
+
             # Установка таймаута на ожидание ответа от клиента:
             client.set_time_out(self.__netvars__["timeout"])
 
@@ -123,9 +126,6 @@ class NetServerTCP:
 
                                 # Сообщаем клиенту, что тот прошёл:
                                 client.send_data("key-success", self.__netvars__["de-encoding"])
-
-                                # Обрабатываем подключение клиента:
-                                self.connect_handler(client, address)
 
                                 # Создаём новый демонический поток для обработки клиента:
                                 Thread(target=self.__client_handler__, args=(client, address), daemon=True).start()
@@ -271,6 +271,9 @@ class NetClientTCP:
     # Обработчик сервера в отдельном потоке:
     def __server_handler__(self, server: NetSocket, address: tuple) -> None:
         try:
+            # Обрабатываем подключение:
+            self.connect_handler(server, address)
+
             # Установка таймаута на ожидание ответа от сервера:
             server.set_time_out(self.__netvars__["timeout"])
 
@@ -297,12 +300,12 @@ class NetClientTCP:
                     self.server_handler(server, address)
                 except socket.timeout:
                     self.disconnect()
-                    raise NetConnectionLost(f"[009] Connection Lost.")
+                    raise NetConnectionLost("[009] Connection Lost.")
 
                 # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
                 time.sleep(1/self.__netvars__["tps-limit"])
         except (ConnectionResetError, BrokenPipeError):
-            raise NetConnectionLost(f"[009] Connection Lost.")
+            raise NetConnectionLost("[009] Connection Lost.")
         except Exception as error:
             raise NetException(f"[014] Error when handling server (with {address[0]}:{address[1]}): {error}")
         finally:
@@ -353,9 +356,6 @@ class NetClientTCP:
                 # TPS клиента:
                 self.__netvars__["tps-limit"] = tps
 
-                # Обрабатываем подключение:
-                self.connect_handler(self.socket, serv_addr)
-
                 # Создаём новый демонический поток для обработки сервера:
                 Thread(target=self.__server_handler__, args=(self.socket, serv_addr), daemon=True).start()
             else: raise NetException("[013] Connection was not established for an unknown reason.")
@@ -374,7 +374,7 @@ class NetClientTCP:
 
         except ConnectionResetError:
             self.socket.close()
-            raise NetConnectionLost(f"[009] Connection Lost.")
+            raise NetConnectionLost("[009] Connection Lost.")
 
         except OSError as error:
             self.socket.close()

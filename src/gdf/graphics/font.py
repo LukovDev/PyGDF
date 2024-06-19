@@ -17,26 +17,21 @@ class FontGenerator:
         self.__font_path__ =  file_path
         self.texture = None
 
-    # Запечь текст шрифта на текстуре:
-    def bake_texture(self,
-                     text:      str,
-                     font_size: int,
-                     color:     list = None,
-                     bg_color:  list = None,
-                     padding_x: int  = 0,
-                     padding_y: int  = 0,
-                     smooth:    bool = True
-                     ) -> "Font":
+    # Запечь текст шрифта, и получить новую текстуру:
+    def get_texture_text(self,
+                         text:      str,
+                         font_size: int,
+                         color:     list = None,
+                         bg_color:  list = None,
+                         padding_x: int  = 0,
+                         padding_y: int  = 0,
+                         smooth:    bool = True
+                         ) -> Texture:
         # Настраиваем цвета:
         if color    is None: color    = [1, 1, 1, 1]
         if bg_color is None: bg_color = [0, 0, 0, 0]
         color    = [c * 255 for c in color]
         bg_color = [c * 255 for c in bg_color]
-
-        # Удаляем старую текстуру текста:
-        if self.texture is not None:
-            self.texture.destroy()
-            self.texture = None
 
         # Создаём экземпляр шрифта:
         if self.__font_path__ is not None and os.path.isfile(self.__font_path__):
@@ -54,9 +49,31 @@ class FontGenerator:
         text_bitmap.blit(bitmap, (padding_x, padding_y))
 
         # Создаём текстуру из битмапа:
-        if self.texture is None: self.texture = Texture(Image(surface=text_bitmap))
+        texture = Texture(Image(surface=text_bitmap))
 
-        self.texture.set_linear() if smooth else self.texture.set_pixelized()
+        # Устанавливаем сглаживание текстуры:
+        texture.set_linear() if smooth else texture.set_pixelized()
+
+        return texture
+
+    # Запечь текст шрифта на текстуре:
+    def bake_texture(self,
+                     text:      str,
+                     font_size: int,
+                     color:     list = None,
+                     bg_color:  list = None,
+                     padding_x: int  = 0,
+                     padding_y: int  = 0,
+                     smooth:    bool = True
+                     ) -> "Font":
+        # Удаляем старую текстуру текста:
+        if self.texture is not None:
+            self.texture.destroy()
+            self.texture = None
+
+        # Создаём текстуру текста:
+        if self.texture is None:
+            self.texture = self.get_texture_text(text, font_size, color, bg_color, padding_x, padding_y, smooth)
 
         return self
 

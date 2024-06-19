@@ -271,9 +271,10 @@ class NetClientTCP:
         self.error_handler      = error_handler       # Вызывается при получении ошибки в обработчике сервера.
 
         self.__netvars__ = {
-            "tps-limit":   float,   # Частота цикла обработки сервера (сколько раз в сек обработать).
-            "timeout":     float,   # Время ожидания ответа между клиентом и сервером.
-            "de-encoding": "utf-8"  # Кодировка обменивания личными сообщениями между клиентом и сервером.
+            "tps-limit":    float,    # Частота цикла обработки сервера (сколько раз в сек обработать).
+            "timeout":      float,    # Время ожидания ответа между клиентом и сервером.
+            "de-encoding":  "utf-8",  # Кодировка обменивания личными сообщениями между клиентом и сервером.
+            "disconnected": False,    # Надо чтобы лишний раз не вызывать функцию отключения.
         }
 
         # Создаём сокет клиента (AF_INET это IPv4 | SOCK_STREAM это TCP):
@@ -366,6 +367,9 @@ class NetClientTCP:
                 # Устанавливаем максимальное время ожидания ответа от сервера:
                 self.set_timeout(timeout)
 
+                # Обнуляем флаг вызова отключения:
+                self.__netvars__["disconnected"] = False
+
                 # TPS клиента:
                 self.__netvars__["tps-limit"] = tps
 
@@ -422,6 +426,11 @@ class NetClientTCP:
 
     # Отключаемся от сервера:
     def disconnect(self) -> "NetClientTCP":
+        # Устанавливаем флаг отключения, чтобы лишний раз эта функция не вызывалась:
+        if not self.__netvars__["disconnected"]:
+            self.__netvars__["disconnected"] = True
+        else: return self  # Если же эту функцию вызвали насильно, то просто ничего не делаем.
+
         # Обрабатываем отключение от сервера:
         self.disconnect_handler(self.socket, self.socket.get_peer_name())
 

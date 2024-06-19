@@ -12,6 +12,27 @@ if True:
     import socket
 
 
+# Сетевые ошибки:
+net_error_codes = {
+    "000": "Unknown error",
+    "001": "",
+    "002": "",
+    "003": "",
+    "004": "",
+    "005": "",
+    "006": "",
+    "007": "",
+    "008": "",
+    "009": "",
+    "010": "",
+    "011": "",
+    "012": "",
+    "013": "",
+    "014": "",
+    "015": "",
+}
+
+
 """ Коды ошибок:
 
     000 - Unknown error                          - Неизвестная сетевая ошибка.
@@ -45,41 +66,6 @@ if True:
     014 - Error when handling server             - Неизвестная ошибка при работе с сервером на стороне клиента.
 
     015 - Server disconnected you because it waited too long for a response - Сервер слишком долго ждал ответа.
-"""
-
-""" Все сообщения отправляемые от сервера к клиенту:
-
-    ---------------- При подключении клиента к серверу: ----------------
-
-    "key-success"       - Значит что ключ подошёл, и клиент успешно присоединился к серверу.
-
-    "key-wrong"         - Значит что ключ НЕ подошёл, и клиент был отключён.
-
-    "key-timeout-error" - Значит что сервер слишком долго ждал получения ключа от клиента.
-
-    "server-overflow"   - Значит что сервер переполнен, и присоединиться невозможно.
-
-    ---------------- При обработке клиента сервером: ----------------
-
-    "timeout-disconnect" - Значит что сервер не дождался ответа за timeout времени.
-
-"""
-
-
-""" Где какие исключения могут возникать:
-    На стороне сервера:
-    - NetException
-    - NetConnectionTimeOut
-    - NetConnectionLost
-
-    На стороне клиента:
-    - NetException
-    - NetTimeOut
-    - NetConnectionTimeOut
-    - NetConnectionLost
-    - NetConnectionRefused
-    - NetServerOverflow
-    - NetClientKeyWrong
 """
 
 
@@ -118,15 +104,20 @@ class NetSocket:
 
     # Отправить данные:
     def send_data(self, data: str, encoding: str = "utf-8") -> "NetSocket":
-        # Мы добавляем 4 символа в начало сообщения, чтобы клиент не мог отправить пустое сообщение
-        # следствием чего, сервер рассчитал бы это как отключение клиента от сервера:
-        self.socket.sendall(f"MSG:{data}".encode(encoding))
-        return self
+        try: self.socket.sendall(str(data).encode(encoding))
+        except (TimeoutError, socket.timeout):
+            raise NetTimeOut("Send data timed-out.")
+        except OSError: return self
+        finally: return self
 
     # Получить данные:
-    def recv_data(self, buffer_size: int = 1024, decoding: str = "utf-8") -> str:
-        # А тут мы просто урезаем первые 4 символа и возвращаем полностью целую чистую оригинальную строку:
-        return self.socket.recv(buffer_size).decode(decoding)[4:]
+    def recv_data(self, buffer_size: int = 1024, decoding: str = "utf-8") -> str | None:
+        try:
+            data = self.socket.recv(buffer_size).decode(decoding)
+            return data if data != "" else None
+        except (TimeoutError, socket.timeout):
+            raise NetTimeOut("Receive data timed-out.")
+        except OSError: return None
 
     # Отправить пакет данных:
     def send_json(self, data: dict, encoding: str = "utf-8") -> "NetSocket":
@@ -134,13 +125,19 @@ class NetSocket:
         return self
 
     # Получить пакет данных:
-    def recv_json(self, buffer_size: int = 1024, decoding: str = "utf-8") -> dict:
-        return json.loads(self.recv_data(buffer_size, decoding))
+    def recv_json(self, buffer_size: int = 1024, decoding: str = "utf-8") -> dict | None:
+        data = self.recv_data(buffer_size, decoding)
+        return json.loads(data) if data is not None else None
 
     # Установить таймаут:
     def set_time_out(self, timeout: float) -> "NetSocket":
         self.socket.settimeout(float(timeout))
         return self
+
+    # Установить блокирование потока:
+    def set_blocking(self, bloсking: bool) -> "NetSocket":
+        self.socket.setblocking(bloсking)
+        return self 
 
     # Создать сервер:
     def bind(self, host: str, port: int) -> "NetSocket":

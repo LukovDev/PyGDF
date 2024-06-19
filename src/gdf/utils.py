@@ -5,6 +5,7 @@
 
 # Импортируем:
 if True:
+    import copy
     import pypresence
     from .graphics.camera import Camera2D
     from .math import *

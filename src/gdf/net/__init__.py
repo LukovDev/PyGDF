@@ -12,7 +12,7 @@ if True:
     import socket
 
 
-# Ниже 15 классов-исключений (4 из которых пока что не используются):
+# Ниже 16 классов-исключений:
 
 
 # Сетевое исключение:
@@ -75,36 +75,21 @@ class NetBrokenPipeError(NetException): pass
 class NetConnectionLost(NetException): pass
 
 
-# ---------------- Неиспользуемые исключения: ----------------
-
-# Сетевое исключение связанное с сокетом:
-class NetSocketError(NetException): pass
-
-
 # Сетевое исключение тайм-аута:
-class NetTimeOut(NetException): pass
-
-
-# Сетевое исключение адрес уже занят (OSError Errno EADDRINUSE):
-class NetAddressOccupied(NetException): pass
-
-
-# Сетевое исключение операция заблокирована (BlockingIOError):
-class NetOperationBlocked(NetException): pass
-
-# ------------------------------------------------------------
+class NetTimeout(NetException): pass
 
 
 # Класс сокета:
 class NetSocket:
     def __init__(self, socket: socket.socket) -> None:
         self.socket = socket
+        self.__online_flag__ = False
 
     # Отправить данные:
     def send_data(self, data: str, encoding: str = "utf-8") -> "NetSocket":
         try: self.socket.sendall(str(data).encode(encoding))
         except (TimeoutError, socket.timeout):
-            raise NetTimeOut("Send data timed-out.")
+            raise NetTimeout("Send data timed-out.")
         except OSError: return self
         finally: return self
 
@@ -114,7 +99,7 @@ class NetSocket:
             data = self.socket.recv(buffer_size).decode(decoding)
             return data if data != "" else None
         except (TimeoutError, socket.timeout):
-            raise NetTimeOut("Receive data timed-out.")
+            raise NetTimeout("Receive data timed-out.")
         except OSError: return None
 
     # Отправить пакет данных:
@@ -140,6 +125,13 @@ class NetSocket:
     # Создать сервер:
     def bind(self, host: str, port: int) -> "NetSocket":
         self.socket.bind((str(host).lower(), min(max(int(port), 0), 65535)))
+        self.__online_flag__ = True
+        return self
+
+    # Подключиться к серверу:
+    def connect(self, host: str, port: int) -> "NetSocket":
+        self.socket.connect((str(host).lower(), min(max(int(port), 0), 65535)))
+        self.__online_flag__ = True
         return self
 
     # Принять подключение:
@@ -151,10 +143,9 @@ class NetSocket:
         self.socket.listen(int(listen))
         return self
 
-    # Подключиться к серверу:
-    def connect(self, host: str, port: int) -> "NetSocket":
-        self.socket.connect((str(host).lower(), min(max(int(port), 0), 65535)))
-        return self
+    # Узнать, находится ли сокет в сети, или он закрыт:
+    def online(self) -> bool:
+        return bool(self.__online_flag__)
 
     # Получить адрес удалённого узла (сервера или клиента к которому мы подключены):
     def get_peer_name(self) -> tuple:
@@ -174,6 +165,7 @@ class NetSocket:
 
     # Закрыть сокет:
     def close(self) -> None:
+        self.__online_flag__ = False
         self.socket.close()
 
 

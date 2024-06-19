@@ -12,10 +12,26 @@ if True:
 
 # Класс сервера TCP/IP:
 class NetServerTCP:
+    """ Пример функций-обработчиков:
+
+    # Вызывается при присоединении клиента:
+    def connect_handler(socket: NetSocket, address: tuple) -> None:
+        pass
+
+    # Вызывается каждый цикл сервера:
+    def client_handler(socket: NetSocket, address: tuple) -> None:
+        pass
+
+    # Вызывается при отсоединении клиента:
+    def disconnect_handler(socket: NetSocket, address: tuple) -> None:
+        pass
+    """
+
+    # Инициализация:
     def __init__(self, connect_handler: any, client_handler: any, disconnect_handler: any) -> None:
         # Внутренние переменные класса:
         self.connect_handler    = connect_handler     # Вызывается при подключении клиента.
-        self.client_handler     = client_handler      # Вызывается каждый 1/TPS раз в отдельном потоке.
+        self.client_handler     = client_handler      # Вызывается каждый цикл сервера.
         self.disconnect_handler = disconnect_handler  # Вызывается при отключении клиента.
 
         # Внутренние переменные:
@@ -61,10 +77,13 @@ class NetServerTCP:
 
                 # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
                 time.sleep(1/self.__netvars__["tps-limit"])
+
         except (ConnectionResetError, BrokenPipeError):
             raise NetConnectionLost(f"[009] Connection Lost (with {address[0]}:{address[1]})")
+
         except Exception as error:
             raise NetException(f"[008] Error when handling client (with {address[0]}:{address[1]}): {error}")
+
         finally:
             # Удаляем этого клиента из списка:
             self.__netvars__["clients"].remove(client) if client in self.__netvars__["clients"] else None
@@ -123,8 +142,10 @@ class NetServerTCP:
                         client.send_data("server-overflow", self.__netvars__["de-encoding"])
                         client.close()
                 except socket.timeout:
-                    raise NetTimeOut("[002] Connection Timeout. The client is not responding.")
+                    client.close()
+                    raise NetConnectionTimeOut("[002] Connection Timeout. The client is not responding.")
                 except OSError as error:
+                    client.close()
                     if error.errno == 10038:
                         raise NetException(
                             "[005] Server Error: An attempt was made to perform "
@@ -147,13 +168,10 @@ class NetServerTCP:
         # Подключаем сокет сервера к IP и порту:
         try: self.socket.bind(host, port)
         except OSError as error:
-            if error.errno == 10049:
-                raise NetException("[007] Address server is being created is invalid.")
-            elif error.errno == 10048:
-                raise NetException("[006] The selected Port is already occupied.")
-            else: raise NetException(f"[000] Unknown error: {error}")
             self.socket.close()
-            return self
+            if   error.errno == 10049: raise NetException("[007] Address server is being created is invalid.")
+            elif error.errno == 10048: raise NetException("[006] The selected Port is already occupied.")
+            else:                      raise NetException(f"[000] Unknown error: {error}")
 
         # Устанавливаем максимальное количество клиентов:
         self.set_connect_limit(max(int(connect_limit), 0))
@@ -219,13 +237,28 @@ class NetServerTCP:
 
 # Класс клиента TCP/IP:
 class NetClientTCP:
+    """ Пример функций-обработчиков:
+
+    # Вызывается при присоединении к серверу:
+    def connect_handler(socket: NetSocket, address: tuple) -> None:
+        pass
+
+    # Вызывается каждый цикл клиента:
+    def server_handler(socket: NetSocket, address: tuple) -> None:
+        pass
+
+    # Вызывается при отсоединении от сервера:
+    def disconnect_handler(socket: NetSocket, address: tuple) -> None:
+        pass
+    """
+
+    # Инициализация:
     def __init__(self, connect_handler: any, server_handler: any, disconnect_handler: any) -> None:
-        # Внутренние переменные класса:
+        # Внутренние переменные:
         self.connect_handler    = connect_handler     # Вызывается при подключении к серверу.
         self.server_handler     = server_handler      # Вызывается каждый 1/TPS раз в отдельном потоке.
         self.disconnect_handler = disconnect_handler  # Вызывается при отключении от сервера.
-        
-        # Внутренние переменные:
+
         self.__netvars__ = {
             "tps-limit":   float,   # Частота цикла обработки сервера (сколько раз в сек обработать).
             "timeout":     float,   # Время ожидания ответа между клиентом и сервером.
@@ -251,26 +284,29 @@ class NetClientTCP:
                     if not data: break
                     else: data = data[4:]
 
+                    # Если мы получили сообщение от сервера, что время вышло:
+                    if data == "timeout-disconnect":
+                        self.disconnect()
+                        raise NetConnectionTimeOut(
+                            "[015] Server disconnected you because it waited too long for a response")
+
                     # Если мы получили Пинг от сервера, отвечаем понгом:
                     if data == "PING": server.send_data("PONG", self.__netvars__["de-encoding"])
 
                     # Обрабатываем сервер:
                     self.server_handler(server, address)
                 except socket.timeout:
-                    break  # Выходим из бесконечного цикла обработки.
+                    self.disconnect()
+                    raise NetConnectionLost(f"[009] Connection Lost.")
 
                 # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
                 time.sleep(1/self.__netvars__["tps-limit"])
         except (ConnectionResetError, BrokenPipeError):
-            raise NetConnectionLost(f"[009] Connection Lost (with {address[0]}:{address[1]})")
+            raise NetConnectionLost(f"[009] Connection Lost.")
         except Exception as error:
             raise NetException(f"[014] Error when handling server (with {address[0]}:{address[1]}): {error}")
         finally:
-            # Обрабатываем отключение от сервера:
-            self.disconnect_handler(server, address)
-
-            # Закрываем сокет клиента (соединение с клиентом) в любом случае:
-            server.close()
+            self.disconnect()
 
     # Подключиться к серверу:
     def connect(self,
@@ -286,7 +322,7 @@ class NetClientTCP:
         try:
             # Подключаемся к серверу:
             self.socket.connect(host, port)
-            server_address = self.socket.get_peer_name()
+            serv_addr = self.socket.get_peer_name()
 
             # Сразу отправляем ключ входа:
             self.socket.send_data(key,  self.__netvars__["de-encoding"])
@@ -296,11 +332,20 @@ class NetClientTCP:
 
             # Если ключ не правильный:
             if data == "key-wrong":
+                self.socket.close()
                 raise NetClientKeyWrong("[010] Server disconnected you due to an incorrect password.")
+
+            # Иначе если время за которое мы должны были отправить ключ, вышло:
             elif data == "key-timeout-error":
+                self.socket.close()
                 raise NetTimeOut("[011] Server disconnected you because it didn't wait for the password.")
+
+            # Иначе если сервер переполнен:
             elif data == "server-overflow":
-                raise NetServerOverflow("[012] Server disconnected you because it is full.")
+                self.socket.close()
+                raise NetServerOverflow("[012] Server disconnected you because server is full.")
+
+            # Иначе если ключ правильный:
             elif data == "key-success":
                 # Устанавливаем максимальное время ожидания ответа от сервера:
                 self.set_timeout(timeout)
@@ -309,10 +354,10 @@ class NetClientTCP:
                 self.__netvars__["tps-limit"] = tps
 
                 # Обрабатываем подключение:
-                self.connect_handler(self.socket, server_address)
+                self.connect_handler(self.socket, serv_addr)
 
                 # Создаём новый демонический поток для обработки сервера:
-                Thread(target=self.__server_handler__, args=(self.socket, server_address), daemon=True).start()
+                Thread(target=self.__server_handler__, args=(self.socket, serv_addr), daemon=True).start()
             else: raise NetException("[013] Connection was not established for an unknown reason.")
 
         except socket.gaierror:
@@ -321,7 +366,7 @@ class NetClientTCP:
 
         except socket.timeout:
             self.socket.close()
-            raise NetTimeOut("[002] Connection Timeout. Server too long to process the connection.")
+            raise NetConnectionTimeOut("[002] Connection Timeout. Server too long to process the connection.")
 
         except ConnectionRefusedError:
             self.socket.close()
@@ -329,7 +374,7 @@ class NetClientTCP:
 
         except ConnectionResetError:
             self.socket.close()
-            raise NetConnectionLost(f"[009] Connection Lost (with {server_address[0]}:{server_address[1]})")
+            raise NetConnectionLost(f"[009] Connection Lost.")
 
         except OSError as error:
             self.socket.close()
@@ -352,6 +397,16 @@ class NetClientTCP:
     def get_port(self) -> int:
         return self.socket.get_port()
 
+    # Отключаемся от сервера:
+    def disconnect(self) -> "NetClientTCP":
+        # Обрабатываем отключение от сервера:
+        self.disconnect_handler(self.socket, self.socket.get_peer_name())
+
+        # Закрываем сокет клиента (соединение с клиентом) в любом случае:
+        self.socket.close()
+
+        return self
+
     # Отключить клиента от сервера:
     def destroy(self) -> None:
-        self.socket.close()
+        self.disconnect()

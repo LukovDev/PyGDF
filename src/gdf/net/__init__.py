@@ -38,11 +38,13 @@ if True:
 
     011 - Server disconnected you because it didn't wait for the password - Сервер слишком долго ждал от вас пароль.
 
-    012 - Server disconnected you because it is full           - Сервер отключил вас, потому что он переполнен.
+    012 - Server disconnected you because server is full       - Сервер отключил вас, потому что он переполнен.
 
     013 - Connection was not established for an unknown reason - Соединение не было установлено по неизвестной причине.
 
     014 - Error when handling server             - Неизвестная ошибка при работе с сервером на стороне клиента.
+
+    015 - Server disconnected you because it waited too long for a response - Сервер слишком долго ждал ответа.
 """
 
 """ Все сообщения отправляемые от сервера к клиенту:
@@ -59,7 +61,7 @@ if True:
 
     ---------------- При обработке клиента сервером: ----------------
 
-    "timeout-disconnect" - Значит что сервер или клиент не дождался ответа за timeout времени.
+    "timeout-disconnect" - Значит что сервер не дождался ответа за timeout времени.
 
 """
 
@@ -70,6 +72,10 @@ class NetException(Exception): pass
 
 # Сетевое исключение тайм-аута:
 class NetTimeOut(NetException): pass
+
+
+# Сетевое исключение тайм-аута соединения:
+class NetConnectionTimeOut(NetException): pass
 
 
 # Сетевое исключение потери соединения:

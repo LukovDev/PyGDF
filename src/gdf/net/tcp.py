@@ -29,14 +29,19 @@ class NetServerTCP:
     # Вызывается при отсоединении клиента:
     def disconnect_handler(socket: NetSocket, address: tuple) -> None:
         pass
+
+    # Вызывается при получении ошибки в обработчике клиента:
+    def error_handler(error: NetException | str, address: tuple) -> None:
+        pass
     """
 
     # Инициализация:
-    def __init__(self, connect_handler: any, client_handler: any, disconnect_handler: any) -> None:
+    def __init__(self, connect_handler: any, client_handler: any, disconnect_handler: any, error_handler: any) -> None:
         # Внутренние переменные класса:
         self.connect_handler    = connect_handler     # Вызывается при подключении клиента.
         self.client_handler     = client_handler      # Вызывается каждый цикл сервера.
         self.disconnect_handler = disconnect_handler  # Вызывается при отключении клиента.
+        self.error_handler      = error_handler       # Вызывается при получении ошибки в обработчике клиента.
 
         # Внутренние переменные:
         self.__netvars__ = {
@@ -75,18 +80,29 @@ class NetServerTCP:
                     self.client_handler(client, address)
 
                     # Проверка накопленного времени таймаута:
-                    if time.time() - start_timeout_time > self.__netvars__["timeout"]: break
-                except (OSError, TimeoutError, ConnectionAbortedError, BrokenPipeError, socket.error, socket.timeout):
-                    break  # Выходим из за любой ошибки.
+                    if time.time() - start_timeout_time > self.__netvars__["timeout"]:
+                        self.error_handler(NetConnectionTimeout.__name__, address) ; break
+                except (OSError, TypeError, socket.error):
+                    break  # Выходим из за ошибки с работой сокета.
 
                 # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
                 dtps, timeout = 1 / self.__netvars__["tps-limit"], self.__netvars__["timeout"]
                 time.sleep(dtps if dtps < timeout else timeout)  # DTPS не может быть больше таймаута.
 
-        # Мы не обрабатываем ошибки со стороны сервера в отличии от клиента. Любая ошибка - отключение от сервера.
+        except (TimeoutError, socket.timeout):
+            self.error_handler(NetConnectionTimeout.__name__, address)
 
-        # Ничего не делаем даже если произошла совсем другая ошибка:
-        except Exception: pass
+        except ConnectionAbortedError:
+            self.error_handler(NetConnectionAborted.__name__, address)
+
+        except ConnectionResetError:
+            self.error_handler(NetConnectionResetError.__name__, address)
+
+        except BrokenPipeError:
+            self.error_handler(NetBrokenPipeError.__name__, address)
+
+        except Exception as error:
+            self.error_handler(f"{NetConnectionLost.__name__}: {error}", address)
 
         finally:
             # Обрабатываем отключение клиента:
@@ -172,7 +188,7 @@ class NetServerTCP:
         try: self.socket.bind(host, port)
         except OSError as error:
             self.socket.close()
-            if error.errno == 10049:
+            if error.errno == 10049 or error.errno == 10048:
                 raise NetAddressInvalid()
             elif error.errno == errno.ENETUNREACH:
                 raise NetUnavailable()
@@ -263,7 +279,7 @@ class NetClientTCP:
         pass
 
     # Вызывается при получении ошибки в обработчике сервера:
-    def error_handler(error: NetException) -> None:
+    def error_handler(error: NetException | str, address: tuple) -> None:
         pass
     """
 
@@ -310,8 +326,8 @@ class NetClientTCP:
 
                     # Проверка накопленного времени таймаута:
                     if time.time() - start_timeout_time > self.__netvars__["timeout"]:
-                        self.error_handler(NetConnectionTimeout.__name__) ; break
-                except (OSError, socket.error):
+                        self.error_handler(NetConnectionTimeout.__name__, address) ; break
+                except (OSError, TypeError, socket.error):
                     break  # Выходим из за ошибки с работой сокета.
 
                 # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
@@ -319,19 +335,19 @@ class NetClientTCP:
                 time.sleep(dtps if dtps < timeout else timeout)  # DTPS не может быть больше таймаута.
 
         except (TimeoutError, socket.timeout):
-            self.error_handler(NetConnectionTimeout.__name__)
+            self.error_handler(NetConnectionTimeout.__name__, address)
 
         except ConnectionAbortedError:
-            self.error_handler(NetConnectionAborted.__name__)
+            self.error_handler(NetConnectionAborted.__name__, address)
 
         except ConnectionResetError:
-            self.error_handler(NetConnectionResetError.__name__)
+            self.error_handler(NetConnectionResetError.__name__, address)
 
         except BrokenPipeError:
-            self.error_handler(NetBrokenPipeError.__name__)
+            self.error_handler(NetBrokenPipeError.__name__, address)
 
         except Exception as error:
-            self.error_handler(f"{NetConnectionLost.__name__}: {error}")
+            self.error_handler(f"{NetConnectionLost.__name__}: {error}", address)
 
         finally:
             self.disconnect()

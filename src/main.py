@@ -67,10 +67,7 @@ class GameClass(Window):
 
         # Какой-то код (логика).
 
-        # Рисуем всё в окно:
-        self.render(delta_time)
-
-    # Вызывается в конце функции update чтобы отрисовать все изменения:
+    # Вызывается каждый кадр (игровая отрисовка):
     def render(self, delta_time: float) -> None:
         # Очищаем окно (значения цвета от 0 до 1):
         self.window.clear(0, 0, 0)

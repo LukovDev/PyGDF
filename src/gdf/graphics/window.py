@@ -32,7 +32,7 @@ class Window:
     def update(self, delta_time: float, event_list: list) -> None:
         pass
 
-    # Вызывается после функции update чтобы отрисовать все изменения:
+    # Вызывается каждый кадр (игровая отрисовка):
     def render(self, delta_time: float) -> None:
         pass
 

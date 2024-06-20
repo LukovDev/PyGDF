@@ -20,7 +20,7 @@ class NetServerTCP:
         pass
 
     # Вызывается каждый цикл сервера:
-    def client_handler(socket: NetSocket, address: tuple) -> None:
+    def client_handler(socket: NetSocket, address: tuple, delta_time: float) -> None:
         # Слушаем пинг клиента. Если его нет, то значит он отключился:
         if socket.recv_data() is None: socket.close()
 
@@ -59,6 +59,9 @@ class NetServerTCP:
     # Обработчик клиентов в отдельном потоке:
     def __client_handler__(self, client: NetSocket, address: tuple) -> None:
         try:
+            # Дельта времени:
+            dtime = 1 / self.__netvars__["tps-limit"]
+
             # Установка таймаута на ожидание ответа от клиента:
             client.set_time_out(self.__netvars__["timeout"])
 
@@ -66,9 +69,10 @@ class NetServerTCP:
             self.connect_handler(client, address)
 
             while True:
-                try:
-                    start_timeout_time = time.time()
+                # Время начала цикла:
+                stime = time.time()
 
+                try:
                     # Смотрим данные, если есть пустое сообщение, то сокет отсоединился:
                     try:
                         client.set_blocking(False)
@@ -77,10 +81,10 @@ class NetServerTCP:
                     finally: client.set_blocking(True)
 
                     # Обрабатываем клиента:
-                    self.client_handler(client, address)
+                    self.client_handler(client, address, dtime)
 
                     # Проверка накопленного времени таймаута:
-                    if time.time() - start_timeout_time > self.__netvars__["timeout"]:
+                    if time.time() - stime > self.__netvars__["timeout"]:
                         self.error_handler(NetConnectionTimeout.__name__, address) ; break
                 except (OSError, TypeError, socket.error):
                     break  # Выходим из за ошибки с работой сокета.
@@ -88,6 +92,9 @@ class NetServerTCP:
                 # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
                 dtps, timeout = 1 / self.__netvars__["tps-limit"], self.__netvars__["timeout"]
                 time.sleep(dtps if dtps < timeout else timeout)  # DTPS не может быть больше таймаута.
+
+                # Обновляем дельту времени:
+                dtime = time.time() - stime
 
         except (TimeoutError, socket.timeout):
             self.error_handler(NetConnectionTimeout.__name__, address)
@@ -268,7 +275,7 @@ class NetClientTCP:
         pass
 
     # Вызывается каждый цикл клиента:
-    def server_handler(socket: NetSocket, address: tuple) -> None:
+    def server_handler(socket: NetSocket, address: tuple, delta_time: float) -> None:
         # Слушаем пинг сервера. Если его нет, то значит сервер отключился:
         if socket.recv_data() is None: socket.close()
 
@@ -304,6 +311,9 @@ class NetClientTCP:
     # Обработчик сервера в отдельном потоке:
     def __server_handler__(self, server: NetSocket, address: tuple) -> None:
         try:
+            # Дельта времени:
+            dtime = 1 / self.__netvars__["tps-limit"]
+
             # Установка таймаута на ожидание ответа от сервера:
             server.set_time_out(self.__netvars__["timeout"])
 
@@ -311,9 +321,10 @@ class NetClientTCP:
             self.connect_handler(server, address)
 
             while True:
+                # Время начала цикла:
+                stime = time.time()
+                
                 try:
-                    start_timeout_time = time.time()
-
                     # Смотрим данные, если есть пустое сообщение, то сокет отсоединился:
                     try:
                         server.set_blocking(False)
@@ -322,10 +333,10 @@ class NetClientTCP:
                     finally: server.set_blocking(True)
 
                     # Обрабатываем сервер:
-                    self.server_handler(server, address)
+                    self.server_handler(server, address, dtime)
 
                     # Проверка накопленного времени таймаута:
-                    if time.time() - start_timeout_time > self.__netvars__["timeout"]:
+                    if time.time() - stime > self.__netvars__["timeout"]:
                         self.error_handler(NetConnectionTimeout.__name__, address) ; break
                 except (OSError, TypeError, socket.error):
                     break  # Выходим из за ошибки с работой сокета.
@@ -333,6 +344,9 @@ class NetClientTCP:
                 # Делаем некоторую задержку между циклом, чтобы не взорвать провайдера:
                 dtps, timeout = 1 / self.__netvars__["tps-limit"], self.__netvars__["timeout"]
                 time.sleep(dtps if dtps < timeout else timeout)  # DTPS не может быть больше таймаута.
+                
+                # Обновляем дельту времени:
+                dtime = time.time() - stime
 
         except (TimeoutError, socket.timeout):
             self.error_handler(NetConnectionTimeout.__name__, address)

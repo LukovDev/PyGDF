@@ -62,6 +62,8 @@ class NetServerTCP:
 
             while True:
                 try:
+                    start_timeout_time = time.time()
+
                     # Смотрим данные, если есть пустое сообщение, то сокет отсоединился:
                     try:
                         client.set_blocking(False)
@@ -71,6 +73,9 @@ class NetServerTCP:
 
                     # Обрабатываем клиента:
                     self.client_handler(client, address)
+
+                    # Проверка накопленного времени таймаута:
+                    if time.time() - start_timeout_time > self.__netvars__["timeout"]: break
                 except (OSError, TimeoutError, ConnectionAbortedError, BrokenPipeError, socket.error, socket.timeout):
                     break  # Выходим из за любой ошибки.
 
@@ -80,8 +85,8 @@ class NetServerTCP:
 
         # Мы не обрабатываем ошибки со стороны сервера в отличии от клиента. Любая ошибка - отключение от сервера.
 
-        except Exception:
-            pass  # Ничего не делаем даже если произошла совсем другая ошибка.
+        # Ничего не делаем даже если произошла совсем другая ошибка:
+        except Exception: pass
 
         finally:
             # Обрабатываем отключение клиента:
@@ -291,6 +296,8 @@ class NetClientTCP:
 
             while True:
                 try:
+                    start_timeout_time = time.time()
+
                     # Смотрим данные, если есть пустое сообщение, то сокет отсоединился:
                     try:
                         server.set_blocking(False)
@@ -300,6 +307,10 @@ class NetClientTCP:
 
                     # Обрабатываем сервер:
                     self.server_handler(server, address)
+
+                    # Проверка накопленного времени таймаута:
+                    if time.time() - start_timeout_time > self.__netvars__["timeout"]:
+                        self.error_handler(NetConnectionTimeout.__name__) ; break
                 except (OSError, socket.error):
                     break  # Выходим из за ошибки с работой сокета.
 
@@ -308,19 +319,19 @@ class NetClientTCP:
                 time.sleep(dtps if dtps < timeout else timeout)  # DTPS не может быть больше таймаута.
 
         except (TimeoutError, socket.timeout):
-            self.error_handler(NetConnectionTimeout())
+            self.error_handler(NetConnectionTimeout.__name__)
 
         except ConnectionAbortedError:
-            self.error_handler(NetConnectionAborted())
+            self.error_handler(NetConnectionAborted.__name__)
 
         except ConnectionResetError:
-            self.error_handler(NetConnectionResetError())
+            self.error_handler(NetConnectionResetError.__name__)
 
         except BrokenPipeError:
-            self.error_handler(NetBrokenPipeError())
+            self.error_handler(NetBrokenPipeError.__name__)
 
         except Exception as error:
-            self.error_handler(NetConnectionLost(error))
+            self.error_handler(f"{NetConnectionLost.__name__}: {error}")
 
         finally:
             self.disconnect()

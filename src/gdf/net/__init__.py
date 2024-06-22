@@ -35,20 +35,20 @@ class NetServerOverflow(NetException): pass
 class NetAddressRelatedError(NetException): pass
 
 
-# Сетевое исключение превышено время ожидания соединения (socket.timeout):
-class NetConnectionTimeout(NetException): pass
+# Сетевое исключение превышено время ожидания подключения (socket.timeout):
+class NetConnectingTimedOut(NetException): pass
 
 
-# Сетевое исключение соединение отклонено (ConnectionRefusedError):
-class NetConnectionRefused(NetException): pass
+# Сетевое исключение подключение отклонено (ConnectionRefusedError):
+class NetConnectingRefused(NetException): pass
 
 
-# Сетевое исключение соединение прервано (ConnectionAbortedError):
-class NetConnectionAborted(NetException): pass
+# Сетевое исключение подключение прервано (ConnectionAbortedError):
+class NetConnectingAborted(NetException): pass
 
 
-# Сетевое исключение соединение сброшено (ConnectionResetError):
-class NetConnectionResetError(NetException): pass
+# Сетевое исключение подключение сброшено (ConnectionResetError):
+class NetConnectingResetError(NetException): pass
 
 
 # Сетевое исключение недействительного адреса (OSError Errno 10049):
@@ -65,6 +65,18 @@ class NetHostUnreachable(NetException): pass
 
 # Сетевое исключение от системы:
 class NetOSError(NetException): pass
+
+
+# Сетевое исключение превышено время ожидания соединения (socket.timeout):
+class NetConnectionTimeout(NetException): pass
+
+
+# Сетевое исключение соединение прервано (ConnectionAbortedError):
+class NetConnectionAborted(NetException): pass
+
+
+# Сетевое исключение соединение сброшено (ConnectionResetError):
+class NetConnectionResetError(NetException): pass
 
 
 # Сетевое исключение разорванного сокета:

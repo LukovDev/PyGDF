@@ -425,19 +425,19 @@ class NetClientTCP:
 
         except (TimeoutError, socket.timeout):
             self.socket.close()
-            raise NetConnectionTimeout()
+            raise NetConnectingTimedOut()
 
         except ConnectionRefusedError:
             self.socket.close()
-            raise NetConnectionRefused()
+            raise NetConnectingRefused()
 
         except ConnectionAbortedError:
             self.socket.close()
-            raise NetConnectionAborted()
+            raise NetConnectingAborted()
 
         except ConnectionResetError:
             self.socket.close()
-            raise NetConnectionResetError()
+            raise NetConnectingResetError()
 
         except OSError as error:
             self.socket.close()

@@ -383,10 +383,10 @@ class NetClientTCP:
             serv_addr = self.socket.get_peer_name()
 
             # Сразу отправляем ключ входа:
-            self.socket.send_data(key,  self.__netvars__["de-encoding"])
+            self.socket.send_data(key, self.__netvars__["de-encoding"])
 
             # Получаем ответ от сервера:
-            data = self.socket.recv_data(1024,  self.__netvars__["de-encoding"])
+            data = self.socket.recv_data(1024, self.__netvars__["de-encoding"])
 
             # Если ключ не правильный:
             if data == "key-wrong":

@@ -14,6 +14,14 @@ if True:
     from ..math import numba, radians, sin, cos
 
 
+# Ошибка окна OpenGL:
+class OpenGLWindowError(Exception): pass
+
+
+# Неподдерживаемая указанная OpenGL версия:
+class OpenGLContextNotSupportedError(OpenGLWindowError): pass
+
+
 # Ускоренная функция поворота вершин спрайта:
 @numba.njit
 def __rotate_vertices__(x: float, y: float, width: int, height: int, angle: float) -> list:

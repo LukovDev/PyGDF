@@ -12,6 +12,7 @@ if True:
 
     from .gl import *
     from .image import Image
+    from . import OpenGLWindowError, OpenGLContextNotSupportedError
 
     from ..audio.al import *
 
@@ -62,12 +63,13 @@ class Window:
                  vsync:      bool  = False,
                  fps:        int   = 60,
                  visible:    bool  = True,
+                 titlebar:   bool  = True,
                  fullscreen: bool  = False,
                  min_size:   vec2  = vec2(0, 0),
                  max_size:   vec2  = vec2(float("inf"), float("inf")),
                  samples:    int   = 0,
-                 gl_major:   int   = 3,
-                 gl_minor:   int   = 3) -> None:
+                 gl_major:   int   = None,
+                 gl_minor:   int   = None) -> None:
         self.clock = pygame.time.Clock()
         self.window = self
         self.__winvars__ = {
@@ -79,14 +81,16 @@ class Window:
             "vsync":      vsync,
             "setted-fps": fps,
             "visible":    visible,
+            "titlebar":   titlebar,
             "fullscreen": fullscreen,
             "min-size":   min_size,
             "max-size":   max_size,
             "samples":    samples,
 
-            # Внутренние переменные:
+            # Внутренние переменные (ИСПОЛЬЗУЮТСЯ ТОЛЬКО ВНУТРИ КЛАССА):
             "window-active":  False,
             "monitor-size":   vec2(0),
+            "win-size-bf-fs": size,
             "mouse-scroll":   vec2(0),
             "mouse-rel":      vec2(0),
             "mouse-btn-up":   [False, False, False],
@@ -97,42 +101,41 @@ class Window:
             "start-time":     0.0,
         }
 
-        pygame.init()
-        self.__winvars__["monitor-size"].xy = vec2(pygame.display.Info().current_w, pygame.display.Info().current_h)
-        self.set_title(self.__winvars__["title"])
-        self.set_icon(self.__winvars__["icon"])
+        # Создание окна:
+        try:
+            pygame.init()
+            self.__winvars__["monitor-size"].xy = vec2(pygame.display.Info().current_w, pygame.display.Info().current_h)
+            self.set_title(self.__winvars__["title"])
+            self.set_icon(self.__winvars__["icon"])
 
-        # Создаём окно:
-        if True:
-            visible_flag = pygame.SHOWN if self.get_visible() else pygame.HIDDEN
-            mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
-            self.__set_mode__(mode_flags, self.get_vsync(), (self.__winvars__["width"], self.__winvars__["height"]))
+            # Устанавливаем версию OpenGL:
+            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, gl_major) if gl_major is not None else None
+            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, gl_minor) if gl_minor is not None else None
+
+            # Мы используем контекст OpenGL с обратной совместимостью чтобы можно было использовать устаревшие функции:
+            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_COMPATIBILITY)
+
+            # Устанавливаем мультисемплинг:
             self.set_samples(self.__winvars__["samples"])
 
-            # Устанавливаем версию контекста OpenGL:
-            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, gl_major)
-            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, gl_minor)
-
+            # Создаём окно:
+            self.__recreate__((self.__winvars__["width"], self.__winvars__["height"]))
+        except pygame.error:
+            raise OpenGLContextNotSupportedError(f"OpenGL version {gl_major}.{gl_minor} is not supported.")
+        except Exception as error:
+            raise OpenGLWindowError(f"Error creating the window: {error}")
+        finally:
             # Удаляем лишние переменные, чтобы те больше не мешались в логике окна:
             del title, icon, size, vsync, fps, visible, fullscreen, min_size, max_size, samples, gl_major, gl_minor
             gc.collect()
 
         # Настройка OpenGL:
         if True:
-            # Используем только базовые (core) функции OpenGL в нашей программе:
-            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
-
-            # Включаем поддержку альфа канала:
-            gl.glEnable(gl.GL_ALPHA_TEST)
-
             # Включаем смешивание цветов:
             gl.glEnable(gl.GL_BLEND)
             
             # Устанавливаем режим смешивания:
             gl_set_blend_mode()
-
-            # Включаем сглаживание точек чтобы вместо квадратов были круги:
-            gl.glEnable(gl.GL_POINT_SMOOTH)
 
             # Разрешаем установку размера точки через шейдер:
             gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
@@ -140,15 +143,6 @@ class Window:
             # Делаем нулевой текстурный юнит привязанным к нулевой текстуре:
             gl.glActiveTexture(gl.GL_TEXTURE0)
             gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-
-            # Включаем сглаживание линий:
-            # gl.glEnable(gl.GL_LINE_SMOOTH)
-
-            # # Включаем тест глубины:
-            # gl.glEnable(gl.GL_DEPTH_TEST)
-
-            # # Включаем отображение треугольников только с одной стороны:
-            # gl.glEnable(gl.GL_CULL_FACE)
 
             # Настраиваем соотношение сторон:
             gl.glViewport(0, 0, self.get_width(), self.get_height())
@@ -233,11 +227,14 @@ class Window:
             if dt > 0.0: self.__winvars__["old-dtime"] = self.__winvars__["dtime"] = dt
             else: self.__winvars__["dtime"] = self.__winvars__["old-dtime"]  # Использовать DT прошлого кадра.
 
-    # Установить режим окна:
-    def __set_mode__(self, flags: int, vsync: bool, size: tuple | vec2 = None) -> None:
+    # Обновить режим окна:
+    def __recreate__(self, size: tuple | vec2 = None, flags: int = None) -> None:
         if size is None: size = (self.__winvars__["width"], self.__winvars__["height"])
-        flags = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE + flags
-        pygame.display.set_mode(size, flags, vsync=vsync)
+        flags = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE
+        flags |= pygame.SHOWN if self.get_visible() else pygame.HIDDEN
+        if self.get_fullscreen():   flags |= pygame.FULLSCREEN
+        if not self.get_titlebar(): flags |= pygame.NOFRAME
+        pygame.display.set_mode(size, flags, vsync=self.get_vsync())
 
     # ------------------------------------------------------ API: ------------------------------------------------------
 
@@ -264,10 +261,7 @@ class Window:
     def set_size(self, width: int, height: int) -> None:
         self.__winvars__["width"] = int(width)
         self.__winvars__["height"] = int(height)
-        if self.get_visible(): visible = pygame.SHOWN
-        else: visible = pygame.HIDDEN
-        if self.get_fullscreen(): self.__set_mode__(pygame.FULLSCREEN | visible, self.get_vsync())
-        else: self.__set_mode__(visible, self.get_vsync())
+        self.__recreate__()
         self.resize(int(width), int(height))
 
     # Получить размер окна:
@@ -275,18 +269,51 @@ class Window:
     def get_size() -> vec2:
         return vec2(pygame.display.get_window_size())
 
-    # Получить ширину окна:
-    def get_width(self) -> int:
-        return int(self.__winvars__["width"])
+    # Установить VSync:
+    def set_vsync(self, vsync: bool) -> None:
+        self.__winvars__["vsync"] = vsync
+        self.__recreate__()
 
-    # Получить высоту окна:
-    def get_height(self) -> int:
-        return int(self.__winvars__["height"])
+    # Получить VSync:
+    def get_vsync(self) -> bool:
+        return self.__winvars__["vsync"]
 
-    # Получить центр окна. Координаты половины размера окна:
-    def get_center(self) -> vec2:
-        size = self.get_size()
-        return vec2(size.x // 2, size.y // 2)
+    # Установить FPS:
+    def set_fps(self, fps: int) -> None:
+        self.__winvars__["setted-fps"] = int(fps)
+
+    # Получить текущий FPS:
+    def get_fps(self) -> float:
+        return 1.0 / self.__winvars__["dtime"]
+
+    # Установить видимость окна:
+    def set_visible(self, visible: bool) -> None:
+        self.__winvars__["visible"] = visible
+        self.__recreate__()
+        if visible: self.show()
+        else:       self.hide()
+
+    # Получить видимость окна:
+    def get_visible(self) -> bool:
+        return self.__winvars__["visible"]
+
+    # Установить видимость заголовка окна:
+    def set_titlebar(self, titlebar: bool) -> None:
+        self.__winvars__["titlebar"] = titlebar
+        self.__recreate__()
+
+    # Получить видимость заголовка окна:
+    def get_titlebar(self) -> bool:
+        return self.__winvars__["titlebar"]
+
+    # Установить полноэкранный режим:
+    def set_fullscreen(self, is_fullscreen: bool, size: tuple | vec2 = None) -> None:
+        self.__winvars__["fullscreen"] = is_fullscreen
+        self.set_size(*size if size is not None else self.get_monitor_size())
+
+    # Получить полноэкранный режим:
+    def get_fullscreen(self) -> bool:
+        return self.__winvars__["fullscreen"]
 
     # Установить минимальный размер окна:
     def set_min_size(self, width: int, height: int) -> None:
@@ -304,86 +331,14 @@ class Window:
     def get_max_size(self) -> vec2:
         return vec2(self.__winvars__["max-size"])
 
-    # Получить размер монитора:
-    def get_monitor_size(self) -> vec2:
-        return vec2(self.__winvars__["monitor-size"])
-
-    # Установить VSync:
-    def set_vsync(self, vsync: bool) -> None:
-        self.__winvars__["vsync"] = vsync
-        visible_flag = pygame.SHOWN if self.get_visible() else pygame.HIDDEN
-        mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
-        self.__set_mode__(mode_flags, vsync)
-
-    # Получить VSync:
-    def get_vsync(self) -> bool:
-        return self.__winvars__["vsync"]
-
-    # Установить FPS:
-    def set_fps(self, fps: int) -> None:
-        self.__winvars__["setted-fps"] = int(fps)
-
-    # Получить текущий FPS:
-    def get_fps(self) -> float:
-        return 1.0 / self.__winvars__["dtime"]
-
-    # Получить установленный FPS:
-    def get_setted_fps(self) -> int:
-        return self.__winvars__["setted-fps"]
-
-    # Получить дельту времени:
-    def get_delta_time(self) -> float:
-        return self.__winvars__["dtime"]
-
-    # Получить время:
-    def get_time(self) -> float:
-        return time.time() - self.__winvars__["start-time"]
-
-    # Показать окно:
-    def show_window(self) -> None:
-        self.__winvars__["visible"] = True
-        visible_flag = pygame.SHOWN
-        mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
-        self.__set_mode__(mode_flags, self.get_vsync())
-        self.show()
-
-    # Спрятать окно:
-    def hide_window(self) -> None:
-        self.__winvars__["visible"] = False
-        visible_flag = pygame.HIDDEN
-        mode_flags = pygame.FULLSCREEN | visible_flag if self.get_fullscreen() else visible_flag
-        self.__set_mode__(mode_flags, self.get_vsync())
-        self.hide()
-
-    # Установить видимость окна:
-    def set_visible(self, visible: bool) -> None:
-        self.__winvars__["visible"] = visible
-        if visible: self.show_window()
-        else: self.hide_window()
-
-    # Получить видимость окна:
-    def get_visible(self) -> bool:
-        return self.__winvars__["visible"]
-
-    # Установить полноэкранный режим:
-    def set_fullscreen(self, is_fullscreen: bool, size: tuple = None) -> None:
-        self.__winvars__["fullscreen"] = is_fullscreen
-        visible_flag = pygame.SHOWN if self.get_visible() else pygame.HIDDEN
-        mode_flags = pygame.FULLSCREEN | visible_flag if is_fullscreen else visible_flag
-        size = size if size is not None else (0, 0)
-        self.__set_mode__(mode_flags, self.get_vsync(), size)
-        self.resize(*self.get_size())
-
-    # Получить полноэкранный режим:
-    def get_fullscreen(self) -> bool:
-        return self.__winvars__["fullscreen"]
-
     # Установить количество сэмплов антиалиазинга:
     def set_samples(self, samples: int) -> None:
         if not 0 <= samples <= 16:  # Если samples не в диапазоне от 0 до 16:
-            raise Exception(f"Graphics Error: Samples must be set in the range from 0 to 16. You have set: {samples}")
+            raise OpenGLWindowError(
+                f"Graphics Error: Samples must be set in the range from 0 to 16. You have set: {samples}")
         self.__winvars__["samples"] = samples
         pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, self.__winvars__["samples"])
+        self.__recreate__()
 
     # Получить количество сэмплов антиалиазинга:
     def get_samples(self) -> None:
@@ -455,7 +410,36 @@ class Window:
     @staticmethod
     def get_key_pressed() -> list[int]:
         return pygame.key.get_pressed()
-    
+
+    # Получить размер монитора:
+    def get_monitor_size(self) -> vec2:
+        return vec2(self.__winvars__["monitor-size"])
+
+    # Получить ширину окна:
+    def get_width(self) -> int:
+        return int(self.__winvars__["width"])
+
+    # Получить высоту окна:
+    def get_height(self) -> int:
+        return int(self.__winvars__["height"])
+
+    # Получить центр окна. Координаты половины размера окна:
+    def get_center(self) -> vec2:
+        size = self.get_size()
+        return vec2(size.x // 2, size.y // 2)
+
+    # Получить установленный FPS:
+    def get_setted_fps(self) -> int:
+        return self.__winvars__["setted-fps"]
+
+    # Получить дельту времени:
+    def get_delta_time(self) -> float:
+        return self.__winvars__["dtime"]
+
+    # Получить время:
+    def get_time(self) -> float:
+        return time.time() - self.__winvars__["start-time"]
+
     # Получить версию OpenGL:
     def get_opengl_version(self) -> str:
         return gl.glGetString(gl.GL_VERSION).decode("utf-8")

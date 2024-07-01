@@ -5,6 +5,7 @@
 
 # Импортируем:
 if True:
+    import os
     import json
     import zipfile
     import requests
@@ -107,14 +108,24 @@ def get_file_path_gialog(file_types: list[tuple] = [("all files:" "*.*")], icon_
     return fp
 
 
-# Скачать файл из интернета:
-def download_file(url: str, file_path: str, chunk_size: int = 8192) -> None:
-    # Отправляем HTTP GET запрос на URL:
+# Получить содержимое файла из интернета по ссылке:
+def read_url_file(url: str, chunk_size: int = 8192) -> str:
+    data = ""
     with requests.get(url, stream=True) as r:
-        r.raise_for_status()  # Проверяем, что запрос прошел успешно.
+        r.raise_for_status()
+        for chunk in r.iter_content(chunk_size=chunk_size): data += chunk.decode()
+    return data
 
-        # Открываем локальный файл для записи в бинарном режиме:
+
+# Получить содержимое json файла из интернета по ссылке:
+def read_url_json(url: str, chunk_size: int = 8192) -> dict:
+    return json.loads(read_url_file(url, chunk_size))
+
+
+# Скачать файл из интернета по ссылке:
+def download_url_file(url: str, file_path: str, chunk_size: int = 8192) -> None:
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
         with open(file_path, "wb") as f:
-            # Постепенно загружаем данные и записываем их в файл:
             for chunk in r.iter_content(chunk_size=chunk_size):
                 f.write(chunk)

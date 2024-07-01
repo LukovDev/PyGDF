@@ -55,15 +55,15 @@ class Camera2D:
 
     # Изменение размера камеры:
     def resize(self, width: int, height: int) -> "Camera2D":
-        self.width = width
-        self.height = height
-        self.size = width, height
+        self.width = int(width)
+        self.height = int(height)
+        self.size = int(width), int(height)
         gl.glDisable(gl.GL_DEPTH_TEST)
         # gl.glEnable(gl.GL_CULL_FACE)  # Вырезать невидимые грани.
         gl.glViewport(0, 0, self.width, self.height)
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()
-        wdth, hght = width/2 * self.meter/100, height/2 * self.meter/100
+        wdth, hght = self.width/2 * self.meter/100, self.height/2 * self.meter/100
         glu.gluOrtho2D(-wdth, wdth, -hght, hght)
 
         return self
@@ -145,7 +145,7 @@ class Camera3D:
 
     # Изменение размера камеры:
     def resize(self, width: int, height: int) -> "Camera3D":
-        self.width, self.height = width, height
+        self.width, self.height = int(width), int(height)
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()
         gl.glViewport(0, 0, self.width, self.height)

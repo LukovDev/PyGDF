@@ -30,6 +30,7 @@ class GameClass(Window):
             vsync      = False,
             fps        = 60,
             visible    = True,
+            titlebar   = True,
             fullscreen = False,
             min_size   = vec2(0, 0),
             max_size   = vec2(float("inf"), float("inf")),

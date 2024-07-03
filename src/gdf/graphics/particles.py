@@ -16,11 +16,11 @@ if True:
 class SimpleParticleEffect2D:
     """ Пример использования:
         particles = SimpleParticleEffect2D(
-            texture       = particle_texture,
+            texture       = [particle_texture],
             position      = vec2(0, 0),
             direction     = vec2(0, 0),
             start_size    = vec2(16, 16),
-            end_size      = vec2(16, 16),
+            end_size      = vec2(0, 0),
             speed         = vec2(3, 10),
             damping       = 0.01,
             duration      = vec2(1, 2),
@@ -33,8 +33,9 @@ class SimpleParticleEffect2D:
             is_dir_angle  = False,
             custom_update = None
         ).create()
+    """
 
-        # Пример собственной функции обновления частиц:
+    """ Пример кастомной функции обновления частиц:
         def custom_update(delta_time: float, particles: list) -> None:
             pass
     """
@@ -105,6 +106,7 @@ class SimpleParticleEffect2D:
             "batch":   SpriteBatch2D(),
             "old-pos": position.xy,
             "timer":   0.0,
+            "old-dt":  1/60,
         }
 
     # Создать одну частицу. Используется строго внутри этого класса:
@@ -145,11 +147,13 @@ class SimpleParticleEffect2D:
     def update(self, delta_time: float) -> "SimpleParticleEffect2D":
         if self.custom_update is not None: self.custom_update(delta_time, self.particles) ; return
 
-        dt = min(delta_time, 1/5)*60
+        # Если новый dt больше старого в 3 раза, то используем старый dt. А также ограничиваем dt до 1/10 кадра в сек:
+        dt = min(self.__partvars__["old-dt"] if delta_time > self.__partvars__["old-dt"] * 3 else delta_time, 1/10)
+        self.__partvars__["old-dt"] = delta_time
 
         # Если количество частиц меньше установленного, создаём новые:
         if len(self.particles) < self.count and self.is_infinite:
-            self.__partvars__["timer"] -= delta_time
+            self.__partvars__["timer"] -= dt
             while self.__partvars__["timer"] <= 0.0:
                 self.__create_particle__()
                 self.__partvars__["timer"] += (sum(self.duration) / 2) / self.count
@@ -160,27 +164,29 @@ class SimpleParticleEffect2D:
         # Проходимся по частицам:
         for particle in self.particles:
             # Время жизни частицы. Если время вышло, удаляем частицу:
-            particle.time -= delta_time
+            particle.time -= dt
             if particle.time <= 0.0:
                 self.particles.remove(particle)
                 if self.is_infinite: self.__create_particle__()
 
             # Применяем гравитацию к направлению частицы:
-            particle.velocity += self.gravity * dt
+            particle.velocity += self.gravity * (dt*60)
             particle.velocity *= 1.0 - self.damping
 
             # Перемещаем частичку в сторону её направления умноженное на её скорость:
-            particle.position += normalize(particle.velocity) * particle.speed * dt
+            particle.position += (normalize(particle.velocity) * particle.speed) * (dt*60)
             if self.is_local_pos: particle.position += self.position - self.__partvars__["old-pos"]
 
             # Статическое время жизни частицы:
             pst = particle.static_time
 
             # Вращаем частицу:
-            particle.angle += (self.end_angle/pst if pst > 0.0 else 0.0) * delta_time
+            if self.end_angle is not None and type(self.end_angle) is vec2:
+                particle.angle += (self.end_angle/pst if pst > 0.0 else 0.0) * dt
 
             # Меняем размер:
-            particle.size.xy += ((self.end_size.xy - self.start_size.xy) / pst) * delta_time
+            if self.end_size is not None and type(self.end_size) is vec2:
+                particle.size.xy += ((self.end_size.xy - self.start_size.xy) / pst) * dt
 
         self.__partvars__["old-pos"].xy = self.position.xy
         return self

@@ -222,17 +222,17 @@ class Window:
                 elif event.type == pygame.MOUSEBUTTONUP:
                     self.__winvars__["mouse-btn-up"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
 
-            # Обработка основных функций:
+            # Обработка основных функций (обновление и отрисовка):
             try:
-                # Вызываем функцию обновления:
+                # Если у нас установлена сцена:
                 if scn is not None and issubclass(type(scn), Scene):
                     scn.update(self.__winvars__["dtime"], event_list)
-                else: self.update(self.__winvars__["dtime"], event_list)
-
-                # Вызываем функцию отрисовки:
-                if scn is not None and issubclass(type(scn), Scene):
                     scn.render(self.__winvars__["dtime"])
-                else: self.render(self.__winvars__["dtime"])
+
+                # Если сцены нет, используем встроенные функции:
+                else:
+                    self.update(self.__winvars__["dtime"], event_list)
+                    self.render(self.__winvars__["dtime"])
             except KeyboardInterrupt: self.exit()
 
             # Делаем задержку между кадрами:

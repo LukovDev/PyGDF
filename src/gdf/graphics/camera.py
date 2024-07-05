@@ -91,6 +91,10 @@ class Camera2D:
         gl.glPopMatrix()
         return self
 
+    # Освобождаем ресурсы:
+    def destroy(self) -> None:
+        pass  # Просто функция-затычка.
+
 
 # Класс 3D камеры:
 class Camera3D:
@@ -185,3 +189,7 @@ class Camera3D:
         gl.glTranslate(-self.position.x, -self.position.y, -self.position.z)
 
         return self
+
+    # Освобождаем ресурсы:
+    def destroy(self) -> None:
+        pass  # Просто функция-затычка.

@@ -12,6 +12,7 @@ if True:
 
     from .gl import *
     from .image import Image
+    from .scene import Scene
     from . import OpenGLWindowError, OpenGLContextNotSupportedError
 
     from ..audio.al import *
@@ -74,31 +75,33 @@ class Window:
         self.window = self
         self.__winvars__ = {
             # Основные переменные:
-            "title":      title,
+            "title":      str(title),
             "icon":       icon,
-            "width":      min(max(size.x, min_size.x), max_size.x),
-            "height":     min(max(size.y, min_size.y), max_size.y),
-            "vsync":      vsync,
-            "setted-fps": fps,
-            "visible":    visible,
-            "titlebar":   titlebar,
-            "fullscreen": fullscreen,
-            "min-size":   min_size,
-            "max-size":   max_size,
-            "samples":    samples,
+            "width":      int(min(max(size.x, min_size.x), max_size.x)),
+            "height":     int(min(max(size.y, min_size.y), max_size.y)),
+            "vsync":      bool(vsync),
+            "setted-fps": int(fps),
+            "visible":    bool(visible),
+            "titlebar":   bool(titlebar),
+            "fullscreen": bool(fullscreen),
+            "min-size":   vec2(min_size),
+            "max-size":   vec2(max_size),
+            "samples":    int(samples),
 
             # Внутренние переменные (ИСПОЛЬЗУЮТСЯ ТОЛЬКО ВНУТРИ КЛАССА):
             "window-active":  False,
             "monitor-size":   vec2(0),
-            "win-size-bf-fs": size,
+            "win-size-bf-fs": [int(size.x), int(size.y)],
             "mouse-scroll":   vec2(0),
             "mouse-rel":      vec2(0),
             "mouse-btn-up":   [False, False, False],
             "cursor-visible": True,
-            "dtime":          1 / 60,
-            "old-dtime":      1 / 60,
+            "dtime":          1/60,
+            "old-dtime":      1/60,
             "is-exit":        False,
             "start-time":     0.0,
+            "current-scene":  None,
+            "is-new-scene":   False,
         }
 
         # Создание окна:
@@ -145,11 +148,7 @@ class Window:
             gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
             # Настраиваем соотношение сторон:
-            gl.glViewport(0, 0, self.get_width(), self.get_height())
-            gl.glMatrixMode(gl.GL_PROJECTION)
-            gl.glLoadIdentity()
-            glu.gluOrtho2D(0, self.get_width(), 0, self.get_height())
-            gl.glMatrixMode(gl.GL_MODELVIEW)
+            self.__reset_viewport__()
 
         # Инициализируем OpenAL:
         al.oalInit()
@@ -157,25 +156,32 @@ class Window:
         # Инициализация времени программы:
         self.__winvars__["start-time"] = time.time()
 
-        # Функция старта программы:
-        self.start()
+        # Вызываем старт программы:
+        try: self.start()
+        except KeyboardInterrupt: self.exit()
 
         # Основной цикл окна:
         while True:
+            start_frame_time                 = time.time()
+            self.__winvars__["mouse-scroll"] = vec2(0)
+            self.__winvars__["mouse-rel"]    = vec2(pygame.mouse.get_rel())
+            self.__winvars__["mouse-btn-up"] = [False, False, False]
+            scn                              = self.__winvars__["current-scene"]
+
             # Если хотят закрыть окно:
             if self.__winvars__["is-exit"]:
+                # Вызываем функцию удаления ресурсов у сцены, если та существует:
+                if scn is not None and issubclass(type(scn), Scene): scn.destroy()
                 self.destroy()  # Вызываем удаление пользовательских ресурсов.
                 al.oalQuit()    # Закрываем OpenAL.
                 pygame.quit()   # Закрываем окно PyGame.
                 gc.collect()    # Собираем мусор (на всякий случай).
                 return          # Возвращаемся из этого класса.
 
-            start_frame_time = time.time()
-            self.__winvars__["mouse-scroll"] = vec2(0)
-            self.__winvars__["mouse-rel"] = vec2(pygame.mouse.get_rel())
-            self.__winvars__["mouse-btn-up"] = [False, False, False]
+            # Проверяем установлена ли новая сцена. Если да, то сбрасываем окно просмотра:
+            if self.__winvars__["is-new-scene"]: self.__winvars__["is-new-scene"] = False ; self.__reset_viewport__()
 
-            # Цикл, собирающий события:
+            # Обработка событий под капотом:
             event_list = pygame.event.get()
             for event in event_list:
                 # Если программу хотят закрыть:
@@ -183,26 +189,31 @@ class Window:
 
                 # Проверка на то, изменился ли размер окна или нет:
                 elif event.type == pygame.VIDEORESIZE:
-                    winsize = list(event.dict["size"])
+                    wsize = list(event.dict["size"])
                     min_size = self.__winvars__["min-size"]
                     max_size = self.__winvars__["max-size"]
 
                     # Проверяем, вышел ли размер окна за пределы допущенного. Если да, то выставляем крайний размер:
-                    if not (min_size.x <= winsize[0] <= max_size.x and min_size.y <= winsize[1] <= max_size.y):
-                        winsize[0] = min(max(winsize[0], int(min_size.x)), int(max_size.x))
-                        winsize[1] = min(max(winsize[1], int(min_size.y)), int(max_size.y))
-                        self.set_size(*winsize)
-                    else: self.resize(*winsize)
+                    if not (min_size.x <= wsize[0] <= max_size.x and min_size.y <= wsize[1] <= max_size.y):
+                        wsize[0] = min(max(int(wsize[0]), int(min_size.x)), int(max_size.x))
+                        wsize[1] = min(max(int(wsize[1]), int(min_size.y)), int(max_size.y))
+                        wsize = int(wsize[0]), int(wsize[1])
+                        self.set_size(*wsize)
+                    else:  # Иначе, просто вызываем функцию изменения размера:
+                        wsize = int(wsize[0]), int(wsize[1])
+                        scn.resize(*wsize) if scn is not None and issubclass(type(scn), Scene) else self.resize(*wsize)
 
                     # Обновляем размер окна в переменных окна:
-                    self.__winvars__["width"], self.__winvars__["height"] = winsize
+                    self.__winvars__["width"], self.__winvars__["height"] = wsize
 
                 # Проверяем на то, развернуто окно или нет:
                 elif event.type == pygame.ACTIVEEVENT:
                     if pygame.display.get_active() and not self.__winvars__["window-active"]:
-                        self.__winvars__["window-active"] = True ; self.show()
+                        self.__winvars__["window-active"] = True
+                        scn.show() if scn is not None and issubclass(type(scn), Scene) else self.show()
                     elif not pygame.display.get_active() and self.__winvars__["window-active"]:
-                        self.__winvars__["window-active"] = False ; self.hide()
+                        self.__winvars__["window-active"] = False
+                        scn.hide() if scn is not None and issubclass(type(scn), Scene) else self.hide()
 
                 # Если колёсико мыши провернулось:
                 elif event.type == pygame.MOUSEWHEEL: self.__winvars__["mouse-scroll"] = vec2(event.x, event.y)
@@ -211,12 +222,17 @@ class Window:
                 elif event.type == pygame.MOUSEBUTTONUP:
                     self.__winvars__["mouse-btn-up"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
 
-            # Вызываем функцию цикла:
-            try: self.update(self.get_delta_time(), event_list)
-            except KeyboardInterrupt: self.exit()
+            # Обработка основных функций:
+            try:
+                # Вызываем функцию обновления:
+                if scn is not None and issubclass(type(scn), Scene):
+                    scn.update(self.__winvars__["dtime"], event_list)
+                else: self.update(self.__winvars__["dtime"], event_list)
 
-            # Вызываем функцию отрисовки:
-            try: self.render(self.get_delta_time())
+                # Вызываем функцию отрисовки:
+                if scn is not None and issubclass(type(scn), Scene):
+                    scn.render(self.__winvars__["dtime"])
+                else: self.render(self.__winvars__["dtime"])
             except KeyboardInterrupt: self.exit()
 
             # Делаем задержку между кадрами:
@@ -227,7 +243,7 @@ class Window:
             if dt > 0.0: self.__winvars__["old-dtime"] = self.__winvars__["dtime"] = dt
             else: self.__winvars__["dtime"] = self.__winvars__["old-dtime"]  # Использовать DT прошлого кадра.
 
-    # Обновить режим окна:
+    # Пересоздать окно (обновить режим окна):
     def __recreate__(self, size: tuple | vec2 = None, flags: int = None) -> None:
         if size is None: size = (self.__winvars__["width"], self.__winvars__["height"])
         flags = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE
@@ -235,6 +251,16 @@ class Window:
         if self.get_fullscreen():   flags |= pygame.FULLSCREEN
         if not self.get_titlebar(): flags |= pygame.NOFRAME
         pygame.display.set_mode(size, flags, vsync=self.get_vsync())
+
+    # Сбрасываем окно просмотра:
+    def __reset_viewport__(self) -> None:
+        gl.glViewport(0, 0, self.__winvars__["width"], self.__winvars__["height"])
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glLoadIdentity()
+        wdth, hght = self.__winvars__["width"]/2, self.__winvars__["height"]/2
+        glu.gluOrtho2D(-wdth, wdth, -hght, hght)
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glLoadIdentity()
 
     # ------------------------------------------------------ API: ------------------------------------------------------
 
@@ -365,6 +391,40 @@ class Window:
             self.get_vsync(), self.get_fps(), self.get_visible(),
             self.get_min_size(), self.get_max_size(), self.get_samples()
         ]
+
+    # Установить игровую сцену:
+    def set_scene(self, scene: Scene) -> None:
+        # Если устанавливаемая сцена не сцена:
+        if scene is not None and not issubclass(type(scene), Scene):
+            raise OpenGLWindowError(
+                f"The specified scene is not a scene. Your scene has a \"{type(scene)}\" "
+                f"data type, which is not a \"{Scene}\" data type."
+            )
+
+        # Если уже установленная сцена существует:
+        current_scene = self.__winvars__["current-scene"]
+        if current_scene is not None and issubclass(type(current_scene), Scene):
+            current_scene.destroy()
+
+        # Устанавливаем сцену:
+        self.__winvars__["current-scene"] = scene
+
+        # Сбрасываем окно просмотра:
+        self.__winvars__["is-new-scene"] = True
+
+        # Если мы установили сцену в виде None, то просто возвращаемся:
+        if scene is None: return
+
+        # Указываем ссылку на основное окно:
+        self.__winvars__["current-scene"].window = self
+
+        # Вызываем старт сцены:
+        try: self.__winvars__["current-scene"].start()
+        except KeyboardInterrupt: self.exit()
+
+    # Получить текущую игровую сцену:
+    def get_scene(self) -> Scene | None:
+        return self.__winvars__["current-scene"]
 
     # Установить позицию мыши:
     @staticmethod

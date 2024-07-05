@@ -63,6 +63,7 @@ from . import light
 from . import packer
 from . import particles
 from . import renderer
+from . import scene
 from . import shader
 from . import skybox
 from . import sprite
@@ -84,6 +85,7 @@ from .light     import Light2D
 from .packer    import PackerTexture
 from .particles import SimpleParticleEffect2D
 from .renderer  import Renderer2D
+from .scene     import Scene
 from .shader    import ShaderProgram
 from .skybox    import SkyBox
 from .sprite    import Sprite2D

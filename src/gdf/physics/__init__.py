@@ -14,4 +14,4 @@ from . import phys2d
 
 
 # Импортируем основной функционал из скриптов:
-...
+from .phys2d import Physics2D, PhysicsError

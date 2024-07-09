@@ -35,35 +35,76 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
-                self.mass        = mass         # Масса объекта.
-                self.elasticity  = elasticity   # Сила упругости.
-                self.friction    = friction     # Сила трения.
-                self.body_type   = body_type    # Тип объекта.
-                self.max_vel     = max_vel      # Максимальная скорость перемещения.
-                self.max_ang_vel = max_ang_vel  # Максимальная скорость вращения.
-                self.space       = None         # Физическое пространство.
-                self.body        = None         # Тело объекта.
-                self.shape       = None         # Форма объекта.
-                self.kgn         = 9.80665      # Константа для перевода сил из ньютонов в килограммы.
+                self.mass        = mass                # Масса объекта.
+                self.elasticity  = elasticity          # Сила упругости.
+                self.friction    = friction            # Сила трения.
+                self.body_type   = body_type           # Тип объекта.
+                self.max_vel     = float(max_vel)      # Максимальная скорость перемещения.
+                self.max_ang_vel = float(max_ang_vel)  # Максимальная скорость вращения.
+                self.meter       = 100.0               # Единица измерения.
+                self.space       = None                # Физическое пространство.
+                self.body        = None                # Тело объекта.
+                self.shape       = None                # Форма объекта.
+                self.kgn         = 9.80665             # Константа для перевода сил из ньютонов в килограммы.
 
             @property
-            def position(self) -> vec2: return vec2(self.body.position)
+            def position(self) -> vec2: return self.get_position()
 
             @property
-            def angle(self) -> float: return -degrees(self.body.angle)
+            def angle(self) -> vec2: return self.get_angle()
 
-            @property
-            def velocity(self) -> vec2: return vec2(self.body.velocity)
+            # Установить позицию объекта:
+            def set_position(self, position: vec2) -> "Physics2D.Objects":
+                self.body.position = tuple(position)
+                return self
 
-            @property
-            def angular_velocity(self) -> float: return self.body.angular_velocity
+            # Получить позицию объекта:
+            def get_position(self) -> vec2:
+                return vec2(self.body.position)
 
-            @property
-            def constraints(self) -> list: return list(self.body.constraints)
+            # Установить угол наклона объекта:
+            def set_angle(self, angle: float) -> "Physics2D.Objects":
+                self.body.angle = radians(-angle)
+                return self
 
-            # Новая функция для получения списка тел, с которыми данное тело сталкивается
-            @property
-            def collisions(self) -> list:
+            # Получить угол наклона объекта:
+            def get_angle(self) -> float:
+                return -degrees(self.body.angle)
+
+            # Установить скорость перемещения объекта:
+            def set_velocity(self, velocity: vec2) -> "Physics2D.Objects":
+                self.body.velocity = tuple(velocity.xy)
+                return self
+
+            # Получить скорость перемещения объекта:
+            def get_velocity(self) -> vec2:
+                return vec2(self.body.velocity)
+
+            # Установить угловую скорость:
+            def set_torque(self, torque: float) -> "Physics2D.Objects":
+                self.body.angular_velocity = -radians(torque)
+                return self
+
+            # Получить угловую скорость:
+            def get_torque(self) -> float:
+                return self.body.angular_velocity
+
+            # Установить максимальную скорость перемещения:
+            def set_max_velocity(self, max_vel: float) -> "Physics2D.Objects":
+                self.max_vel = float(max_vel)
+                return self
+
+            # Установить максимальную скорость вращения:
+            def set_max_ang_velocity(self, max_ang_vel: float) -> "Physics2D.Objects":
+                self.max_ang_vel = float(max_ang_vel)
+                return self
+
+            # Получить соединения объекта:
+            def get_constraints(self) -> list:
+                return list(self.body.constraints)
+
+            # Получить список объектов с которым мы сталкиваемся:
+            def get_collisions(self) -> list:
                 if self.space is None:
                     raise PhysicsError("You have not added a physical object to the space.")
                 colliding_bodies = []
@@ -72,40 +113,32 @@ class Physics2D:
                     elif arbiter.shapes[1].body == self.body: colliding_bodies.append(arbiter.shapes[0].body)
                 return colliding_bodies
 
-            # Установить позицию телу:
-            def set_position(self, position: vec2) -> None:
-                self.body.position = tuple(position)
-
-            # Установить угол наклона телу:
-            def set_angle(self, angle: float) -> None:
-                self.body.angle = radians(-angle)
-
             # Применить силу к этому телу:
-            def apply_local_force(self, force: vec2, point: vec2 = vec2(0)) -> None:
-                self.body.apply_force_at_local_point(tuple(force.xy*self.kgn), point)
+            def add_force_local(self, force: vec2, point: vec2 = vec2(0)) -> "Physics2D.Objects":
+                self.body.apply_force_at_local_point(tuple(force.xy*self.kgn*self.meter), tuple(point))
+                return self
 
             # Применить силу к этому телу в мировых координатах:
-            def apply_global_force(self, force: vec2, point: vec2 = vec2(0)) -> None:
-                self.body.apply_force_at_world_point(tuple(force.xy*self.kgn), point)
+            def add_force_global(self, force: vec2, point: vec2 = vec2(0)) -> "Physics2D.Objects":
+                self.body.apply_force_at_world_point(tuple(force.xy*self.kgn*self.meter), tuple(point))
+                return self
 
             # Применить импульс к этому телу:
-            def apply_local_impulse(self, impulse: vec2, point: vec2 = vec2(0)) -> None:
-                self.body.apply_impulse_at_local_point(tuple(impulse.xy*self.kgn), point)
+            def add_impulse_local(self, impulse: vec2, point: vec2 = vec2(0)) -> "Physics2D.Objects":
+                self.body.apply_impulse_at_local_point(tuple(impulse.xy*self.kgn*self.meter), tuple(point))
+                return self
 
             # Применить импульс к этому телу в мировых координатах:
-            def apply_global_impulse(self, impulse: vec2, point: vec2 = vec2(0)) -> None:
-                self.body.apply_impulse_at_world_point(tuple(impulse.xy*self.kgn), point)
-
-            # Установить крутящий момент:
-            def set_torque(self, torque: float) -> None:
-                self.body.angular_velocity = -radians(torque)
+            def add_impulse_global(self, impulse: vec2, point: vec2 = vec2(0)) -> "Physics2D.Objects":
+                self.body.apply_impulse_at_world_point(tuple(impulse.xy*self.kgn*self.meter), tuple(point))
+                return self
 
             # Функция ограничения скорости вращения и перемещения:
             def __limit_velocity_func__(self) -> any:
                 def limit_velocity(body, gravity, damping, dt) -> None:
                     pymunk.Body.update_velocity(body, gravity, damping, dt)
-                    if body.velocity.length > self.max_vel:
-                        body.velocity *= (self.max_vel / body.velocity.length)
+                    if body.velocity.length > (self.max_vel*self.kgn*self.meter):
+                        body.velocity *= ((self.max_vel*self.kgn*self.meter) / body.velocity.length)
                     if abs(body.angular_velocity) > self.max_ang_vel:
                         if body.angular_velocity < 0: body.angular_velocity = radians(self.max_ang_vel)
                         else: body.angular_velocity = -radians(self.max_ang_vel)
@@ -124,14 +157,16 @@ class Physics2D:
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
-                self.size             = vec2(abs(size.x), abs(size.y))
-                self.body             = pymunk.Body(mass, pymunk.moment_for_box(mass, size), body_type)
-                self.body.position    = tuple(position.xy)
-                self.body.angle       = radians(angle)
-                self.shape            = pymunk.Poly.create_box(self.body, size)
-                self.shape.elasticity = self.elasticity
-                self.shape.friction   = self.friction
-                self.body.velocity_func = self.__limit_velocity_func__()
+                self.size               = vec2(abs(size.x), abs(size.y))
+                self.body               = pymunk.Body(mass, pymunk.moment_for_box(mass, size), body_type)
+                self.body.position      = tuple(position.xy)
+                self.body.angle         = radians(angle)
+                self.shape              = pymunk.Poly.create_box(self.body, size)
+                self.shape.elasticity   = self.elasticity
+                self.shape.friction     = self.friction
+
+                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
+                    self.body.velocity_func = self.__limit_velocity_func__()
 
             @property
             def vertices(self) -> list: return self.shape.get_vertices()
@@ -139,26 +174,30 @@ class Physics2D:
     # Пространство симуляции:
     class Space:
         def __init__(self,
-                     gravity:        vec2,
+                     gravity:        vec2  = vec2(0),
                      phys_speed:     float = 1.0,
                      meter:          float = 100.0,
                      damping:        float = 1.0,
-                     iterations:     int   = 64,
+                     iterations:     int   = 48,
                      idle_speed:     float = 0.0,
                      sleep_time:     float = float("inf"),
-                     collision_slop: float = 0.1,
-                     collision_bias: float = ((1-.5)**60)
+                     collision_slop: float = 0.01,
+                     collision_bias: float = 0.75
                      ) -> None:
-            self.space                      = pymunk.Space()           # Физическое пространство.
-            self.phys_speed                 = abs(phys_speed)          # Скорость симуляции физики.
-            self.space.gravity              = tuple(gravity.xy*meter)  # Сила гравитации.
-            self.space.damping              = damping                  # Сила трения об воздух.
-            self.space.iterations           = iterations               # Количество итераций столкновений за шаг.
-            self.space.idle_speed_threshold = idle_speed               # Порог скорости объекта, после чего он статичен.
-            self.space.sleep_time_threshold = sleep_time               # Время спокойствия объекта после чего он спящий.
-            self.space.collision_slop       = collision_slop*meter     # Допустимое пересечение при столкновении.
-            self.space.collision_bias       = collision_bias*meter     # Смещение при столкновении объектов.
-            self.objects                    = []                       # Список всех физических объектов.
+            self.space       = pymunk.Space()   # Физическое пространство.
+            self.phys_speed  = abs(phys_speed)  # Скорость симуляции физики.
+            self.meter       = meter            # Единица измерения.
+            self.__old_dt__  = 1/60             # Прошлое время кадра.
+            self.objects     = []               # Список всех физических объектов.
+
+            # Устанавливаем параметры:
+            self.set_gravity(gravity)                # Установить гравитацию.
+            self.set_damping(damping)                # Установить силу трения об воздух.
+            self.set_iterations(iterations)          # Установить количество итераций обработки столкновений за шаг.
+            self.set_idle_speed(idle_speed)          # Установить порог скорости объекта, после он считается статичным.
+            self.set_sleep_time(sleep_time)          # Установить порог времени статичности объекта, после он засыпает.
+            self.set_collision_slop(collision_slop)  # Установить допустимое смещение при столкновении объектов.
+            self.set_collision_bias(collision_bias)  # Установить процентное количество исправлений ошибок сталкиваний.
 
         # Шаг симуляции:
         def step(self, delta_time: float) -> None:
@@ -169,18 +208,12 @@ class Physics2D:
             # Нельзя допустить чтобы скорость физики была в минусе:
             self.phys_speed = abs(self.phys_speed)
 
+            # Если новый dt больше старого в 3 раза, то используем старый dt. А также ограничиваем dt до 1/10 кадра:
+            dt = min(self.__old_dt__ if delta_time > self.__old_dt__ * 3 else delta_time, 1/10)
+            self.__old_dt__ = delta_time
+
             # Шаг симуляции:
-            self.step(delta_time*self.phys_speed)
-
-            # Корректировка дельты времени:
-            # fps = 30             # Пороговый фпс после которого начинаем урезать скорость симуляции.
-            # cut = delta_time*60  # Насколько урезать скорость симуляции (на 2 если 30 фпс, на 4 если 15 фпс и тд).
-            # delta_time = abs(1/fps/cut if delta_time > 1/fps else delta_time)
-
-            # # Проводим симуляцию:
-            # steps_count = int(max(1, int(self.physics_speed)))
-            # step_time = (delta_time*self.physics_speed)/steps_count
-            # for _ in range(steps_count): self.step(step_time)
+            self.step(dt*self.phys_speed)
 
         # Добавить новый объект в пространство:
         def add(self, object: "Physics2D.Objects") -> None:
@@ -190,6 +223,7 @@ class Physics2D:
                 if obj.body is None: continue
                 elif obj.shape is None: self.space.add(obj.body)
                 else: self.space.add(obj.body, obj.shape)
+                obj.space, obj.meter = self.space, self.meter
                 self.objects.append(obj)
 
         # Удалить объект из пространства:
@@ -200,16 +234,68 @@ class Physics2D:
                 if obj.body is None: continue
                 elif obj.shape is None: self.space.remove(obj.body)
                 else: self.space.remove(obj.body, obj.shape)
+                obj.space, obj.meter = None, 100.0
                 self.objects.remove(obj)
 
-        @property
-        def gravity(self) -> list: return self.space.gravity
+        # Установить гравитацию:
+        def set_gravity(self, gravity: vec2) -> "Physics2D.Space":
+            self.space.gravity = tuple(gravity.xy * self.meter)
+            return self
 
-        @property
-        def arbiters(self) -> list: return self.space.arbiters
+        # Получить гравитацию:
+        def get_gravity(self) -> vec2:
+            return vec2(self.space.gravity * self.meter)
 
-        @property
-        def collision_slop(self) -> float: return self.space.collision_slop
+        # Установить силу трения об воздух:
+        def set_damping(self, damping: float) -> "Physics2D.Space":
+            self.space.damping = float(damping)
+            return self
 
-        @property
-        def collision_bias(self) -> float: return self.space.collision_bias
+        # Получить силу трения об воздух:
+        def get_damping(self) -> float:
+            return self.space.damping
+
+        # Установить количество итераций обработки столкновений за шаг:
+        def set_iterations(self, iterations: int) -> "Physics2D.Space":
+            self.space.iterations = int(iterations)
+            return self
+
+        # Получить количество итераций обработки столкновений за шаг:
+        def get_iterations(self) -> int:
+            return self.space.iterations
+
+        # Установить порог скорости объекта, после которого он считается статичным:
+        def set_idle_speed(self, idle_speed: float) -> "Physics2D.Space":
+            self.space.idle_speed_threshold = float(idle_speed)
+            return self
+
+        # Получить порог скорости объекта, после которого он считается статичным:
+        def get_idle_speed(self) -> float:
+            return self.space.idle_speed_threshold
+
+        # Установить порог времени статичности объекта, после которого он засыпает:
+        def set_sleep_time(self, sleep_time: float) -> "Physics2D.Space":
+            self.space.sleep_time_threshold = float(sleep_time)
+            return self
+
+        # Получить порог времени статичности объекта, после которого он засыпает:
+        def get_sleep_time(self) -> float:
+            return self.space.sleep_time_threshold
+
+        # Установить допустимое смещение при столкновении объектов:
+        def set_collision_slop(self, collision_slop: float) -> "Physics2D.Space":
+            self.space.collision_slop = collision_slop * self.meter
+            return self
+
+        # Получить допустимое смещение при столкновении объектов:
+        def get_collision_slop(self) -> float:
+            return self.space.collision_slop
+
+        # Установить процентное количество исправлений ошибок сталкиваний:
+        def set_collision_bias(self, collision_bias: float) -> "Physics2D.Space":
+            self.space.collision_bias = ((1.0 - collision_bias) ** 60) * self.meter
+            return self
+
+        # Получить процентное количество исправлений ошибок сталкиваний:
+        def get_collision_bias(self) -> float:
+            return self.space.collision_bias

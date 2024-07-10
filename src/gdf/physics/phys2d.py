@@ -7,6 +7,7 @@
 if True:
     import pymunk
     from ..math import *
+    from ..utils import Utils2D
 
 
 # Ошибка физики:
@@ -52,6 +53,9 @@ class Physics2D:
 
             @property
             def angle(self) -> vec2: return self.get_angle()
+
+            @property
+            def speed(self) -> float: return Utils2D.get_speed_vector(self.velocity)
 
             # Установить позицию объекта:
             def set_position(self, position: vec2) -> "Physics2D.Objects":
@@ -160,7 +164,7 @@ class Physics2D:
                 self.size               = vec2(abs(size.x), abs(size.y))
                 self.body               = pymunk.Body(mass, pymunk.moment_for_box(mass, size), body_type)
                 self.body.position      = tuple(position.xy)
-                self.body.angle         = radians(angle)
+                self.body.angle         = -radians(angle)
                 self.shape              = pymunk.Poly.create_box(self.body, size)
                 self.shape.elasticity   = self.elasticity
                 self.shape.friction     = self.friction
@@ -168,8 +172,179 @@ class Physics2D:
                 if not (max_vel == float("inf") and max_ang_vel == float("inf")):
                     self.body.velocity_func = self.__limit_velocity_func__()
 
+            # Получить вершины формы:
+            def get_vertices(self) -> list:
+                return [vec2(v) for v in self.shape.get_vertices()]
+
+        # Класс идеально ровного круга:
+        class Circle(SimplePhysicsObject):
+            def __init__(self,
+                         mass:        float = 1.0,
+                         elasticity:  float = 0.2,
+                         friction:    float = 0.9,
+                         position:    vec2  = vec2(0, 0),
+                         radius:      float = 1.0,
+                         angle:       float = 0.0,
+                         body_type:   int   = pymunk.Body.DYNAMIC,
+                         max_vel:     float = float("inf"),
+                         max_ang_vel: float = float("inf")) -> None:
+                super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
+                self.radius           = abs(radius)
+                self.body             = pymunk.Body(mass, pymunk.moment_for_circle(mass, 0, radius), body_type)
+                self.body.position    = tuple(position.xy)
+                self.body.angle       = -radians(angle)
+                self.shape            = pymunk.Circle(self.body, radius)
+                self.shape.elasticity = self.elasticity
+                self.shape.friction   = self.friction
+
+                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
+                    self.body.velocity_func = self.__limit_velocity_func__()
+
             @property
-            def vertices(self) -> list: return self.shape.get_vertices()
+            def size(self) -> vec2: return vec2(self.radius*2)
+
+        # Класс треугольника:
+        class Triangle(SimplePhysicsObject):
+            def __init__(self,
+                         mass:        float = 1.0,
+                         elasticity:  float = 0.2,
+                         friction:    float = 0.9,
+                         position:    vec2  = vec2(0, 0),
+                         size:        vec2  = vec2(1, 1),
+                         angle:       float = 0.0,
+                         body_type:   int   = pymunk.Body.DYNAMIC,
+                         max_vel:     float = float("inf"),
+                         max_ang_vel: float = float("inf")) -> None:
+                super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
+                vertices = [
+                    (-size.x/2, -sqrt(3) / 2 * size.y/2),
+                    (+size.x/2, -sqrt(3) / 2 * size.y/2),
+                    (+0,        +sqrt(3) / 2 * size.y/2)
+                ]
+                self.size             = vec2(abs(size.x), abs(size.y))
+                self.body             = pymunk.Body(mass, pymunk.moment_for_poly(mass, vertices), body_type)
+                self.body.position    = tuple(position.xy)
+                self.body.angle       = -radians(angle)
+                self.shape            = pymunk.Poly(self.body, vertices)
+                self.shape.elasticity = elasticity
+                self.shape.friction   = friction
+
+                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
+                    self.body.velocity_func = self.__limit_velocity_func__()
+
+            # Получить вершины формы:
+            def get_vertices(self) -> list:
+                return [vec2(v) for v in self.shape.get_vertices()]
+
+        # Класс выпуклого многоугольника:
+        class Poly(SimplePhysicsObject):
+            def __init__(self,
+                         mass:        float = 1.0,
+                         elasticity:  float = 0.2,
+                         friction:    float = 0.9,
+                         position:    vec2  = vec2(0, 0),
+                         vertices:    list  = None,
+                         angle:       float = 0.0,
+                         body_type:   int   = pymunk.Body.DYNAMIC,
+                         max_vel:     float = float("inf"),
+                         max_ang_vel: float = float("inf")) -> None:
+                super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
+                if vertices is None: vertices = [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)]
+                else:                vertices = [tuple(vert.xy) for vert in vertices]
+                self.body             = pymunk.Body(mass, pymunk.moment_for_poly(mass, vertices), body_type)
+                self.body.position    = tuple(position.xy)
+                self.body.angle       = -radians(angle)
+                self.shape            = pymunk.Poly(self.body, vertices)
+                self.shape.elasticity = elasticity
+                self.shape.friction   = friction
+
+                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
+                    self.body.velocity_func = self.__limit_velocity_func__()
+
+            # Получить вершины формы:
+            def get_vertices(self) -> list:
+                return [vec2(v) for v in self.shape.get_vertices()]
+
+        # Класс линии:
+        class Segment(SimplePhysicsObject):
+            def __init__(self,
+                         mass:        float = 1.0,
+                         elasticity:  float = 0.2,
+                         friction:    float = 0.9,
+                         position:    vec2  = vec2(0, 0),
+                         point1:      vec2  = vec2(-1, 0),
+                         point2:      vec2  = vec2(+1, 0),
+                         radius:      float = 1.0,
+                         angle:       float = 0.0,
+                         body_type:   int   = pymunk.Body.DYNAMIC,
+                         max_vel:     float = float("inf"),
+                         max_ang_vel: float = float("inf")) -> None:
+                super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
+                self.points           = [tuple(point1.xy), tuple(point2.xy)]
+                self.radius           = radius
+                self.body             = pymunk.Body(mass, pymunk.moment_for_poly(mass, self.points), body_type)
+                self.body.position    = tuple(position.xy)
+                self.body.angle       = atan2(point2.y - point1.y, point2.x - point1.x) - radians(angle)
+                self.shape            = pymunk.Segment(self.body, tuple(point1.xy), tuple(point2.xy), radius)
+                self.shape.elasticity = self.elasticity
+                self.shape.friction   = self.friction
+
+                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
+                    self.body.velocity_func = self.__limit_velocity_func__()
+
+            # Получить вершины формы:
+            def get_vertices(self) -> list:
+                return [vec2(p) for p in self.points]
+
+        # Класс многоугольника:
+        class Mesh(SimplePhysicsObject):
+            def __init__(self,
+                         mass:        float = 1.0,
+                         elasticity:  float = 0.2,
+                         friction:    float = 0.9,
+                         position:    vec2  = vec2(0, 0),
+                         vertices:    list  = None,
+                         radius:      float = 1.0,
+                         angle:       float = 0.0,
+                         body_type:   int   = pymunk.Body.DYNAMIC,
+                         max_vel:     float = float("inf"),
+                         max_ang_vel: float = float("inf")) -> None:
+                super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
+                if vertices is None: vertices = [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)]
+                else:                vertices = [tuple(vert.xy) for vert in vertices]
+                self.vertices      = vertices
+                self.body          = pymunk.Body(mass, pymunk.moment_for_poly(mass, vertices), body_type)
+                self.body.position = tuple(position.xy)
+                self.body.angle    = -radians(angle)
+                self.shapes        = []
+
+                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
+                    self.body.velocity_func = self.__limit_velocity_func__()
+                
+                # Создаём набор сегментов исходя из вершин:
+                for index in range(len(vertices)):
+                    shape = pymunk.Segment(self.body, vertices[index], vertices[(index + 1) % len(vertices)], radius)
+                    shape.elasticity = elasticity
+                    shape.friction   = friction
+                    self.shapes.append(shape)
+
+            # Получить вершины формы:
+            def get_vertices(self) -> list:
+                return [vec2(v) for v in self.vertices]
+
+    # Классы ограничителей объекта:
+    class Constraints:
+        # Родительский класс:
+        class SimpleConstraintObject:
+            @property
+            def vertices(self) -> list:
+                vertices = []
+                for obj in [self.constraint.a, self.constraint.b]:
+                    x, y = self.constraint.anchor_a if obj == self.constraint.a else self.constraint.anchor_b
+                    cos_a, sin_a = cos(obj.angle), sin(obj.angle)
+                    rotated_x, rotated_y = x * cos_a - y * sin_a, x * sin_a + y * cos_a
+                    vertices.append((obj.position[0] + rotated_x, obj.position[1] + rotated_y))
+                return vertices
 
     # Пространство симуляции:
     class Space:
@@ -178,7 +353,7 @@ class Physics2D:
                      phys_speed:     float = 1.0,
                      meter:          float = 100.0,
                      damping:        float = 1.0,
-                     iterations:     int   = 48,
+                     iterations:     int   = 64,
                      idle_speed:     float = 0.0,
                      sleep_time:     float = float("inf"),
                      collision_slop: float = 0.01,
@@ -219,8 +394,8 @@ class Physics2D:
         def add(self, object: "Physics2D.Objects") -> None:
             object = [object] if not isinstance(object, list) else object
             for obj in object:
-                # if isinstance(obj, Objects.Mesh): self.space.add(obj.body, *obj.shapes)
-                if obj.body is None: continue
+                if isinstance(obj, Physics2D.Objects.Mesh): self.space.add(obj.body, *obj.shapes)
+                elif obj.body is None: continue
                 elif obj.shape is None: self.space.add(obj.body)
                 else: self.space.add(obj.body, obj.shape)
                 obj.space, obj.meter = self.space, self.meter
@@ -230,8 +405,8 @@ class Physics2D:
         def remove(self, object: "Physics2D.Objects") -> None:
             object = [object] if not isinstance(object, list) else object
             for obj in object:
-                # if isinstance(obj, Objects.Mesh): self.space.remove(obj.body, *obj.shapes)
-                if obj.body is None: continue
+                if isinstance(obj, Physics2D.Objects.Mesh): self.space.remove(obj.body, *obj.shapes)
+                elif obj.body is None: continue
                 elif obj.shape is None: self.space.remove(obj.body)
                 else: self.space.remove(obj.body, obj.shape)
                 obj.space, obj.meter = None, 100.0

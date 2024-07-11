@@ -23,5 +23,10 @@ class vec3(glm.vec3): pass
 # Класс четырёхмерного вектора:
 class vec4(glm.vec4): pass
 
+
+# Константа кг в ньютонах:
+KG_N = 9.80665
+
+
 # Удаляем округление от glm:
 del round

@@ -54,14 +54,6 @@ class DiscordRPC:
         return self
 
 
-# Получить список однотипных элементов списка:
-@staticmethod
-def get_only_type_list(list: list, dtype: any) -> list:
-    """ Возвращает список в котором только те типы, которые нам нужны. """
-
-    return [i for i in list if isinstance(i, dtype)]
-
-
 # Утилиты для 2D вещей:
 class Utils2D:
     # Получить позицию точки из окна в мировом пространстве:

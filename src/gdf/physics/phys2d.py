@@ -359,15 +359,19 @@ class Physics2D:
                          constraint:   pymunk.Constraint,
                          max_force:    float = float("inf"),
                          bias_coef:    float = float("inf"),
-                         collision_on: bool  = True) -> None:
-                self.constraint              = constraint    # Связь между двух объектов.
-                self.constraint.max_force    = max_force     # Максимальная сила, которую может приложить constraint.
-                self.constraint.bias_coef    = bias_coef     # Скорость, с которой исправляется ошибка constraint.
-                self.constraint.collision_on = collision_on  # Указывает, должны ли два тела сталкиваться.
+                         is_collision: bool  = True) -> None:
+                self.constraint           = constraint        # Связь между двух объектов.
+                self.constraint.max_force = max_force * KG_N  # Максимальная сила, которую может приложить constraint.
+                self.constraint.bias_coef = bias_coef * KG_N  # Скорость, с которой исправляется ошибка constraint.
+
+                # Должны ли два тела сталкиваться:
+                self.constraint._set_collide_bodies(is_collision)
 
             # Получить вершины соединения:
             def get_vertices(self) -> list:
                 vertices = []
+                if isinstance(self.constraint, pymunk.SimpleMotor):
+                    return [vec2(self.constraint.a.position), vec2(self.constraint.b.position)]
                 for obj in [self.constraint.a, self.constraint.b]:
                     x, y = self.constraint.anchor_a if obj == self.constraint.a else self.constraint.anchor_b
                     cos_a, sin_a = cos(obj.angle), sin(obj.angle)
@@ -379,44 +383,50 @@ class Physics2D:
         class PinJoint(SimpleConstraint):
             def __init__(self, a: "Physics2D.Objects", b: "Physics2D.Objects", point_a: vec2, point_b: vec2,
                          max_force: float = float("inf"), bias_coef: float = float("inf"),
-                         collision_on: bool = True) -> None:
+                         is_collision: bool = True) -> None:
                 constraint = pymunk.PinJoint(a.body, b.body, tuple(point_a.xy), tuple(point_b.xy))
-                super().__init__(constraint, max_force, bias_coef, collision_on)
+                super().__init__(constraint, max_force, bias_coef, is_collision)
 
         # Позволяет двум точкам на двух телах скользить относительно друг друга в пределах заданного диапазона:
         class SlideJoint(SimpleConstraint):
             def __init__(self, a: "Physics2D.Objects", b: "Physics2D.Objects", point_a: vec2, point_b: vec2,
                          min_dst: float, max_dst: float, max_force: float = float("inf"),
-                         bias_coef: float = float("inf"), collision_on: bool = True) -> None:
+                         bias_coef: float = float("inf"), is_collision: bool = True) -> None:
                 constraint = pymunk.SlideJoint(a.body, b.body, tuple(point_a.xy), tuple(point_b.xy), min_dst, max_dst)
-                super().__init__(constraint, max_force, bias_coef, collision_on)
+                super().__init__(constraint, max_force, bias_coef, is_collision)
 
         # Удерживает две точки на двух телах вместе позволяя им вращаться относительно друг друга вокруг точки поворота:
         class PivotJoint(SimpleConstraint):
             def __init__(self, a: "Physics2D.Objects", b: "Physics2D.Objects", point: vec2,
                          max_force: float = float("inf"), bias_coef: float = float("inf"),
-                         collision_on: bool = True) -> None:
+                         is_collision: bool = True) -> None:
                 constraint = pymunk.PivotJoint(a.body, b.body, tuple(point.xy))
-                super().__init__(constraint, max_force, bias_coef, collision_on)
+                super().__init__(constraint, max_force, bias_coef, is_collision)
 
         # Позволяет точке на одном теле скользить вдоль отрезка линии на другом теле:
         class GrooveJoint(SimpleConstraint):
             def __init__(self, a: "Physics2D.Objects", b: "Physics2D.Objects", point_a: vec2, point_b: vec2,
                          anchor: vec2, max_force: float = float("inf"), bias_coef: float = float("inf"),
-                         collision_on: bool = True) -> None:
+                         is_collision: bool = True) -> None:
                 constraint = pymunk.GrooveJoint(a.body, b.body, tuple(point_a.xy), tuple(point_b.xy), tuple(anchor))
-                super().__init__(constraint, max_force, bias_coef, collision_on)
+                super().__init__(constraint, max_force, bias_coef, is_collision)
 
         # Создать пружинистое соединение между двумя объектами:
         class DampedSpring(SimpleConstraint):
             def __init__(self, a: "Physics2D.Objects", b: "Physics2D.Objects", point_a: vec2, point_b: vec2,
                          rest_length: float, stiffness: float, damping: float, max_force: float = float("inf"),
-                         bias_coef: float = float("inf"), collision_on: bool = True) -> None:
+                         bias_coef: float = float("inf"), is_collision: bool = True) -> None:
                 constraint = pymunk.DampedSpring(
                     a.body, b.body, tuple(point_a.xy), tuple(point_b.xy), rest_length, stiffness*KG_N, damping)
-                super().__init__(constraint, max_force, bias_coef, collision_on)
+                super().__init__(constraint, max_force, bias_coef, is_collision)
 
-
+        # Создать двигательное соединение между двумя объектами:
+        class SimpleMotor(SimpleConstraint):
+            def __init__(self, a: "Physics2D.Objects", b: "Physics2D.Objects", rps: float = 1.0,
+                         max_force: float = float("inf"), bias_coef: float = float("inf"),
+                         is_collision: bool = True) -> None:
+                constraint = pymunk.SimpleMotor(a.body, b.body, -(2*math.pi)*rps)
+                super().__init__(constraint, max_force, bias_coef, is_collision)
 
     # Пространство симуляции:
     class Space:

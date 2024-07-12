@@ -72,6 +72,7 @@ class SpriteBatch2D:
         if sprite.id not in self.texture_batches:
             self.texture_batches[sprite.id] = []
 
+        # Добавляем новый полигон для текстуры:
         self.texture_batches[sprite.id].extend(vertices)
 
         return self

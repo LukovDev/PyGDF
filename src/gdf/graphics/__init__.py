@@ -11,7 +11,7 @@ if True:
     import pygame
     from pygame import constants as Key
     from pygame import constants as Event
-    from ..math import numba, radians, sin, cos
+    from ..math import numba, numpy
 
 
 # Ошибка окна OpenGL:
@@ -22,30 +22,32 @@ class OpenGLWindowError(Exception): pass
 class OpenGLContextNotSupportedError(OpenGLWindowError): pass
 
 
-# Ускоренная функция поворота вершин спрайта:
+# Ускоренная функция поворота вершин полигона спрайта:
 @numba.njit
 def __rotate_vertices__(x: float, y: float, width: int, height: int, angle: float) -> list:
-    center_x      = x + (width / 2)
-    center_y      = y + (height / 2)
-    angle_rad     = -radians(angle)
-    angle_rad_sin = sin(angle_rad)
-    angle_rad_cos = cos(angle_rad)
-    x1, y1        = ( x          - center_x), ( y           - center_y)
-    x2, y2        = ((x + width) - center_x), ( y           - center_y)
-    x3, y3        = ((x + width) - center_x), ((y + height) - center_y)
-    x4, y4        = ( x          - center_x), ((y + height) - center_y)
+    center_x      =  x + (width  / 2)
+    center_y      =  y + (height / 2)
+    angle_rad     = -numpy.radians(angle)
+    angle_rad_sin =  numpy.sin(angle_rad)
+    angle_rad_cos =  numpy.cos(angle_rad)
 
-    return [
-        (x1 * angle_rad_cos - y1 * angle_rad_sin) + center_x,
-        (x1 * angle_rad_sin + y1 * angle_rad_cos) + center_y,
-        (x2 * angle_rad_cos - y2 * angle_rad_sin) + center_x,
-        (x2 * angle_rad_sin + y2 * angle_rad_cos) + center_y,
-        (x3 * angle_rad_cos - y3 * angle_rad_sin) + center_x,
-        (x3 * angle_rad_sin + y3 * angle_rad_cos) + center_y,
-        (x4 * angle_rad_cos - y4 * angle_rad_sin) + center_x,
-        (x4 * angle_rad_sin + y4 * angle_rad_cos) + center_y,
-    ]
-__rotate_vertices__(0, 0, 1, 1, 0.0)
+    # Предварительно вычисляем смещения:
+    dx1, dy1 = x - center_x        , y - center_y
+    dx2, dy2 = x + width - center_x, y - center_y
+    dx3, dy3 = x + width - center_x, y + height - center_y
+    dx4, dy4 = x - center_x        , y + height - center_y
+
+    # Применяем поворот:
+    x1 = dx1 * angle_rad_cos - dy1 * angle_rad_sin + center_x
+    y1 = dx1 * angle_rad_sin + dy1 * angle_rad_cos + center_y
+    x2 = dx2 * angle_rad_cos - dy2 * angle_rad_sin + center_x
+    y2 = dx2 * angle_rad_sin + dy2 * angle_rad_cos + center_y
+    x3 = dx3 * angle_rad_cos - dy3 * angle_rad_sin + center_x
+    y3 = dx3 * angle_rad_sin + dy3 * angle_rad_cos + center_y
+    x4 = dx4 * angle_rad_cos - dy4 * angle_rad_sin + center_x
+    y4 = dx4 * angle_rad_sin + dy4 * angle_rad_cos + center_y
+
+    return [x1, y1, x2, y2, x3, y3, x4, y4]
 
 
 # Импортируем скрипты:

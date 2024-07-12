@@ -8,7 +8,6 @@ if True:
     import gc
     import time
     import pygame
-    from ..math import vec2, numpy as np
 
     from .gl import *
     from .image import Image
@@ -16,6 +15,8 @@ if True:
     from . import OpenGLWindowError, OpenGLContextNotSupportedError
 
     from ..audio.al import *
+
+    from ..math import vec2, numpy as np
 
 
 # Класс окна:

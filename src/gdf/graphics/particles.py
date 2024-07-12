@@ -6,7 +6,6 @@
 # Импортируем:
 if True:
     from .batch import SpriteBatch2D
-    from .camera import Camera2D
     from .texture import Texture
     from ..math import *
     from ..utils import Utils2D

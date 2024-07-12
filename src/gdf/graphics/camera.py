@@ -6,7 +6,6 @@
 # Импортируем:
 if True:
     from .gl import *
-    from ..math import numpy as np
     from ..math import *
 
 

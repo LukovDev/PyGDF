@@ -11,7 +11,6 @@
 # Импортируем:
 if True:
     from .gl import *
-    from .draw import Draw2D
     from .camera import Camera2D
     from .sprite import Sprite2D
     from .texture import Texture

@@ -130,8 +130,8 @@ class NetSocket:
         return self
 
     # Установить блокирование потока:
-    def set_blocking(self, bloсking: bool) -> "NetSocket":
-        self.socket.setblocking(bloсking)
+    def set_blocking(self, blocking: bool) -> "NetSocket":
+        self.socket.setblocking(blocking)
         return self 
 
     # Создать сервер:

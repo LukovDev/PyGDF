@@ -14,7 +14,7 @@ if True:
 # Класс генератора текста из шрифта:
 class FontGenerator:
     def __init__(self, file_path: str = None) -> None:
-        self.__font_path__ =  file_path
+        self.__font_path__ = file_path
         self.texture = None
 
     # Запечь текст шрифта, и получить новую текстуру:

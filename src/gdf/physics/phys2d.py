@@ -5,7 +5,6 @@
 
 # Импортируем:
 if True:
-    import pygame
     import pymunk
     import pymunk.autogeometry
     from pymunk import BB

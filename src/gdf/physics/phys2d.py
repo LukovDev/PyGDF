@@ -34,6 +34,13 @@ class Physics2D:
     # Фильтр физической формы:
     class ShapeFilter(pymunk.ShapeFilter): pass
 
+    # Структура для всех найденных физических объектов:
+    class FindedObject:
+        def __init__(self, object: "Physics2D.Objects", distance: float, point: vec2) -> None:
+            self.object   = object
+            self.distance = distance
+            self.point    = point
+
     # Физические объекты:
     class Objects:
         # Общий родительский класс физических объектов:
@@ -678,3 +685,29 @@ class Physics2D:
         # Получить процентное количество исправлений ошибок сталкиваний:
         def get_collision_bias(self) -> float:
             return self.space.collision_bias
+
+        # Найти ближайший объект:
+        def find_nearest_object(self, point: vec2, max_dst: float,
+                                shape_filter: pymunk.ShapeFilter = pymunk.ShapeFilter()) -> list:
+            info = self.space.point_query_nearest(tuple(point.xy), max_dst, shape_filter)
+            if info is None: return None
+            obj = next((c for c in self.objects if getattr(c, "body", None) == info.shape.body), None)
+            return Physics2D.FindedObject(obj, float(info.distance), vec2(info.point)) if obj is not None else None
+
+        # Найти все объекты в области:
+        def find_objects(self, point: vec2, max_dst: float,
+                         shape_filter: pymunk.ShapeFilter = pymunk.ShapeFilter()) -> list:
+            fnddobj = []
+            objects = []
+            
+            info_list = self.space.point_query(tuple(point.xy), max_dst, shape_filter)
+            if info_list is None: return None
+
+            for info in info_list:
+                obj = next((c for c in self.objects if getattr(c, "body", None) == info.shape.body), None)
+                if obj is None: continue
+                if obj not in objects:
+                    objects.append(obj)
+                    fnddobj.append(Physics2D.FindedObject(obj, float(info.distance), vec2(info.point)))
+
+            return fnddobj if fnddobj else None

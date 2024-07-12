@@ -5,9 +5,13 @@
 
 # Импортируем:
 if True:
+    import pygame
     import pymunk
+    import pymunk.autogeometry
+    from pymunk import BB
+
+    from ..graphics.texture import Texture
     from ..math import *
-    from ..utils import Utils2D
 
 
 # Ошибка физики:
@@ -33,6 +37,58 @@ class Physics2D:
     
     # Фильтр физической формы:
     class ShapeFilter(pymunk.ShapeFilter): pass
+
+    # Арбитр:
+    class Arbiter(pymunk.Arbiter): pass
+
+    # Генератор сетки. Возвращает список из вершин сетки. Генерирует сетку из текстуры:
+    class MeshGenerator:
+        def __init__(self) -> None:
+            pass
+
+        # Генерируем сетку:
+        def generate(self,
+                     texture:   Texture,      # Текстура.
+                     size:      vec2,         # Размер геометрии.
+                     samples:   vec2,         # Детализация геометрии.
+                     threshold: float,        # Порог срабатывания генерации.
+                     tolerance: float = 1.0,  # Насколько сильно мы хотим упростить геометрию.
+                     use_alpha: bool = True   # Использовать альфа канал или яркость пикселя.
+                     ) -> list:
+            if not isinstance(texture, Texture):
+                raise PhysicsError(f"The texture data type (\"{type(texture)}\") is not a type \"{Texture}\"")
+
+            # Получаем данные текстуры:
+            tdata = texture.get_data()
+
+            # Функция для получения данных пикселя:
+            def sample_func(point):
+                try:
+                    color = tdata[int(point[1]), int(point[0])]
+                    if use_alpha: return color[3]
+                    else: return sum(color[:3]) / 3
+                except Exception as e: return 0
+
+            # Получаем набор линий (генерируем геометрию):
+            line_set = pymunk.autogeometry.march_soft(
+                BB(0, 0, int(texture.width), int(texture.height)),
+                int(samples.x), int(samples.y),
+                int(threshold), sample_func
+            )
+
+            tsize = vec2(texture.width, texture.height)
+
+            # Убираем избыток точек и добавляем правильные данные в список вершин:
+            vertices = []
+            for polyline in line_set:
+                line = pymunk.autogeometry.simplify_curves(polyline, tolerance)
+                for i in range(len(line)-1):
+                    vertices.extend([
+                        (vec2(line[i  ])-tsize/2)*(size/tsize),
+                        (vec2(line[i+1])-tsize/2)*(size/tsize)
+                    ])
+
+            return vertices
 
     # Структура для всех найденных физических объектов:
     class FindedObject:
@@ -69,7 +125,7 @@ class Physics2D:
             def angle(self) -> vec2: return self.get_angle()
 
             @property
-            def speed(self) -> float: return Utils2D.get_speed_vector(self.velocity)
+            def speed(self) -> float: return sqrt(self.body.velocity.x**2 + self.body.velocity.y**2)
 
             @property
             def space(self) -> pymunk.Space: return self.body.space

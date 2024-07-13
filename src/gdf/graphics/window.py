@@ -21,7 +21,7 @@ if True:
 
 # Класс окна:
 class Window:
-    # ------------------ Приведённые ниже функции должны быть записаны в унаследованном классе: ------------------------
+    # --------------------- Приведённые ниже функции должны быть записаны в унаследованном классе: ---------------------
 
     # Создать окно:
     def init(self) -> None:
@@ -93,10 +93,13 @@ class Window:
             "window-active":  False,
             "monitor-size":   vec2(0),
             "win-size-bf-fs": [int(size.x), int(size.y)],
-            "mouse-scroll":   vec2(0),
             "mouse-rel":      vec2(0),
-            "mouse-btn-up":   [False, False, False],
-            "cursor-visible": True,
+            "mouse-down":     [False, False, False],
+            "mouse-up":       [False, False, False],
+            "mouse-scroll":   vec2(0),
+            "mouse-visible":  True,
+            "key-down":       [],
+            "key-up":         [],
             "dtime":          1/60,
             "old-dtime":      1/60,
             "is-exit":        False,
@@ -166,7 +169,10 @@ class Window:
             start_frame_time                 = time.time()
             self.__winvars__["mouse-scroll"] = vec2(0)
             self.__winvars__["mouse-rel"]    = vec2(pygame.mouse.get_rel())
-            self.__winvars__["mouse-btn-up"] = [False, False, False]
+            self.__winvars__["mouse-down"]   = [False, False, False]
+            self.__winvars__["mouse-up"]     = [False, False, False]
+            self.__winvars__["key-down"]     = []
+            self.__winvars__["key-up"]       = []
             scn                              = self.__winvars__["current-scene"]
 
             # Если хотят закрыть окно:
@@ -219,9 +225,21 @@ class Window:
                 # Если колёсико мыши провернулось:
                 elif event.type == pygame.MOUSEWHEEL: self.__winvars__["mouse-scroll"] = vec2(event.x, event.y)
 
-                # Если отпускают любую кнопку мыши
+                # Если нажимают кнопку мыши:
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    self.__winvars__["mouse-down"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
+
+                # Если отпускают кнопку мыши:
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    self.__winvars__["mouse-btn-up"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
+                    self.__winvars__["mouse-up"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
+
+                # Если нажимают кнопку на клавиатуре:
+                elif event.type == pygame.KEYDOWN:
+                    self.__winvars__["key-down"].append(event.key)
+
+                # Если отпускают кнопку на клавиатуре:
+                elif event.type == pygame.KEYUP:
+                    self.__winvars__["key-up"].append(event.key)
 
             # Обработка основных функций (обновление и отрисовка):
             try:
@@ -427,51 +445,6 @@ class Window:
     def get_scene(self) -> Scene | None:
         return self.__winvars__["current-scene"]
 
-    # Установить позицию мыши:
-    @staticmethod
-    def set_mouse_pos(pos: tuple | vec2) -> None:
-        pygame.mouse.set_pos(pos[0], pos[1])
-
-    # Получить позицию мыши:
-    @staticmethod
-    def get_mouse_pos() -> vec2:
-        return vec2(pygame.mouse.get_pos())
-
-    # Получить смещение мыши за кадр:
-    def get_mouse_rel(self) -> vec2:
-        return vec2(self.__winvars__["mouse-rel"])
-
-    # Получить нажатие клавиш мыши:
-    @staticmethod
-    def get_mouse_pressed() -> list:
-        return list(pygame.mouse.get_pressed())
-
-    # Получить нажатие кнопки мыши:
-    def get_mouse_button_down(self) -> list:
-        return list(pygame.mouse.get_pressed())
-
-    # Получить отжатие кнопки мыши:
-    def get_mouse_button_up(self) -> list:
-        return list(self.__winvars__["mouse-btn-up"])
-
-    # Получить вращение мыши:
-    def get_mouse_scroll(self) -> vec2:
-        return vec2(self.__winvars__["mouse-scroll"])
-
-    # Установить видимость курсора мыши:
-    def set_cursor_visible(self, visible: bool) -> None:
-        self.__winvars__["cursor-visible"] = visible
-        pygame.mouse.set_visible(visible)
-
-    # Получить видимость курсора мыши:
-    def get_cursor_visible(self) -> bool:
-        return self.__winvars__["cursor-visible"]
-
-    # Получить нажатие клавиш клавиатуры:
-    @staticmethod
-    def get_key_pressed() -> list[int]:
-        return pygame.key.get_pressed()
-
     # Получить размер монитора:
     def get_monitor_size(self) -> vec2:
         return vec2(self.__winvars__["monitor-size"])
@@ -510,7 +483,7 @@ class Window:
         return gl.glGetString(gl.GL_RENDERER).decode("utf-8")
 
     # Получить кадр как изображение:
-    def get_frame(self, front: bool = False) -> Image:
+    def get_frame_image(self, front: bool = False) -> Image:
         # Всего есть 2 буфера. Отображаемый на экране и тот что в процессе рисовки:
         if front: gl.glReadBuffer(gl.GL_FRONT)  # Передний (отображаемый) буфер.
         else:     gl.glReadBuffer(gl.GL_BACK)   # Задний (в процессе рисовки) буфер.

@@ -5,14 +5,15 @@
 
 # Импортируем:
 if True:
+    from .input import *
     from .math import *
 
 
 # Проверяем и перемещаем курсор мыши если тот рядом с границей окна:
-def check_mouse_pos(window, x_pos_detect: int = 16, y_pos_detect: int = 16) -> None:
-    mouse_pos = window.get_mouse_pos()
-    set_mouse = window.set_mouse_pos
-    win_size = window.get_size()
+def check_mouse_pos(input, camera, x_pos_detect: int = 16, y_pos_detect: int = 16) -> None:
+    mouse_pos = input.get_mouse_pos()
+    set_mouse = input.set_mouse_pos
+    win_size = camera.width, camera.height
     if mouse_pos[0] < x_pos_detect:               set_mouse((win_size[0] - x_pos_detect, mouse_pos[1]))
     if mouse_pos[0] > win_size[0] - x_pos_detect: set_mouse((x_pos_detect, mouse_pos[1]))
     if mouse_pos[1] < y_pos_detect:               set_mouse((mouse_pos[0], win_size[1] - y_pos_detect))
@@ -21,13 +22,12 @@ def check_mouse_pos(window, x_pos_detect: int = 16, y_pos_detect: int = 16) -> N
 
 # Класс управления 2D камеры:
 class CameraController2D:
-    def __init__(self, window, keys, camera,
+    def __init__(self, input: InputHandler, camera,
                  offset_scale: float = 1.0,
                  min_zoom:     float = 1/1000,
                  max_zoom:     float = 128000,
                  friction:     float = 0.2) -> None:
-        self.window = window
-        self.keys   = keys
+        self.input = input
         self.camera = camera
 
         self.fixed_mouse_pos = (0, 0)
@@ -39,10 +39,10 @@ class CameraController2D:
 
     # Обновление камеры:
     def update(self, delta_time: float, gui_pressed_pass: bool = False) -> None:
-        mouse_pressed = self.window.get_mouse_pressed()
-        mouse_scroll  = self.window.get_mouse_scroll()
-        mouse_pos     = self.window.get_mouse_pos()
-        mouse_rel     = self.window.get_mouse_rel()
+        mouse_pressed = self.input.get_mouse_pressed()
+        mouse_scroll  = self.input.get_mouse_scroll()
+        mouse_pos     = self.input.get_mouse_pos()
+        mouse_rel     = self.input.get_mouse_rel()
         is_zooming    = not gui_pressed_pass or mouse_pressed[0]
 
         # Если нажимают на колёсико мыши:
@@ -58,7 +58,7 @@ class CameraController2D:
             self.camera.position.x -= (mouse_rel[0] * self.camera.zoom) * self.camera.meter / 100
             self.camera.position.y += (mouse_rel[1] * self.camera.zoom) * self.camera.meter / 100
             self.target_pos = self.camera.position.xy
-            check_mouse_pos(self.window, 16, 16)
+            check_mouse_pos(self.input, self.camera, 16, 16)
             self.fixed_mouse_pos = mouse_pos
         else: self.fixed_mouse_pos = mouse_pos
 
@@ -75,7 +75,7 @@ class CameraController2D:
 
 # Класс управления 3D камеры:
 class CameraController3D:
-    def __init__(self, window, keys, camera,
+    def __init__(self, input: InputHandler, camera,
                  mouse_sensitivity: float = 1.0,
                  ctrl_speed:        float = .75,
                  speed:             float = 6,
@@ -84,8 +84,7 @@ class CameraController3D:
                  pitch_min:         float = -89,
                  pitch_max:         float = +89,
                  move_up_forward: bool = False) -> None:
-        self.window            = window
-        self.keys              = keys
+        self.input             = input
         self.camera            = camera
 
         self.mouse_sensitivity = mouse_sensitivity
@@ -108,20 +107,20 @@ class CameraController3D:
     # Обновление контроллера:
     def update(self, delta_time: float, pressed_pass: bool = False) -> None:
         # Получаем смещение мыши:
-        mouse_delta_xy = self.window.get_mouse_rel()
+        mouse_delta_xy = self.input.get_mouse_rel()
 
         mdxy = mouse_delta_xy[0]*(self.mouse_sensitivity*0.1), mouse_delta_xy[1]*(self.mouse_sensitivity*0.1)
 
         # Eсли мы зажали ПКМ и не попали на интерфейс, то могли свободно управлять камерой пока не отпустим ПКМ:        
-        if self.window.get_mouse_pressed()[2] and not pressed_pass and not self.is_pressed:
+        if self.input.get_mouse_pressed()[2] and not pressed_pass and not self.is_pressed:
             self.is_pressed = True
 
         # Если мы попали на интерфейс когда зажали ПКМ, то управлять мы не можем:
-        if self.window.get_mouse_pressed()[2] and pressed_pass and not self.is_pressed:
+        if self.input.get_mouse_pressed()[2] and pressed_pass and not self.is_pressed:
             self.pressed_pass = True
 
         # Если мы отпустили ПКМ, то всё сбрасываем:
-        if not self.window.get_mouse_pressed()[2]:
+        if not self.input.get_mouse_pressed()[2]:
             self.pressed_pass = False
             self.is_pressed = False
 
@@ -137,7 +136,7 @@ class CameraController3D:
         else: self.camera.position = self.camera_target
 
         if round(length(self.camera_target-self.camera.position), 4) > 0.001 or \
-           (not (mdxy[0] == 0 and mdxy[1] == 0) and self.window.get_mouse_pressed()[2]):
+           (not (mdxy[0] == 0 and mdxy[1] == 0) and self.input.get_mouse_pressed()[2]):
             self.is_movement = True
         else: self.is_movement = False
 
@@ -148,20 +147,20 @@ class CameraController3D:
         # Добавляем смещение мыши к рысканью и тангажу:
         self.camera.yaw   += mouse_delta_xy[0] * (self.mouse_sensitivity * 0.1)
         self.camera.pitch -= mouse_delta_xy[1] * (self.mouse_sensitivity * 0.1)
-        check_mouse_pos(self.window, 16, 16)  # Проверяем позицию мыши.
+        check_mouse_pos(self.input, self.camera, 16, 16)  # Проверяем позицию мыши.
 
         # Ограничиваем угол обзора камеры (вверх и вниз):
         self.camera.pitch = clamp(self.camera.pitch, self.pitch_min, self.pitch_max)
 
     # Управление с помощью клавиатуры:
     def keyboard_control(self, delta_time: float) -> None:
-        keys = self.window.get_key_pressed()
+        keys = self.input.get_key_pressed()
 
         # Если нажимают на левый или правый шифт, ускорить перемещение:
-        if keys[self.keys.K_LSHIFT] or keys[self.keys.K_RSHIFT]:
+        if keys[Key.K_LSHIFT] or keys[Key.K_RSHIFT]:
             speed = self.shift_speed * delta_time
         # Иначе если нажимают CTRL:
-        elif keys[self.keys.K_LCTRL] or keys[self.keys.K_RCTRL]:
+        elif keys[Key.K_LCTRL] or keys[Key.K_RCTRL]:
             speed = self.ctrl_speed * delta_time
         else: speed = self.speed * delta_time
 
@@ -173,9 +172,9 @@ class CameraController3D:
         else: self.camera.up = cross(-self.camera.forward, self.camera.right)
 
         # Управление клавишами:
-        if keys[self.keys.K_w]: self.camera_target += self.camera.forward * speed
-        if keys[self.keys.K_s]: self.camera_target -= self.camera.forward * speed
-        if keys[self.keys.K_a]: self.camera_target -= self.camera.right   * speed
-        if keys[self.keys.K_d]: self.camera_target += self.camera.right   * speed
-        if keys[self.keys.K_q]: self.camera_target -= self.camera.up      * speed
-        if keys[self.keys.K_e]: self.camera_target += self.camera.up      * speed
+        if keys[Key.K_w]: self.camera_target += self.camera.forward * speed
+        if keys[Key.K_s]: self.camera_target -= self.camera.forward * speed
+        if keys[Key.K_a]: self.camera_target -= self.camera.right   * speed
+        if keys[Key.K_d]: self.camera_target += self.camera.right   * speed
+        if keys[Key.K_q]: self.camera_target -= self.camera.up      * speed
+        if keys[Key.K_e]: self.camera_target += self.camera.up      * speed

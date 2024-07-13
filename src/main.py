@@ -9,6 +9,7 @@ if True:
     import gdf
     from gdf import files
     from gdf.math import *
+    from gdf.input import InputHandler
     from gdf.graphics import Window, Camera2D, Sprite2D
 
 
@@ -45,6 +46,9 @@ class GameClass(Window):
         # Выводим рендерер OpenGL:
         print(f"OpenGL Renderer: {self.window.get_opengl_renderer()}\n")
 
+        # Наш обработчик ввода данных:
+        self.input = InputHandler(self.window)
+
         # 2D камера:
         self.camera = Camera2D(
             width    = self.window.get_width(),
@@ -63,8 +67,7 @@ class GameClass(Window):
     # Вызывается каждый кадр (игровой цикл):
     def update(self, delta_time: float, event_list: list) -> None:
         for event in event_list:
-            # События окна.
-            pass
+            pass  # События окна.
 
         # Какой-то код (логика).
 
@@ -86,7 +89,7 @@ class GameClass(Window):
 
     # Вызывается при изменении размера окна:
     def resize(self, width: int, height: int) -> None:
-        self.camera.resize(width, height)
+        self.camera.resize(width, height)  # Обновляем размер камеры.
 
     # Вызывается при разворачивании окна:
     def show(self) -> None:

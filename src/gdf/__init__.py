@@ -10,7 +10,7 @@ if True:
 
 
 # Получить версию библиотеки:
-def get_version() -> str: return "v1.0-b1"
+def get_version() -> str: return "v1.0-release"
 
 
 # Получить полное название системы:
@@ -24,6 +24,7 @@ from . import net          # Модуль сети.
 from . import physics      # Модуль физики.
 from . import controllers  # Контроллеры камеры.
 from . import files        # Скрипт отвечающий за файлы.
+from . import input        # Скрипт отвечающий за ввод данных.
 from . import math         # Скрипт отвечающий за математику.
 from . import utils        # Скрипт отвечающий за полезные функции.
 

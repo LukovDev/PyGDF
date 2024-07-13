@@ -8,9 +8,8 @@
 #
 
 </br>
-
 <div align="center">
-  <strong style="font-size: 48px;">На официальном <a href="https://pygdf.github.io/" style="text-decoration: none;">сайте</a> есть больше информации.</strong>
+  <strong>На официальном сайте <a href="https://pygdf.github.io/" target="_blank">PyGDF</a> есть больше информации.</strong>
 </div>
 
 #

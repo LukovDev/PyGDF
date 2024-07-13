@@ -6,7 +6,9 @@
 # Импортируем:
 if True:
     import pygame
-    from .graphics import Key, Event, Window
+    from pygame import constants as Key
+    from pygame import constants as Event
+    from .graphics import Window
     from .math import *
 
 

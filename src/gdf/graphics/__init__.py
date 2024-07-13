@@ -7,10 +7,6 @@
 if True:
     import os
     os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-
-    import pygame
-    from pygame import constants as Key
-    from pygame import constants as Event
     from ..math import numba, numpy
 
 

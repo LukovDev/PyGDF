@@ -42,12 +42,9 @@ class Physics2D:
 
     # Генератор сетки. Возвращает список из вершин сетки. Генерирует сетку из текстуры:
     class MeshGenerator:
-        def __init__(self) -> None:
-            pass
-
         # Генерируем сетку:
-        def generate(self,
-                     texture:   Texture,      # Текстура.
+        @staticmethod
+        def generate(texture:   Texture,      # Текстура.
                      size:      vec2,         # Размер геометрии.
                      samples:   vec2,         # Детализация геометрии.
                      threshold: float,        # Порог срабатывания генерации.

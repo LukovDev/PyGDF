@@ -5,7 +5,7 @@
 
 # Импортируем:
 if True:
-    from .input import *
+    from .input import InputHandler, Key
     from .math import *
 
 

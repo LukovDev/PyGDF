@@ -24,7 +24,7 @@ class vec3(glm.vec3): pass
 class vec4(glm.vec4): pass
 
 
-# Константа кг в ньютонах:
+# Константа килограмма в ньютонах:
 KG_N = 9.80665
 
 

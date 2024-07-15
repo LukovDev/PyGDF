@@ -9,12 +9,8 @@
 
 </br>
 <div align="center">
-  <strong>На официальном сайте <a href="https://pygdf.github.io/">PyGDF</a> есть больше информации.</strong>
+  <strong>На официальном сайте <a href="https://pygdf.github.io/" target="_blank">PyGDF</a> есть больше информации.</strong>
 </div>
-
-#
-
-### Краткая [инструкция по использованию](https://pygdf.github.io/get-started.html)
 
 #
 

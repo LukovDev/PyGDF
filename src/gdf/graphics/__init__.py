@@ -47,7 +47,7 @@ def __rotate_vertices__(x: float, y: float, width: int, height: int, angle: floa
 
 
 # Импортируем скрипты:
-from . import animation
+from . import animator
 from . import atlas
 from . import batch
 from . import buffers
@@ -70,7 +70,7 @@ from . import window
 
 
 # Импортируем основной функционал из скриптов:
-from .animation import Animation2D
+from .animator  import Animator2D
 from .atlas     import AtlasTexture
 from .batch     import SpriteBatch2D, AtlasTextureBatch2D
 from .buffers   import SSBO, FrameBuffer

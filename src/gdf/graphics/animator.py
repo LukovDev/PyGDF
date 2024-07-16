@@ -1,5 +1,5 @@
 #
-# animation.py - Создаёт класс для анимации.
+# animator.py - Создаёт класс для анимации.
 #
 
 
@@ -8,8 +8,8 @@ if True:
     pass
 
 
-# Класс 2D анимации:
-class Animation2D:
+# Класс 2D аниматора:
+class Animator2D:
     def __init__(self, frames: int, duration: float) -> None:
         self.frames    = frames    # Количество кадров анимации.
         self.duration  = duration  # Продолжительность кадра в секундах.
@@ -17,7 +17,7 @@ class Animation2D:
         self.is_paused = False     # На паузе.
 
     # Обновить анимацию:
-    def update(self, delta_time: float) -> "Animation2D":
+    def update(self, delta_time: float) -> "Animator2D":
         # Если анимация не на паузе:
         if not self.is_paused:
             self.count += (1.0 / self.duration) * delta_time
@@ -28,32 +28,32 @@ class Animation2D:
         return self
 
     # Запустить анимацию:
-    def start(self) -> "Animation2D":
+    def start(self) -> "Animator2D":
         self.resume()
 
         return self
 
     # Остановить анимацию и вернуть к первому кадру:
-    def stop(self) -> "Animation2D":
+    def stop(self) -> "Animator2D":
         self.pause()
         self.reset()
 
         return self
 
     # Остановить анимацию:
-    def pause(self) -> "Animation2D":
+    def pause(self) -> "Animator2D":
         self.is_paused = True
 
         return self
 
     # Возобновить анимацию:
-    def resume(self) -> "Animation2D":
+    def resume(self) -> "Animator2D":
         self.is_paused = False
 
         return self
 
     # Вернуть к первому кадру:
-    def reset(self) -> "Animation2D":
+    def reset(self) -> "Animator2D":
         self.count = 0.0
 
         return self

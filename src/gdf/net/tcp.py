@@ -19,8 +19,8 @@ class NetServerTCP:
     def connect_handler(socket: NetSocket, address: tuple) -> None:
         pass
 
-    # Вызывается каждый цикл сервера:
-    def client_handler(socket: NetSocket, address: tuple, delta_time: float) -> None:
+    # Вызывается каждый цикл обработки:
+    def socket_handler(socket: NetSocket, address: tuple, delta_time: float) -> None:
         # Слушаем пинг клиента. Если его нет, то значит он отключился:
         if socket.recv_data() is None: socket.close()
 
@@ -36,10 +36,10 @@ class NetServerTCP:
     """
 
     # Инициализация:
-    def __init__(self, connect_handler: any, client_handler: any, disconnect_handler: any, error_handler: any) -> None:
+    def __init__(self, connect_handler: any, socket_handler: any, disconnect_handler: any, error_handler: any) -> None:
         # Внутренние переменные класса:
         self.connect_handler    = connect_handler     # Вызывается при подключении клиента.
-        self.client_handler     = client_handler      # Вызывается каждый цикл сервера.
+        self.socket_handler     = socket_handler      # Вызывается каждый цикл обработки.
         self.disconnect_handler = disconnect_handler  # Вызывается при отключении клиента.
         self.error_handler      = error_handler       # Вызывается при получении ошибки в обработчике клиента.
 
@@ -80,8 +80,8 @@ class NetServerTCP:
                     except BlockingIOError: pass
                     finally: client.set_blocking(True)
 
-                    # Обрабатываем клиента:
-                    self.client_handler(client, address, dtime)
+                    # Обрабатываем сокет:
+                    self.socket_handler(client, address, dtime)
 
                     # Проверка накопленного времени таймаута:
                     if time.time() - stime > self.__netvars__["timeout"]:
@@ -274,8 +274,8 @@ class NetClientTCP:
     def connect_handler(socket: NetSocket, address: tuple) -> None:
         pass
 
-    # Вызывается каждый цикл клиента:
-    def server_handler(socket: NetSocket, address: tuple, delta_time: float) -> None:
+    # Вызывается каждый цикл обработки:
+    def socket_handler(socket: NetSocket, address: tuple, delta_time: float) -> None:
         # Слушаем пинг сервера. Если его нет, то значит сервер отключился:
         if socket.recv_data() is None: socket.close()
 
@@ -291,10 +291,10 @@ class NetClientTCP:
     """
 
     # Инициализация:
-    def __init__(self, connect_handler: any, server_handler: any, disconnect_handler: any, error_handler: any) -> None:
+    def __init__(self, connect_handler: any, socket_handler: any, disconnect_handler: any, error_handler: any) -> None:
         # Внутренние переменные:
         self.connect_handler    = connect_handler     # Вызывается при подключении к серверу.
-        self.server_handler     = server_handler      # Вызывается каждый 1/TPS раз в отдельном потоке.
+        self.socket_handler     = socket_handler      # Вызывается каждый 1/TPS раз в отдельном потоке.
         self.disconnect_handler = disconnect_handler  # Вызывается при отключении от сервера.
         self.error_handler      = error_handler       # Вызывается при получении ошибки в обработчике сервера.
 
@@ -332,8 +332,8 @@ class NetClientTCP:
                     except BlockingIOError: pass
                     finally: server.set_blocking(True)
 
-                    # Обрабатываем сервер:
-                    self.server_handler(server, address, dtime)
+                    # Обрабатываем сокет:
+                    self.socket_handler(server, address, dtime)
 
                     # Проверка накопленного времени таймаута:
                     if time.time() - stime > self.__netvars__["timeout"]:

@@ -54,7 +54,7 @@ class Texture:
     def get_data(self) -> np.ndarray:
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
         data = gl.glGetTexImage(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)
-        return np.flipud(np.frombuffer(data, np.uint8).reshape((self.height, self.width, 4)))
+        return np.frombuffer(data, np.uint8).reshape((self.height, self.width, 4))
 
     # Установить фильтрацию текстуры:
     def set_filter(self, name: int, param: int) -> "Texture":

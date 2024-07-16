@@ -7,6 +7,7 @@
 if True:
     import os
     import json
+    import pygame
     import zipfile
     import requests
     import tkinter as tk
@@ -15,20 +16,14 @@ if True:
     from .graphics import Image, Texture, Sprite2D
 
 
-# Класс исключения:
-class IgnoreException(Exception): pass
-
-
 # Загружаем изображение:
 def load_image(file_path: str) -> Image:
     return Image().load(file_path)
 
 
 # Сохраняем изображение:
-def save_image(file_path: str, image: Image) -> bool:
-    try: image.save(file_path)
-    except IgnoreException: return False
-    return True
+def save_image(file_path: str, image: Image) -> None:
+    image.save(file_path)
 
 
 # Загружаем текстуру:
@@ -37,10 +32,9 @@ def load_texture(file_path: str, is_flip_y: bool = False) -> Texture:
 
 
 # Сохраняем текстуру:
-def save_texture(file_path: str, texture: Texture) -> bool:
-    try: texture.image.save(file_path)
-    except IgnoreException: return False
-    return True
+def save_texture(file_path: str, texture: Texture) -> None:
+    image = pygame.image.frombuffer(texture.get_data().tobytes(), (texture.width, texture.height), "RGBA")
+    pygame.image.save(image, file_path)
 
 
 # Загружаем текстуру, а потом превращаем в спрайт:
@@ -98,7 +92,7 @@ def extract_zip_file(file_path: str, output_dir: str) -> None:
 
 
 # Выбрать файл:
-def get_file_path_gialog(file_types: list[tuple] = [("all files:" "*.*")], icon_path: str = "") -> str:
+def get_file_path_dialog(file_types: list[tuple] = [("all files:" "*.*")], icon_path: str = "") -> str:
     root = tk.Tk() ; root.withdraw()
     try: root.iconbitmap(icon_path)
     except Exception as error: pass

@@ -55,7 +55,7 @@ class Physics2D:
                 raise PhysicsError(f"The texture data type (\"{type(texture)}\") is not a type \"{Texture}\"")
 
             # Получаем данные текстуры:
-            tdata = texture.get_data()
+            tdata = numpy.flipud(texture.get_data())
 
             # Функция для получения данных пикселя:
             def sample_func(point):

@@ -34,7 +34,7 @@ class Listener:
 
     # Установить позицию слушателя:
     def set_position(self, position: vec3) -> "Listener":
-        self.position = position
+        self.position = position.xyz
         return self
 
     # Получить позицию слушателя:
@@ -43,8 +43,8 @@ class Listener:
 
     # Установить ориентацию:
     def set_orientation(self, look_at: vec3, up: vec3) -> "Listener":
-        self.look_at = look_at
-        self.up = up
+        self.look_at = look_at.xyz
+        self.up = up.xyz
         return self
 
     # Получить ориентацию:

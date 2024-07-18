@@ -129,7 +129,7 @@ class Sound:
     # Установить минимальное значение громкости звука:
     def set_min_volume(self, value: float) -> "Sound":
         if self.sound is None: return self
-        self.sound.set_min_gain(value)
+        self.sound.set_min_gain(abs(value))
         return self
 
     # Получить минимальное значение громкости звука:
@@ -140,7 +140,7 @@ class Sound:
     # Установить максимальное значение громкости звука:
     def set_max_volume(self, value: float) -> "Sound":
         if self.sound is None: return self
-        self.sound.set_max_gain(value)
+        self.sound.set_max_gain(abs(value))
         return self
 
     # Получить максимальное значение громкости звука:

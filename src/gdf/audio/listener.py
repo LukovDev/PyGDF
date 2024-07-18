@@ -57,7 +57,7 @@ class Listener:
         return self
 
     # Установить громкость слушателя (усиление слуха):
-    def get_volume(self, volume: float) -> float:
+    def get_volume(self) -> float:
         return self.volume
 
     # Освобождаем ресурсы:

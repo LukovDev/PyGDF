@@ -44,12 +44,12 @@ class FontGenerator:
         bitmap_size = bitmap.get_width()+padding_x*2, bitmap.get_height()+padding_y*2
 
         # Создаём фон текста, и рисуем на нём основной текст:
-        text_bitmap = pygame.Surface(bitmap_size, pygame.SRCALPHA)
-        text_bitmap.fill(bg_color)
-        text_bitmap.blit(bitmap, (padding_x, padding_y))
+        text_image = Image(bitmap_size)
+        text_image.fill(bg_color)
+        text_image.draw(bitmap, padding_x, padding_y)
 
         # Создаём текстуру из битмапа:
-        texture = Texture(Image(surface=text_bitmap))
+        texture = Texture(Image((0, 0), surface=text_image))
 
         # Устанавливаем сглаживание текстуры:
         texture.set_linear() if smooth else texture.set_pixelized()

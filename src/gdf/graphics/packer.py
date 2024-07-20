@@ -56,14 +56,14 @@ class PackerTexture:
         height = max(texture.height for _, texture in sorted_textures)
 
         # Создаём поверхность на которой будем рисовать текстуры:
-        atlas = pygame.Surface((width, height))
+        atlas = Image((width, height))
 
         # "Волшебный" алгоритм по расстановке текстур в атласе.
         # TODO: Этот алгоритм крайне не эффективен (по заполнению пустот). Его надо переделать.
         x_offset = 0
         for name, texture in sorted_textures:
             # Рисуем текстуру на атласе:
-            atlas.blit(texture.image.surface, (x_offset, 0))
+            atlas.draw(texture.image.surface, x_offset, 0)
 
             # Увеличиваем смещение x для следующей текстуры:
             x_offset += texture.width + offset
@@ -82,7 +82,7 @@ class PackerTexture:
             ]
 
         # Создаём текстуру атласа:
-        self.atlas = Texture(Image(atlas))
+        self.atlas = Texture(atlas)
         if pixelized: self.atlas.set_pixelized()
         return self
 

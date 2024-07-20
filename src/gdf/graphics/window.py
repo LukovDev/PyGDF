@@ -294,9 +294,14 @@ class Window:
 
     # Установить иконку окна:
     def set_icon(self, icon: Image) -> None:
-        if icon is None: return
+        if icon is not None and not isinstance(icon, Image):
+            raise OpenGLWindowError(
+                f"Type Class error: You have specified a data type that is not "
+                f"equal to the \"{Image}\" type (your type: \"{type(icon)}\").")
+
+        # Создаём и устанавливаем прозрачную иконку только в том случае, если мы передали None:
         self.__winvars__["icon"] = icon
-        pygame.display.set_icon(icon.surface)
+        pygame.display.set_icon(Image((64, 64)).fill([0, 0, 0, 0]).surface if icon is None else icon.surface)
 
     # Получить иконку окна:
     def get_icon(self) -> Image:

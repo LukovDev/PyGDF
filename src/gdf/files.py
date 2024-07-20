@@ -18,7 +18,7 @@ if True:
 
 # Загружаем изображение:
 def load_image(file_path: str) -> Image:
-    return Image().load(file_path)
+    return Image((0, 0)).load(file_path)
 
 
 # Сохраняем изображение:
@@ -28,7 +28,7 @@ def save_image(file_path: str, image: Image) -> None:
 
 # Загружаем текстуру:
 def load_texture(file_path: str, is_flip_y: bool = False) -> Texture:
-    return Texture(Image().load(file_path), is_flip_y)
+    return Texture(Image((0, 0)).load(file_path), is_flip_y)
 
 
 # Сохраняем текстуру:

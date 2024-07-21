@@ -102,8 +102,8 @@ class Physics2D:
                          elasticity:  float = 0.2,
                          friction:    float = 0.9,
                          body_type:   int   = pymunk.Body.DYNAMIC,
-                         max_vel:     float = float("inf"),
-                         max_ang_vel: float = float("inf")) -> None:
+                         max_vel:     float = INF,
+                         max_ang_vel: float = INF) -> None:
                 self.mass        = mass                # Масса объекта.
                 self.elasticity  = elasticity          # Сила упругости.
                 self.friction    = friction            # Сила трения.
@@ -197,7 +197,7 @@ class Physics2D:
                 return self
 
             # Функция ограничения скорости вращения и перемещения:
-            def __limit_velocity_func__(self) -> any:
+            def _limit_velocity_func_(self) -> any:
                 def limit_velocity(body, gravity, damping, dt) -> None:
                     pymunk.Body.update_velocity(body, gravity, damping, dt)
                     if body.velocity.length > (self.max_vel*KG_N*self.meter):
@@ -216,15 +216,15 @@ class Physics2D:
                          position:    vec2  = vec2(0, 0),
                          angle:       float = 0.0,
                          body_type:   int   = pymunk.Body.DYNAMIC,
-                         max_vel:     float = float("inf"),
-                         max_ang_vel: float = float("inf")) -> None:
+                         max_vel:     float = INF,
+                         max_ang_vel: float = INF) -> None:
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.body          = pymunk.Body(mass, body_type=body_type)
                 self.body.position = tuple(position.xy)
                 self.body.angle    = -radians(angle)
 
-                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
-                    self.body.velocity_func = self.__limit_velocity_func__()
+                if not (max_vel == INF and max_ang_vel == INF):
+                    self.body.velocity_func = self._limit_velocity_func_()
 
         # Класс прямоугольника (квадрата):
         class Square(SimplePhysicsObject):
@@ -236,19 +236,19 @@ class Physics2D:
                          size:        vec2  = vec2(1, 1),
                          angle:       float = 0.0,
                          body_type:   int   = pymunk.Body.DYNAMIC,
-                         max_vel:     float = float("inf"),
-                         max_ang_vel: float = float("inf")) -> None:
+                         max_vel:     float = INF,
+                         max_ang_vel: float = INF) -> None:
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
-                self.size               = vec2(abs(size.x), abs(size.y))
-                self.body               = pymunk.Body(mass, pymunk.moment_for_box(mass, size), body_type)
-                self.body.position      = tuple(position.xy)
-                self.body.angle         = -radians(angle)
-                self.shape              = pymunk.Poly.create_box(self.body, size)
-                self.shape.elasticity   = self.elasticity
-                self.shape.friction     = self.friction
+                self.size             = vec2(abs(size.x), abs(size.y))
+                self.body             = pymunk.Body(mass, pymunk.moment_for_box(mass, size), body_type)
+                self.body.position    = tuple(position.xy)
+                self.body.angle       = -radians(angle)
+                self.shape            = pymunk.Poly.create_box(self.body, size)
+                self.shape.elasticity = self.elasticity
+                self.shape.friction   = self.friction
 
-                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
-                    self.body.velocity_func = self.__limit_velocity_func__()
+                if not (max_vel == INF and max_ang_vel == INF):
+                    self.body.velocity_func = self._limit_velocity_func_()
 
             # Получить вершины формы:
             def get_vertices(self) -> list:
@@ -264,8 +264,8 @@ class Physics2D:
                          radius:      float = 1.0,
                          angle:       float = 0.0,
                          body_type:   int   = pymunk.Body.DYNAMIC,
-                         max_vel:     float = float("inf"),
-                         max_ang_vel: float = float("inf")) -> None:
+                         max_vel:     float = INF,
+                         max_ang_vel: float = INF) -> None:
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.radius           = abs(radius)
                 self.body             = pymunk.Body(mass, pymunk.moment_for_circle(mass, 0, radius), body_type)
@@ -275,8 +275,8 @@ class Physics2D:
                 self.shape.elasticity = self.elasticity
                 self.shape.friction   = self.friction
 
-                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
-                    self.body.velocity_func = self.__limit_velocity_func__()
+                if not (max_vel == INF and max_ang_vel == INF):
+                    self.body.velocity_func = self._limit_velocity_func_()
 
             @property
             def size(self) -> vec2: return vec2(self.radius*2)
@@ -291,8 +291,8 @@ class Physics2D:
                          size:        vec2  = vec2(1, 1),
                          angle:       float = 0.0,
                          body_type:   int   = pymunk.Body.DYNAMIC,
-                         max_vel:     float = float("inf"),
-                         max_ang_vel: float = float("inf")) -> None:
+                         max_vel:     float = INF,
+                         max_ang_vel: float = INF) -> None:
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 vertices = [
                     (-size.x/2, -sqrt(3) / 2 * size.y/2),
@@ -307,8 +307,8 @@ class Physics2D:
                 self.shape.elasticity = elasticity
                 self.shape.friction   = friction
 
-                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
-                    self.body.velocity_func = self.__limit_velocity_func__()
+                if not (max_vel == INF and max_ang_vel == INF):
+                    self.body.velocity_func = self._limit_velocity_func_()
 
             # Получить вершины формы:
             def get_vertices(self) -> list:
@@ -324,8 +324,8 @@ class Physics2D:
                          vertices:    list  = None,
                          angle:       float = 0.0,
                          body_type:   int   = pymunk.Body.DYNAMIC,
-                         max_vel:     float = float("inf"),
-                         max_ang_vel: float = float("inf")) -> None:
+                         max_vel:     float = INF,
+                         max_ang_vel: float = INF) -> None:
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 if vertices is None: vertices = [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)]
                 else:                vertices = [tuple(vert.xy) for vert in vertices]
@@ -336,8 +336,8 @@ class Physics2D:
                 self.shape.elasticity = elasticity
                 self.shape.friction   = friction
 
-                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
-                    self.body.velocity_func = self.__limit_velocity_func__()
+                if not (max_vel == INF and max_ang_vel == INF):
+                    self.body.velocity_func = self._limit_velocity_func_()
 
             # Получить вершины формы:
             def get_vertices(self) -> list:
@@ -355,8 +355,8 @@ class Physics2D:
                          radius:      float = 1.0,
                          angle:       float = 0.0,
                          body_type:   int   = pymunk.Body.DYNAMIC,
-                         max_vel:     float = float("inf"),
-                         max_ang_vel: float = float("inf")) -> None:
+                         max_vel:     float = INF,
+                         max_ang_vel: float = INF) -> None:
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.points           = [tuple(point_1.xy), tuple(point_2.xy)]
                 self.radius           = radius
@@ -367,8 +367,8 @@ class Physics2D:
                 self.shape.elasticity = self.elasticity
                 self.shape.friction   = self.friction
 
-                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
-                    self.body.velocity_func = self.__limit_velocity_func__()
+                if not (max_vel == INF and max_ang_vel == INF):
+                    self.body.velocity_func = self._limit_velocity_func_()
 
             # Получить вершины формы:
             def get_vertices(self) -> list:
@@ -385,8 +385,8 @@ class Physics2D:
                          radius:      float = 1.0,
                          angle:       float = 0.0,
                          body_type:   int   = pymunk.Body.DYNAMIC,
-                         max_vel:     float = float("inf"),
-                         max_ang_vel: float = float("inf")) -> None:
+                         max_vel:     float = INF,
+                         max_ang_vel: float = INF) -> None:
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 if vertices is None: vertices = [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)]
                 else:                vertices = [tuple(vert.xy) for vert in vertices]
@@ -396,8 +396,8 @@ class Physics2D:
                 self.body.angle    = -radians(angle)
                 self.shapes        = []
 
-                if not (max_vel == float("inf") and max_ang_vel == float("inf")):
-                    self.body.velocity_func = self.__limit_velocity_func__()
+                if not (max_vel == INF and max_ang_vel == INF):
+                    self.body.velocity_func = self._limit_velocity_func_()
                 
                 # Создаём набор сегментов исходя из вершин:
                 for index in range(len(vertices)):
@@ -416,8 +416,8 @@ class Physics2D:
         class SimpleConstraint:
             def __init__(self,
                          constraint:   pymunk.Constraint,
-                         max_force:    float = float("inf"),
-                         bias_coef:    float = float("inf"),
+                         max_force:    float = INF,
+                         bias_coef:    float = INF,
                          is_collision: bool  = True) -> None:
                 self.constraint           = constraint        # Связь между двух объектов.
                 self.constraint.max_force = max_force * KG_N  # Максимальная сила, которую может приложить constraint.
@@ -441,13 +441,13 @@ class Physics2D:
         # Удерживает две точки на двух телах вместе, но позволяет им вращаться относительно друг друга:
         class PinJoint(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         point_a:      vec2,                  # Точка на объекте A.
-                         point_b:      vec2,                  # Точка на объекте B.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         point_a:      vec2,                 # Точка на объекте A.
+                         point_b:      vec2,                 # Точка на объекте B.
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.PinJoint(a.body, b.body, tuple(point_a.xy), tuple(point_b.xy))
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -455,15 +455,15 @@ class Physics2D:
         # Позволяет двум точкам на двух телах скользить относительно друг друга в пределах заданного диапазона:
         class SlideJoint(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         point_a:      vec2,                  # Точка на объекте A.
-                         point_b:      vec2,                  # Точка на объекте B.
-                         min_dst:      float,                 # Минимальное расстояние.
-                         max_dst:      float,                 # Максимальное расстояние.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         point_a:      vec2,                 # Точка на объекте A.
+                         point_b:      vec2,                 # Точка на объекте B.
+                         min_dst:      float,                # Минимальное расстояние.
+                         max_dst:      float,                # Максимальное расстояние.
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.SlideJoint(a.body, b.body, tuple(point_a.xy), tuple(point_b.xy), min_dst, max_dst)
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -471,12 +471,12 @@ class Physics2D:
         # Удерживает две точки на двух телах вместе позволяя им вращаться относительно друг друга вокруг точки поворота:
         class PivotJoint(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         point:        vec2,                  # Общая точка.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         point:        vec2,                 # Общая точка.
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.PivotJoint(a.body, b.body, tuple(point.xy))
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -484,14 +484,14 @@ class Physics2D:
         # Позволяет точке на одном теле скользить вдоль отрезка линии на другом теле:
         class GrooveJoint(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         point_a:      vec2,                  # Начало отрезка линии.
-                         point_b:      vec2,                  # Конец отрезка линии.
-                         anchor_b:     vec2,                  # Точка крепления на втором теле.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         point_a:      vec2,                 # Начало отрезка линии.
+                         point_b:      vec2,                 # Конец отрезка линии.
+                         anchor_b:     vec2,                 # Точка крепления на втором теле.
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.GrooveJoint(a.body, b.body, tuple(point_a.xy), tuple(point_b.xy), tuple(anchor_b))
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -499,16 +499,16 @@ class Physics2D:
         # Создать пружинистое соединение между двумя объектами:
         class DampedSpring(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         point_a:      vec2,                  # Точка на объекте A.
-                         point_b:      vec2,                  # Точка на объекте B.
-                         rest_length:  float,                 # Длина покоя пружины.
-                         stiffness:    float,                 # Жесткость пружины (кг).
-                         damping:      float,                 # Коэффициент демпфирования.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         point_a:      vec2,                 # Точка на объекте A.
+                         point_b:      vec2,                 # Точка на объекте B.
+                         rest_length:  float,                # Длина покоя пружины.
+                         stiffness:    float,                # Жесткость пружины (кг).
+                         damping:      float,                # Коэффициент демпфирования.
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.DampedSpring(
                     a.body, b.body, tuple(point_a.xy), tuple(point_b.xy), rest_length, stiffness*KG_N, damping)
@@ -517,14 +517,14 @@ class Physics2D:
         # Создать пружинистое вращательное соединение между двумя объектами:
         class DampedRotarySpring(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         rest_angle:   float,                 # Угол покоя между двумя телами.
-                         stiffness:    float,                 # Жесткость пружины (кг).
-                         damping:      float,                 # Коэффициент демпфирования.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         rest_angle:   float,                # Угол покоя между двумя телами.
+                         stiffness:    float,                # Жесткость пружины (кг).
+                         damping:      float,                # Коэффициент демпфирования.
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.DampedRotarySpring(a.body, b.body, -radians(rest_angle), stiffness*KG_N, damping)
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -532,13 +532,13 @@ class Physics2D:
         # Ограничивает относительное вращение двух тел:
         class RotaryLimitJoint(SimpleConstraint):
             def __init__(self,
-                         a:           "Physics2D.Objects",    # Объект A.
-                         b:           "Physics2D.Objects",    # Объект B.
-                         min_ang:      float,                 # Минимальный относительный угол между телами.
-                         max_ang:      float,                 # Максимальный относительный угол между телами.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:           "Physics2D.Objects",  # Объект A.
+                         b:           "Physics2D.Objects",  # Объект B.
+                         min_ang:      float,               # Минимальный относительный угол между телами.
+                         max_ang:      float,               # Максимальный относительный угол между телами.
+                         max_force:    float = INF,         # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,         # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True         # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.RotaryLimitJoint(a.body, b.body, -radians(min_ang), -radians(max_ang))
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -546,13 +546,13 @@ class Physics2D:
         # Позволяет относительное вращение между двумя телами в стиле трещотки:
         class RatchetJoint(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         phase:        float,                 # Начальная фаза трещотки (угол).
-                         ratchet:      float,                 # Расстояние между позициями трещотки (угол).
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         phase:        float,                # Начальная фаза трещотки (угол).
+                         ratchet:      float,                # Расстояние между позициями трещотки (угол).
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.RatchetJoint(a.body, b.body, -radians(phase), -radians(ratchet))
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -560,13 +560,13 @@ class Physics2D:
         # Создать шестерёнестое соединение между двумя объектами:
         class GearJoint(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         phase:        float,                 # Начальная фаза трещотки (угол).
-                         ratio:        float,                 # Соотношение угловых скоростей.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         phase:        float,                # Начальная фаза трещотки (угол).
+                         ratio:        float,                # Соотношение угловых скоростей.
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.GearJoint(a.body, b.body, -radians(phase), -radians(ratio))
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -574,12 +574,12 @@ class Physics2D:
         # Создать двигательное соединение между двумя объектами:
         class SimpleMotor(SimpleConstraint):
             def __init__(self,
-                         a:            "Physics2D.Objects",   # Объект A.
-                         b:            "Physics2D.Objects",   # Объект B.
-                         rps:          float = 1.0,           # Количество оборотов в секунду.
-                         max_force:    float = float("inf"),  # Максимальная сила, которую может приложить constraint.
-                         bias_coef:    float = float("inf"),  # Скорость, с которой исправляется ошибка constraint.
-                         is_collision: bool  = True           # Должны ли два тела сталкиваться.
+                         a:            "Physics2D.Objects",  # Объект A.
+                         b:            "Physics2D.Objects",  # Объект B.
+                         rps:          float = 1.0,          # Количество оборотов в секунду.
+                         max_force:    float = INF,          # Максимальная сила, которую может приложить constraint.
+                         bias_coef:    float = INF,          # Скорость, с которой исправляется ошибка constraint.
+                         is_collision: bool  = True          # Должны ли два тела сталкиваться.
                          ) -> None:
                 constraint = pymunk.SimpleMotor(a.body, b.body, -(2*math.pi)*rps)
                 super().__init__(constraint, max_force, bias_coef, is_collision)
@@ -593,14 +593,14 @@ class Physics2D:
                      damping:        float = 1.0,
                      iterations:     int   = 64,
                      idle_speed:     float = 0.0,
-                     sleep_time:     float = float("inf"),
+                     sleep_time:     float = INF,
                      collision_slop: float = 0.01,
                      collision_bias: float = 0.75
                      ) -> None:
             self.space       = pymunk.Space()   # Физическое пространство.
             self.phys_speed  = abs(phys_speed)  # Скорость симуляции физики.
             self.meter       = meter            # Единица измерения.
-            self.__old_dt__  = 1/60             # Прошлое время кадра.
+            self._old_dt_  = 1/60               # Прошлое время кадра.
             self.objects     = []               # Список всех физических объектов.
             self.constraints = []               # Список всех соединений.
 
@@ -623,8 +623,8 @@ class Physics2D:
             self.phys_speed = abs(self.phys_speed)
 
             # Если новый dt больше старого в 2 раза, то используем старый dt. А также ограничиваем dt до 1/10 кадра:
-            dt = min(self.__old_dt__ if delta_time > self.__old_dt__ * 2 else delta_time, 1/10)
-            self.__old_dt__ = delta_time
+            dt = min(self._old_dt_ if delta_time > self._old_dt_ * 2 else delta_time, 1/10)
+            self._old_dt_ = delta_time
 
             # Шаг симуляции:
             self.step(dt*self.phys_speed)

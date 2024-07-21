@@ -24,38 +24,32 @@ class Animator2D:
 
         # Если счётчик превысил количество кадров, обнуляем его:
         if self.get_frame() > self.frames - 1: self.count = 0.0
-
         return self
 
     # Запустить анимацию:
     def start(self) -> "Animator2D":
         self.resume()
-
         return self
 
     # Остановить анимацию и вернуть к первому кадру:
     def stop(self) -> "Animator2D":
         self.pause()
         self.reset()
-
         return self
 
     # Остановить анимацию:
     def pause(self) -> "Animator2D":
         self.is_paused = True
-
         return self
 
     # Возобновить анимацию:
     def resume(self) -> "Animator2D":
         self.is_paused = False
-
         return self
 
     # Вернуть к первому кадру:
     def reset(self) -> "Animator2D":
         self.count = 0.0
-
         return self
 
     # Получить кадр анимации:

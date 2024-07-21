@@ -29,7 +29,7 @@ class Camera2D:
         self.modelview  = None
         self.projection = None
 
-        self.__is_ui_begin__ = False
+        self._is_ui_begin_ = False
 
         # Установка ортогональной проекции:
         self.resize(width, height)
@@ -69,12 +69,12 @@ class Camera2D:
 
     # Вызывайте эту функцию, когда хотите отрисовать интерфейс:
     def ui_begin(self) -> "Camera2D":
-        if self.__is_ui_begin__:
+        if self._is_ui_begin_:
             raise Exception(
                 "Function \".ui_end()\" was not called in the last iteration of the loop.\n"
                 "The function \".ui_begin()\" cannot be called, since the last one "
                 "\".ui_begin()\" was not closed by the \".ui_end()\" function.")
-        self.__is_ui_begin__  = True
+        self._is_ui_begin_  = True
 
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glPushMatrix()
@@ -84,7 +84,7 @@ class Camera2D:
 
     # Вызывайте эту функцию, когда закончили рисовать интерфейс:
     def ui_end(self) -> "Camera2D":
-        if self.__is_ui_begin__: self.__is_ui_begin__ = False
+        if self._is_ui_begin_: self._is_ui_begin_ = False
         else: raise Exception("The \".ui_begin()\" function was not called before the \".ui_end()\" function.")
 
         gl.glPopMatrix()

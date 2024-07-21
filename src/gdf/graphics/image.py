@@ -16,19 +16,19 @@ class Image:
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.data    = None
 
-        if surface is not None: self.__update_image__(surface)
+        if surface is not None: self._update_image_(surface)
 
     # Обновляет данные о поверхности, её размере и данных:
-    def __update_image__(self, surface: pygame.Surface = None) -> None:
+    def _update_image_(self, surface: pygame.Surface = None) -> None:
         if isinstance(surface, type(self)): surface = surface.surface
-        self.data = pygame.image.tostring(surface, "RGBA", False)
-        self.width = surface.get_width()
-        self.height = surface.get_height()
+        self.data    = pygame.image.tostring(surface, "RGBA", False)
+        self.width   = surface.get_width()
+        self.height  = surface.get_height()
         self.surface = surface
 
     # Загружаем изображение:
     def load(self, file_path: str) -> "Image":
-        try: self.__update_image__(pygame.image.load(file_path))
+        try: self._update_image_(pygame.image.load(file_path))
         except Exception as error:
             raise Exception(f"Error in \"Image.load()\": {error}")
         return self
@@ -67,5 +67,5 @@ class Image:
     # Изменить размер:
     def resize(self, width: int, height: int) -> "Image":
         self.surface = pygame.transform.scale(self.surface, (width, height))
-        self.__update_image__(self.surface)
+        self._update_image_(self.surface)
         return self

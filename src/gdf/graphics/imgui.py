@@ -25,9 +25,9 @@ class ImGUI:
 
         # Инициализация интерфейса:
         imgui.create_context()
-        self.impl = PygameRenderer()
-        self.io = imgui.get_io()
-        self.io.display_size = window_size.xy
+        self.impl             = PygameRenderer()
+        self.io               = imgui.get_io()
+        self.io.display_size  = window_size.xy
         self.io.ini_file_name = self.ini_file_name.encode()
         imgui.load_ini_settings_from_disk(self.ini_file_name)
         self.io.ini_file_name = None

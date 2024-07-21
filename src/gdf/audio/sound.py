@@ -12,10 +12,10 @@ if True:
 # Класс звука:
 class Sound:
     def __init__(self) -> None:
-        self.sound = None
-        self.__is_playing__ = False
-        self.__is_paused__ = False
-        self.__is_loop__ = False
+        self.sound        = None
+        self._is_playing_ = False
+        self._is_paused_  = False
+        self._is_loop_    = False
 
     # Загрузить звук:
     def load(self, file_path: str) -> "Sound":
@@ -32,8 +32,8 @@ class Sound:
         self.set_looping(is_loop)
         self.rewind()
         self.sound.play()
-        self.__is_playing__ = True
-        self.__is_paused__ = False
+        self._is_playing_ = True
+        self._is_paused_  = False
         return self
 
     # Остановить проигрывание звука:
@@ -41,28 +41,28 @@ class Sound:
         if self.sound is None: return self
 
         self.sound.stop()
-        self.__is_playing__ = False
-        self.__is_paused__ = False
+        self._is_playing_ = False
+        self._is_paused_  = False
         return self
 
     # Поставить проигрывание звука на паузу:
     def pause(self) -> "Sound":
         if self.sound is None: return self
 
-        if self.__is_playing__:
+        if self._is_playing_:
             self.sound.pause()
-            self.__is_paused__ = True
-            self.__is_playing__ = False
+            self._is_paused_  = True
+            self._is_playing_ = False
         return self
 
     # Возобновить проигрывание звука:
     def resume(self) -> "Sound":
         if self.sound is None: return self
 
-        if self.__is_paused__:
+        if self._is_paused_:
             self.sound.play()
-            self.__is_paused__ = False
-            self.__is_playing__ = True
+            self._is_paused_  = False
+            self._is_playing_ = True
         return self
 
     # Перемотать к началу:
@@ -184,14 +184,14 @@ class Sound:
     # Установить цикличность:
     def set_looping(self, is_loop: bool) -> "Sound":
         if self.sound is None: return self
-        self.__is_loop__ = is_loop
-        self.sound.set_looping(self.__is_loop__)
+        self._is_loop_ = is_loop
+        self.sound.set_looping(self._is_loop_)
         return self
 
     # Получить цикличность:
     def get_looping(self) -> bool:
         if self.sound is None: return False
-        return self.__is_loop__
+        return self._is_loop_
 
     # Активен ли проигрыватель или нет:
     def get_active(self) -> bool:

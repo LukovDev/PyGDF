@@ -56,11 +56,11 @@ class InputHandler:
 
     # Получить нажатие кнопки мыши:
     def get_mouse_down(self) -> MouseScancodes:
-        return MouseScancodes(self.window.__winvars__["mouse-down"])
+        return MouseScancodes(self.window._winvars_["mouse-down"])
 
     # Получить отжатие кнопки мыши:
     def get_mouse_up(self) -> MouseScancodes:
-        return MouseScancodes(self.window.__winvars__["mouse-up"])
+        return MouseScancodes(self.window._winvars_["mouse-up"])
 
     # Установить позицию мыши:
     @staticmethod
@@ -74,7 +74,7 @@ class InputHandler:
 
     # Получить смещение мыши за кадр:
     def get_mouse_rel(self) -> vec2:
-        return vec2(self.window.__winvars__["mouse-rel"])
+        return vec2(self.window._winvars_["mouse-rel"])
 
     # Получить нахождение мыши над окном:
     @staticmethod
@@ -83,16 +83,16 @@ class InputHandler:
 
     # Получить вращение колёсика мыши:
     def get_mouse_scroll(self) -> vec2:
-        return vec2(self.window.__winvars__["mouse-scroll"])
+        return vec2(self.window._winvars_["mouse-scroll"])
 
     # Установить видимость мыши:
     def set_mouse_visible(self, visible: bool) -> None:
-        self.window.__winvars__["mouse-visible"] = visible
+        self.window._winvars_["mouse-visible"] = visible
         pygame.mouse.set_visible(visible)
 
     # Получить видимость мыши:
     def get_mouse_visible(self) -> bool:
-        return self.window.__winvars__["mouse-visible"]
+        return self.window._winvars_["mouse-visible"]
 
     # -------------------------------------------------- Клавиатура: ---------------------------------------------------
 
@@ -103,8 +103,8 @@ class InputHandler:
 
     # Получить нажатие клавиши клавиатуры:
     def get_key_down(self) -> KeyboardScancodes:
-        return KeyboardScancodes(self.window.__winvars__["key-down"])
+        return KeyboardScancodes(self.window._winvars_["key-down"])
 
     # Получить отжатие клавиши клавиатуры:
     def get_key_up(self) -> KeyboardScancodes:
-        return KeyboardScancodes(self.window.__winvars__["key-up"])
+        return KeyboardScancodes(self.window._winvars_["key-up"])

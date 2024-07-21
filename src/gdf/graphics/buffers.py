@@ -39,21 +39,21 @@ class SSBO:
 class FrameBuffer:
     def __init__(self, texture_id: int) -> None:
         self.id = gl.glGenFramebuffers(1)
-        self.__id_before_begin__ = gl.glGetIntegerv(gl.GL_FRAMEBUFFER_BINDING)
+        self._id_before_begin_ = gl.glGetIntegerv(gl.GL_FRAMEBUFFER_BINDING)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.id)
         gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT0, gl.GL_TEXTURE_2D, texture_id, 0)
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.__id_before_begin__)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._id_before_begin_)
 
     # Использовать буфер:
     def begin(self) -> "FrameBuffer":
-        self.__id_before_begin__ = gl.glGetIntegerv(gl.GL_FRAMEBUFFER_BINDING)
+        self._id_before_begin_ = gl.glGetIntegerv(gl.GL_FRAMEBUFFER_BINDING)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.id)
 
         return self
 
     # Перестать использовать буфер:
     def end(self) -> "FrameBuffer":
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.__id_before_begin__)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._id_before_begin_)
 
         return self
 

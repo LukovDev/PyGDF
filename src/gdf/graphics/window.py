@@ -15,7 +15,6 @@ if True:
     from . import OpenGLWindowError, OpenGLContextNotSupportedError
 
     from ..audio.al import *
-
     from ..math import vec2, numpy as np
 
 
@@ -74,7 +73,7 @@ class Window:
                  gl_minor:   int   = None) -> None:
         self.clock = pygame.time.Clock()
         self.window = self
-        self.__winvars__ = {
+        self._winvars_ = {
             # Основные переменные:
             "title":      str(title),
             "icon":       icon,
@@ -111,9 +110,9 @@ class Window:
         # Создание окна:
         try:
             pygame.init()
-            self.__winvars__["monitor-size"].xy = vec2(pygame.display.Info().current_w, pygame.display.Info().current_h)
-            self.set_title(self.__winvars__["title"])
-            self.set_icon(self.__winvars__["icon"])
+            self._winvars_["monitor-size"].xy = vec2(pygame.display.Info().current_w, pygame.display.Info().current_h)
+            self.set_title(self._winvars_["title"])
+            self.set_icon(self._winvars_["icon"])
 
             # Устанавливаем версию OpenGL:
             pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, gl_major) if gl_major is not None else None
@@ -123,10 +122,10 @@ class Window:
             pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_COMPATIBILITY)
 
             # Устанавливаем мультисемплинг:
-            self.set_samples(self.__winvars__["samples"])
+            self.set_samples(self._winvars_["samples"])
 
             # Создаём окно:
-            self.__recreate__((self.__winvars__["width"], self.__winvars__["height"]))
+            self._recreate_((self._winvars_["width"], self._winvars_["height"]))
         except pygame.error:
             raise OpenGLContextNotSupportedError(f"OpenGL version {gl_major}.{gl_minor} is not supported.")
         except Exception as error:
@@ -142,7 +141,7 @@ class Window:
             gl.glEnable(gl.GL_BLEND)
             
             # Устанавливаем режим смешивания:
-            gl_set_blend_mode()
+            gl_set_blend_mode()  # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
 
             # Разрешаем установку размера точки через шейдер:
             gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
@@ -152,13 +151,13 @@ class Window:
             gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
             # Настраиваем соотношение сторон:
-            self.__reset_viewport__()
+            self._reset_viewport_()
 
         # Инициализируем OpenAL:
         al.oalInit()
 
         # Инициализация времени программы:
-        self.__winvars__["start-time"] = time.time()
+        self._winvars_["start-time"] = time.time()
 
         # Вызываем старт программы:
         try: self.start()
@@ -166,17 +165,17 @@ class Window:
 
         # Основной цикл окна:
         while True:
-            start_frame_time                 = time.time()
-            self.__winvars__["mouse-scroll"] = vec2(0)
-            self.__winvars__["mouse-rel"]    = vec2(pygame.mouse.get_rel())
-            self.__winvars__["mouse-down"]   = [False, False, False]
-            self.__winvars__["mouse-up"]     = [False, False, False]
-            self.__winvars__["key-down"]     = []
-            self.__winvars__["key-up"]       = []
-            scn                              = self.__winvars__["current-scene"]
+            start_frame_time               = time.time()
+            self._winvars_["mouse-scroll"] = vec2(0)
+            self._winvars_["mouse-rel"]    = vec2(pygame.mouse.get_rel())
+            self._winvars_["mouse-down"]   = [False, False, False]
+            self._winvars_["mouse-up"]     = [False, False, False]
+            self._winvars_["key-down"]     = []
+            self._winvars_["key-up"]       = []
+            scn                            = self._winvars_["current-scene"]
 
             # Если хотят закрыть окно:
-            if self.__winvars__["is-exit"]:
+            if self._winvars_["is-exit"]:
                 # Вызываем функцию удаления ресурсов у сцены, если та существует:
                 if scn is not None and issubclass(type(scn), Scene): scn.destroy()
                 self.destroy()  # Вызываем удаление пользовательских ресурсов.
@@ -186,7 +185,7 @@ class Window:
                 return          # Возвращаемся из этого класса.
 
             # Проверяем установлена ли новая сцена. Если да, то сбрасываем окно просмотра:
-            if self.__winvars__["is-new-scene"]: self.__winvars__["is-new-scene"] = False ; self.__reset_viewport__()
+            if self._winvars_["is-new-scene"]: self._winvars_["is-new-scene"] = False ; self._reset_viewport_()
 
             # Обработка событий под капотом:
             event_list = pygame.event.get()
@@ -197,8 +196,8 @@ class Window:
                 # Проверка на то, изменился ли размер окна или нет:
                 elif event.type == pygame.VIDEORESIZE:
                     wsize = list(event.dict["size"])
-                    min_size = self.__winvars__["min-size"]
-                    max_size = self.__winvars__["max-size"]
+                    min_size = self._winvars_["min-size"]
+                    max_size = self._winvars_["max-size"]
 
                     # Проверяем, вышел ли размер окна за пределы допущенного. Если да, то выставляем крайний размер:
                     if not (min_size.x <= wsize[0] <= max_size.x and min_size.y <= wsize[1] <= max_size.y):
@@ -211,60 +210,60 @@ class Window:
                         scn.resize(*wsize) if scn is not None and issubclass(type(scn), Scene) else self.resize(*wsize)
 
                     # Обновляем размер окна в переменных окна:
-                    self.__winvars__["width"], self.__winvars__["height"] = wsize
+                    self._winvars_["width"], self._winvars_["height"] = wsize
 
                 # Проверяем на то, развернуто окно или нет:
                 elif event.type == pygame.ACTIVEEVENT:
-                    if pygame.display.get_active() and not self.__winvars__["window-active"]:
-                        self.__winvars__["window-active"] = True
+                    if pygame.display.get_active() and not self._winvars_["window-active"]:
+                        self._winvars_["window-active"] = True
                         scn.show() if scn is not None and issubclass(type(scn), Scene) else self.show()
-                    elif not pygame.display.get_active() and self.__winvars__["window-active"]:
-                        self.__winvars__["window-active"] = False
+                    elif not pygame.display.get_active() and self._winvars_["window-active"]:
+                        self._winvars_["window-active"] = False
                         scn.hide() if scn is not None and issubclass(type(scn), Scene) else self.hide()
 
                 # Если колёсико мыши провернулось:
-                elif event.type == pygame.MOUSEWHEEL: self.__winvars__["mouse-scroll"] = vec2(event.x, event.y)
+                elif event.type == pygame.MOUSEWHEEL: self._winvars_["mouse-scroll"] = vec2(event.x, event.y)
 
                 # Если нажимают кнопку мыши:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.__winvars__["mouse-down"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
+                    self._winvars_["mouse-down"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
 
                 # Если отпускают кнопку мыши:
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    self.__winvars__["mouse-up"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
+                    self._winvars_["mouse-up"] = [event.button-1 == 0, event.button-1 == 1, event.button-1 == 2]
 
                 # Если нажимают кнопку на клавиатуре:
                 elif event.type == pygame.KEYDOWN:
-                    self.__winvars__["key-down"].append(event.key)
+                    self._winvars_["key-down"].append(event.key)
 
                 # Если отпускают кнопку на клавиатуре:
                 elif event.type == pygame.KEYUP:
-                    self.__winvars__["key-up"].append(event.key)
+                    self._winvars_["key-up"].append(event.key)
 
             # Обработка основных функций (обновление и отрисовка):
             try:
                 # Если у нас установлена сцена:
                 if scn is not None and issubclass(type(scn), Scene):
-                    scn.update(self.__winvars__["dtime"], event_list)
-                    scn.render(self.__winvars__["dtime"])
+                    scn.update(self._winvars_["dtime"], event_list)
+                    scn.render(self._winvars_["dtime"])
 
                 # Если сцены нет, используем встроенные функции:
                 else:
-                    self.update(self.__winvars__["dtime"], event_list)
-                    self.render(self.__winvars__["dtime"])
+                    self.update(self._winvars_["dtime"], event_list)
+                    self.render(self._winvars_["dtime"])
             except KeyboardInterrupt: self.exit()
 
             # Делаем задержку между кадрами:
-            self.clock.tick(self.__winvars__["setted-fps"]) if not self.__winvars__["vsync"] else self.clock.tick(0)
+            self.clock.tick(self._winvars_["setted-fps"]) if not self._winvars_["vsync"] else self.clock.tick(0)
 
             # Получаем дельту времени (время кадра или же время обработки одного цикла окна):
             dt = time.time() - start_frame_time
-            if dt > 0.0: self.__winvars__["old-dtime"] = self.__winvars__["dtime"] = dt
-            else: self.__winvars__["dtime"] = self.__winvars__["old-dtime"]  # Использовать DT прошлого кадра.
+            if dt > 0.0: self._winvars_["old-dtime"] = self._winvars_["dtime"] = dt
+            else: self._winvars_["dtime"] = self._winvars_["old-dtime"]  # Использовать DT прошлого кадра.
 
     # Пересоздать окно (обновить режим окна):
-    def __recreate__(self, size: tuple | vec2 = None, flags: int = None) -> None:
-        if size is None: size = (self.__winvars__["width"], self.__winvars__["height"])
+    def _recreate_(self, size: tuple | vec2 = None, flags: int = None) -> None:
+        if size is None: size = (self._winvars_["width"], self._winvars_["height"])
         flags = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE
         flags |= pygame.SHOWN if self.get_visible() else pygame.HIDDEN
         if self.get_fullscreen():   flags |= pygame.FULLSCREEN
@@ -272,11 +271,11 @@ class Window:
         pygame.display.set_mode(size, flags, vsync=self.get_vsync())
 
     # Сбрасываем окно просмотра:
-    def __reset_viewport__(self) -> None:
-        gl.glViewport(0, 0, self.__winvars__["width"], self.__winvars__["height"])
+    def _reset_viewport_(self) -> None:
+        gl.glViewport(0, 0, self._winvars_["width"], self._winvars_["height"])
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()
-        wdth, hght = self.__winvars__["width"]/2, self.__winvars__["height"]/2
+        wdth, hght = self._winvars_["width"]/2, self._winvars_["height"]/2
         glu.gluOrtho2D(-wdth, wdth, -hght, hght)
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
@@ -285,12 +284,12 @@ class Window:
 
     # Установить заголовок окна:
     def set_title(self, title: str) -> None:
-        self.__winvars__["title"] = title
+        self._winvars_["title"] = title
         pygame.display.set_caption(title)
 
     # Получить заголовок окна:
     def get_title(self) -> str:
-        return self.__winvars__["title"]
+        return self._winvars_["title"]
 
     # Установить иконку окна:
     def set_icon(self, icon: Image) -> None:
@@ -300,18 +299,18 @@ class Window:
                 f"equal to the \"{Image}\" type (your type: \"{type(icon)}\").")
 
         # Создаём и устанавливаем прозрачную иконку только в том случае, если мы передали None:
-        self.__winvars__["icon"] = icon
+        self._winvars_["icon"] = icon
         pygame.display.set_icon(Image((64, 64)).fill([0, 0, 0, 0]).surface if icon is None else icon.surface)
 
     # Получить иконку окна:
     def get_icon(self) -> Image:
-        return self.__winvars__["icon"]
+        return self._winvars_["icon"]
 
     # Установить размер окна:
     def set_size(self, width: int, height: int) -> None:
-        self.__winvars__["width"] = int(width)
-        self.__winvars__["height"] = int(height)
-        self.__recreate__()
+        self._winvars_["width"] = int(width)
+        self._winvars_["height"] = int(height)
+        self._recreate_()
         self.resize(int(width), int(height))
 
     # Получить размер окна:
@@ -321,78 +320,78 @@ class Window:
 
     # Установить VSync:
     def set_vsync(self, vsync: bool) -> None:
-        self.__winvars__["vsync"] = vsync
-        self.__recreate__()
+        self._winvars_["vsync"] = vsync
+        self._recreate_()
 
     # Получить VSync:
     def get_vsync(self) -> bool:
-        return self.__winvars__["vsync"]
+        return self._winvars_["vsync"]
 
     # Установить FPS:
     def set_fps(self, fps: int) -> None:
-        self.__winvars__["setted-fps"] = int(fps)
+        self._winvars_["setted-fps"] = int(fps)
 
     # Получить текущий FPS:
     def get_fps(self) -> float:
-        return 1.0 / self.__winvars__["dtime"]
+        return 1.0 / self._winvars_["dtime"]
 
     # Установить видимость окна:
     def set_visible(self, visible: bool) -> None:
-        self.__winvars__["visible"] = visible
-        self.__recreate__()
+        self._winvars_["visible"] = visible
+        self._recreate_()
         if visible: self.show()
         else:       self.hide()
 
     # Получить видимость окна:
     def get_visible(self) -> bool:
-        return self.__winvars__["visible"]
+        return self._winvars_["visible"]
 
     # Установить видимость заголовка окна:
     def set_titlebar(self, titlebar: bool) -> None:
-        self.__winvars__["titlebar"] = titlebar
-        self.__recreate__()
+        self._winvars_["titlebar"] = titlebar
+        self._recreate_()
 
     # Получить видимость заголовка окна:
     def get_titlebar(self) -> bool:
-        return self.__winvars__["titlebar"]
+        return self._winvars_["titlebar"]
 
     # Установить полноэкранный режим:
     def set_fullscreen(self, is_fullscreen: bool, size: tuple | vec2 = None) -> None:
-        self.__winvars__["fullscreen"] = is_fullscreen
+        self._winvars_["fullscreen"] = is_fullscreen
         self.set_size(*size if size is not None else self.get_monitor_size())
 
     # Получить полноэкранный режим:
     def get_fullscreen(self) -> bool:
-        return self.__winvars__["fullscreen"]
+        return self._winvars_["fullscreen"]
 
     # Установить минимальный размер окна:
     def set_min_size(self, width: int, height: int) -> None:
-        self.__winvars__["min-size"] = vec2(int(width), int(height))
+        self._winvars_["min-size"] = vec2(int(width), int(height))
 
     # Получить минимальный размер окна:
     def get_min_size(self) -> vec2:
-        return vec2(self.__winvars__["min-size"])
+        return vec2(self._winvars_["min-size"])
 
     # Установить максимальный размер окна:
     def set_max_size(self, width: int, height: int) -> None:
-        self.__winvars__["max-size"] = vec2(int(width), int(height))
+        self._winvars_["max-size"] = vec2(int(width), int(height))
 
     # Получить максимальный размер окна:
     def get_max_size(self) -> vec2:
-        return vec2(self.__winvars__["max-size"])
+        return vec2(self._winvars_["max-size"])
 
     # Установить количество сэмплов антиалиазинга:
     def set_samples(self, samples: int) -> None:
         if not 0 <= samples <= 16:  # Если samples не в диапазоне от 0 до 16:
             raise OpenGLWindowError(
                 f"Graphics Error: Samples must be set in the range from 0 to 16. You have set: {samples}")
-        self.__winvars__["samples"] = samples
-        pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, self.__winvars__["samples"])
-        self.__recreate__()
+        self._winvars_["samples"] = samples
+        pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, self._winvars_["samples"])
+        self._recreate_()
 
     # Получить количество сэмплов антиалиазинга:
     def get_samples(self) -> None:
-        return self.__winvars__["samples"]
+        return self._winvars_["samples"]
 
     # Установить конфигурацию окна:
     def set_config(self, title: str, icon: Image, size: vec2, vsync: bool, fps: int,
@@ -426,41 +425,41 @@ class Window:
             )
 
         # Если уже установленная сцена существует:
-        current_scene = self.__winvars__["current-scene"]
+        current_scene = self._winvars_["current-scene"]
         if current_scene is not None and issubclass(type(current_scene), Scene):
             current_scene.destroy()
 
         # Устанавливаем сцену:
-        self.__winvars__["current-scene"] = scene
+        self._winvars_["current-scene"] = scene
 
         # Сбрасываем окно просмотра:
-        self.__winvars__["is-new-scene"] = True
+        self._winvars_["is-new-scene"] = True
 
         # Если мы установили сцену в виде None, то просто возвращаемся:
         if scene is None: return
 
         # Указываем ссылку на основное окно:
-        self.__winvars__["current-scene"].window = self
+        self._winvars_["current-scene"].window = self
 
         # Вызываем старт сцены:
-        try: self.__winvars__["current-scene"].start()
+        try: self._winvars_["current-scene"].start()
         except KeyboardInterrupt: self.exit()
 
     # Получить текущую игровую сцену:
     def get_scene(self) -> Scene | None:
-        return self.__winvars__["current-scene"]
+        return self._winvars_["current-scene"]
 
     # Получить размер монитора:
     def get_monitor_size(self) -> vec2:
-        return vec2(self.__winvars__["monitor-size"])
+        return vec2(self._winvars_["monitor-size"])
 
     # Получить ширину окна:
     def get_width(self) -> int:
-        return int(self.__winvars__["width"])
+        return int(self._winvars_["width"])
 
     # Получить высоту окна:
     def get_height(self) -> int:
-        return int(self.__winvars__["height"])
+        return int(self._winvars_["height"])
 
     # Получить центр окна. Координаты половины размера окна:
     def get_center(self) -> vec2:
@@ -469,15 +468,15 @@ class Window:
 
     # Получить установленный FPS:
     def get_setted_fps(self) -> int:
-        return self.__winvars__["setted-fps"]
+        return self._winvars_["setted-fps"]
 
     # Получить дельту времени:
     def get_delta_time(self) -> float:
-        return self.__winvars__["dtime"]
+        return self._winvars_["dtime"]
 
     # Получить время:
     def get_time(self) -> float:
-        return time.time() - self.__winvars__["start-time"]
+        return time.time() - self._winvars_["start-time"]
 
     # Получить версию OpenGL:
     def get_opengl_version(self) -> str:
@@ -498,7 +497,7 @@ class Window:
 
     # Вызовите, когда хотите закрыть окно:
     def exit(self) -> None:
-        self.__winvars__["is-exit"] = True
+        self._winvars_["is-exit"] = True
 
     # Очистка окна (цвета от 0 до 1):
     @staticmethod

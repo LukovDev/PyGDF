@@ -10,7 +10,7 @@ if True:
     from .sprite import Sprite2D
     from .texture import Texture
     from .atlas import AtlasTexture
-    from . import __rotate_vertices__
+    from . import _rotate_vertices_
     from ..math import *
     from ..utils import *
 
@@ -22,16 +22,16 @@ class SpriteBatch2D:
     def __init__(self, camera: Camera2D = None) -> None:
         self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
         self.texture_batches = {}      # Словарь хранит уникальные текстурки, и их вершины.
-        self.__is_begin__    = False
+        self._is_begin_      = False
 
     # Начать отрисовку:
     def begin(self) -> "SpriteBatch2D":
-        if self.__is_begin__:
+        if self._is_begin_:
             raise Exception(
                 "Function \".end()\" was not called in the last iteration of the loop.\n"
                 "The function \".begin()\" cannot be called, since the last one "
                 "\".begin()\" was not closed by the \".end()\" function.")
-        self.__is_begin__ = True
+        self._is_begin_ = True
         return self
 
     # Отрисовать спрайт:
@@ -44,7 +44,7 @@ class SpriteBatch2D:
              angle:        float = 0.0,
              cull_sprites: bool  = False
              ) -> "SpriteBatch2D":
-        if not self.__is_begin__:
+        if not self._is_begin_:
             raise Exception(
                 "The \".begin()\" function was not called "
                 "before the \".draw()\" function.")
@@ -59,7 +59,7 @@ class SpriteBatch2D:
                                                self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
 
         # Вращаем вершины спрайта:
-        if angle != 0.0: vertices = __rotate_vertices__(x, y, width, height, angle)
+        if angle != 0.0: vertices = _rotate_vertices_(x, y, width, height, angle)
         else:
             vertices = [
                 x        , y         ,  # Нижний левый угол.
@@ -79,8 +79,8 @@ class SpriteBatch2D:
 
     # Закончить отрисовку:
     def end(self) -> "SpriteBatch2D":
-        if self.__is_begin__:
-            self.__is_begin__ = False
+        if self._is_begin_:
+            self._is_begin_ = False
         else:
             raise Exception(
                 "The \".begin()\" function was not called before the \".end()\" function."
@@ -90,7 +90,7 @@ class SpriteBatch2D:
 
     # Отрисовать все спрайты:
     def render(self, color: list = None) -> "SpriteBatch2D":
-        if self.__is_begin__:
+        if self._is_begin_:
             raise Exception(
                 "You cannot call the \".render()\" function after \".begin()\" and not earlier than \".end()\""
             )
@@ -125,16 +125,16 @@ class AtlasTextureBatch2D:
     def __init__(self, camera: Camera2D = None) -> None:
         self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
-        self.__is_begin__    = False
+        self._is_begin_      = False
 
     # Начать отрисовку:
     def begin(self) -> "AtlasTextureBatch2D":
-        if self.__is_begin__:
+        if self._is_begin_:
             raise Exception(
                 "Function \".end()\" was not called in the last iteration of the loop.\n"
                 "The function \".begin()\" cannot be called, since the last one "
                 "\".begin()\" was not closed by the \".end()\" function.")
-        self.__is_begin__ = True
+        self._is_begin_ = True
         return self
 
     # Отрисовать спрайт:
@@ -147,7 +147,7 @@ class AtlasTextureBatch2D:
              angle:        float = 0.0,
              cull_sprites: bool  = False
              ) -> "AtlasTextureBatch2D":
-        if not self.__is_begin__:
+        if not self._is_begin_:
             raise Exception(
                 "The \".begin()\" function was not called "
                 "before the \".draw()\" function.")
@@ -162,7 +162,7 @@ class AtlasTextureBatch2D:
                                                self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
 
         # Вращаем вершины спрайта:
-        if angle != 0.0: vertices = __rotate_vertices__(x, y, width, height, angle)
+        if angle != 0.0: vertices = _rotate_vertices_(x, y, width, height, angle)
         else:
             vertices = [
                 x        , y         ,  # Нижний левый угол.
@@ -182,8 +182,8 @@ class AtlasTextureBatch2D:
 
     # Закончить отрисовку:
     def end(self, color: list = None) -> "AtlasTextureBatch2D":
-        if self.__is_begin__:
-            self.__is_begin__ = False
+        if self._is_begin_:
+            self._is_begin_ = False
         else:
             raise Exception(
                 "The \".begin()\" function was not called before the \".end()\" function."
@@ -191,7 +191,7 @@ class AtlasTextureBatch2D:
 
     # Отрисовать все спрайты:
     def render(self, color: list = None) -> "AtlasTextureBatch2D":
-        if self.__is_begin__:
+        if self._is_begin_:
             raise Exception(
                 "You cannot call the \".render()\" function after \".begin()\" and not earlier than \".end()\""
             )

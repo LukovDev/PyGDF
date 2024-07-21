@@ -8,7 +8,7 @@ if True:
     from .gl import *
     from .texture import Texture
     from .atlas import AtlasTexture
-    from . import __rotate_vertices__
+    from . import _rotate_vertices_
 
 
 # Класс спрайта:
@@ -46,7 +46,7 @@ class Sprite2D:
 
         # Вращаем вершины спрайта:
         if angle != 0.0:
-            vertices = __rotate_vertices__(x, y, wdth, hght, angle)
+            vertices = _rotate_vertices_(x, y, wdth, hght, angle)
         else:
             vertices = [
                 x       , y       ,

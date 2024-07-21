@@ -9,7 +9,7 @@ if True:
     from ..math import *
 
 
-__texture_units__ = {}  # Словарь для хранения текстурных юнитов.
+_texture_units_ = {}  # Словарь для хранения текстурных юнитов.
 
 
 # Обёртка ошибки компиляции шейдеров:
@@ -23,7 +23,7 @@ class ShaderProgram:
         self.vert = vert
         self.geom = geom
         self.program = gls.glCreateProgram()
-        self.__id_before_begin__ = gl.glGetIntegerv(gl.GL_CURRENT_PROGRAM)
+        self._id_before_begin_ = gl.glGetIntegerv(gl.GL_CURRENT_PROGRAM)
 
     # Скомпилировать шейдер:
     def compile(self) -> "ShaderProgram":
@@ -70,14 +70,14 @@ class ShaderProgram:
 
     # Используем шейдер:
     def begin(self) -> "ShaderProgram":
-        self.__id_before_begin__ = gl.glGetIntegerv(gl.GL_CURRENT_PROGRAM)
+        self._id_before_begin_ = gl.glGetIntegerv(gl.GL_CURRENT_PROGRAM)
         gl.glUseProgram(self.program)
 
         return self
 
     # Не используем шейдер:
     def end(self) -> "ShaderProgram":
-        gl.glUseProgram(self.__id_before_begin__)
+        gl.glUseProgram(self._id_before_begin_)
 
         return self
 
@@ -135,22 +135,22 @@ class ShaderProgram:
 
     # Установить значение для униформы типа sampler2d:
     def set_sampler2d(self, name: str, value: int) -> "ShaderProgram":
-        global __texture_units__
+        global _texture_units_
         location = self.get_uniform(name)
         if location == -1: return
 
         # Создаем элемент для текущего экземпляра класса, если его ещё нет:
-        if id(self) not in __texture_units__: __texture_units__[id(self)] = {}
+        if id(self) not in _texture_units_: _texture_units_[id(self)] = {}
 
         # Ищем свободный текстурный юнит для униформы:
-        if name not in __texture_units__[id(self)]:
+        if name not in _texture_units_[id(self)]:
             # Ищем свободный текстурный юнит:
             tunit = 1  # texture unit.
-            while tunit in [unit for units in __texture_units__.values() for unit in units.values()]: tunit += 1
+            while tunit in [unit for units in _texture_units_.values() for unit in units.values()]: tunit += 1
             
             # Сохраняем соответствие между именем униформы и текстурным юнитом:
-            __texture_units__[id(self)][name] = tunit
-        else: tunit = __texture_units__[id(self)][name]
+            _texture_units_[id(self)][name] = tunit
+        else: tunit = _texture_units_[id(self)][name]
 
         # Активируем текстурный юнит:
         gl.glActiveTexture(gl.GL_TEXTURE0 + tunit)

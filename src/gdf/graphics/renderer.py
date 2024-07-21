@@ -20,30 +20,30 @@ if True:
 # Класс конвейера рендеринга 2D:
 class Renderer2D:
     def __init__(self, camera: Camera2D, width: int = None, height: int = None) -> None:
-        self.camera       = camera
-        self.texture      = None
-        self.framebuffer  = None
-        self.sprite       = None
-        self.__is_begin__ = False
+        self.camera      = camera
+        self.texture     = None
+        self.framebuffer = None
+        self.sprite      = None
+        self._is_begin_  = False
 
         if width is not None and height is not None: self.resize(width, height)
         elif self.camera is not None: self.resize(self.camera.width, self.camera.height)
 
     # Начать рисовать на текстуре конвейера рендеринга:
     def begin(self) -> "Renderer2D":
-        if self.__is_begin__:
+        if self._is_begin_:
             raise Exception(
                 "Function \".end()\" was not called in the last iteration of the loop.\n"
                 "The function \".begin()\" cannot be called, since the last one "
                 "\".begin()\" was not closed by the \".end()\" function.")
-        self.__is_begin__  = True
+        self._is_begin_ = True
 
         self.framebuffer.begin()
         return self
 
     # Закончить рисовать на текстуре конвейера рендеринга:
     def end(self) -> "Renderer2D":
-        if self.__is_begin__: self.__is_begin__ = False
+        if self._is_begin_: self._is_begin_ = False
         else: raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
 
         self.framebuffer.end()
@@ -51,7 +51,7 @@ class Renderer2D:
 
     # Отрисовать текстурку конвейера рендеринга как спрайт, на весь экран:
     def render(self) -> "Renderer2D":
-        if self.__is_begin__:
+        if self._is_begin_:
             raise Exception(
                 "You cannot call the \".render()\" function after \".begin()\" and not earlier than \".end()\""
             )
@@ -80,7 +80,7 @@ class Renderer2D:
     # Изменить размер текстурки конвейера рендеринга:
     def resize(self, width: int, height: int) -> "Renderer2D":
         # Останавливаем использование кадрового буфера:
-        if self.__is_begin__: self.end()
+        if self._is_begin_: self.end()
 
         # Пересоздаём текстурку кадрового буфера:
         if self.texture is not None: self.texture.destroy() ; self.texture = None

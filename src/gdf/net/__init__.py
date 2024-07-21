@@ -95,7 +95,7 @@ class NetTimeout(NetException): pass
 class NetSocket:
     def __init__(self, socket: socket.socket) -> None:
         self.socket = socket
-        self.__online_flag__ = False
+        self._online_flag_ = False
 
     # Отправить данные:
     def send_data(self, data: str, encoding: str = "utf-8") -> "NetSocket":
@@ -137,13 +137,13 @@ class NetSocket:
     # Создать сервер:
     def bind(self, host: str, port: int) -> "NetSocket":
         self.socket.bind((str(host).lower(), min(max(int(port), 0), 65535)))
-        self.__online_flag__ = True
+        self._online_flag_ = True
         return self
 
     # Подключиться к серверу:
     def connect(self, host: str, port: int) -> "NetSocket":
         self.socket.connect((str(host).lower(), min(max(int(port), 0), 65535)))
-        self.__online_flag__ = True
+        self._online_flag_ = True
         return self
 
     # Принять подключение:
@@ -157,7 +157,7 @@ class NetSocket:
 
     # Узнать, находится ли сокет в сети, или он закрыт:
     def online(self) -> bool:
-        return bool(self.__online_flag__)
+        return bool(self._online_flag_)
 
     # Получить адрес удалённого узла (сервера или клиента к которому мы подключены):
     def get_peer_name(self) -> tuple:
@@ -177,7 +177,7 @@ class NetSocket:
 
     # Закрыть сокет:
     def close(self) -> None:
-        self.__online_flag__ = False
+        self._online_flag_ = False
         self.socket.close()
 
 

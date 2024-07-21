@@ -13,6 +13,9 @@ if True:
     from glm import *
     from math import *
 
+    # Удаляем округление от glm:
+    del round
+
 
 # Класс двумерного вектора:
 class vec2(glm.vec2): pass
@@ -24,9 +27,9 @@ class vec3(glm.vec3): pass
 class vec4(glm.vec4): pass
 
 
-# Константа килограмма в ньютонах:
+# Килограмм в ньютонах:
 KG_N = 9.80665
 
 
-# Удаляем округление от glm:
-del round
+# Бесконечность:
+INF = float("inf")

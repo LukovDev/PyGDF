@@ -101,7 +101,7 @@ class SimpleParticleEffect2D:
 
         # Внутренние переменные класса:
         self.particles = None  # Список частиц.
-        self.__partvars__ = {
+        self._partvars_ = {
             "batch":   SpriteBatch2D(),
             "old-pos": position.xy,
             "timer":   0.0,
@@ -109,7 +109,7 @@ class SimpleParticleEffect2D:
         }
 
     # Создать одну частицу. Используется строго внутри этого класса:
-    def __create_particle__(self) -> None:
+    def _create_particle_(self) -> None:
         a = random.uniform(0, 2*math.pi)  # Случайный угол.
         rdir = vec2(sin(a), cos(a))       # Случайный вектор.
 
@@ -138,7 +138,7 @@ class SimpleParticleEffect2D:
         if self.particles is None: self.particles = []
 
         for i in range(0 if self.is_infinite else self.count-len(self.particles)):
-            self.__create_particle__()
+            self._create_particle_()
 
         return self
 
@@ -147,15 +147,15 @@ class SimpleParticleEffect2D:
         if self.custom_update is not None: self.custom_update(delta_time, self.particles) ; return
 
         # Если новый dt больше старого в 3 раза, то используем старый dt. А также ограничиваем dt до 1/10 кадра в сек:
-        dt = min(self.__partvars__["old-dt"] if delta_time > self.__partvars__["old-dt"] * 3 else delta_time, 1/10)
-        self.__partvars__["old-dt"] = delta_time
+        dt = min(self._partvars_["old-dt"] if delta_time > self._partvars_["old-dt"] * 3 else delta_time, 1/10)
+        self._partvars_["old-dt"] = delta_time
 
         # Если количество частиц меньше установленного, создаём новые:
         if len(self.particles) < self.count and self.is_infinite:
-            self.__partvars__["timer"] -= dt
-            while self.__partvars__["timer"] <= 0.0:
-                self.__create_particle__()
-                self.__partvars__["timer"] += (sum(self.duration) / 2) / self.count
+            self._partvars_["timer"] -= dt
+            while self._partvars_["timer"] <= 0.0:
+                self._create_particle_()
+                self._partvars_["timer"] += (sum(self.duration) / 2) / self.count
 
         # Урезаем лишние частицы:
         self.particles = self.particles[:self.count]
@@ -166,7 +166,7 @@ class SimpleParticleEffect2D:
             particle.time -= dt
             if particle.time <= 0.0:
                 self.particles.remove(particle)
-                if self.is_infinite: self.__create_particle__()
+                if self.is_infinite: self._create_particle_()
 
             # Применяем гравитацию к направлению частицы:
             particle.velocity += self.gravity * (dt*60)
@@ -174,7 +174,7 @@ class SimpleParticleEffect2D:
 
             # Перемещаем частичку в сторону её направления умноженное на её скорость:
             particle.position += (normalize(particle.velocity) * particle.speed) * (dt*60)
-            if self.is_local_pos: particle.position += self.position - self.__partvars__["old-pos"]
+            if self.is_local_pos: particle.position += self.position - self._partvars_["old-pos"]
 
             # Статическое время жизни частицы:
             pst = particle.static_time
@@ -187,18 +187,18 @@ class SimpleParticleEffect2D:
             if self.end_size is not None and type(self.end_size) is vec2:
                 particle.size.xy += ((self.end_size.xy - self.start_size.xy) / pst) * dt
 
-        self.__partvars__["old-pos"].xy = self.position.xy
+        self._partvars_["old-pos"].xy = self.position.xy
         return self
 
     # Отрисовка частиц:
     def render(self, color: list = None) -> "SimpleParticleEffect2D":
         # Проходимся по частицам:
-        self.__partvars__["batch"].begin()
+        self._partvars_["batch"].begin()
         for particle in self.particles:
             angl = Utils2D.get_angle_points(vec2(0), normalize(particle.velocity)) + 90 if self.is_dir_angle else 0.0
 
             # Рисуем частицу:
-            self.__partvars__["batch"].draw(
+            self._partvars_["batch"].draw(
                 sprite = particle.texture,
                 x      = particle.position.x - (particle.size.x/2),
                 y      = particle.position.y - (particle.size.y/2),
@@ -206,9 +206,9 @@ class SimpleParticleEffect2D:
                 height = particle.size.y,
                 angle  = angl + particle.angle
             )
-        self.__partvars__["batch"].end()
+        self._partvars_["batch"].end()
 
-        self.__partvars__["batch"].render(color)
+        self._partvars_["batch"].render(color)
         return self
 
     # Удалить систему частиц:

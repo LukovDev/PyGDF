@@ -29,14 +29,14 @@ class Light2D:
             self.renderer = Renderer2D(camera)     # Конвейер рендеринга.
 
             # Старый размер камеры:
-            self.__old_size__ = (self.camera.width, self.camera.height)
+            self._old_size_ = (self.camera.width, self.camera.height)
 
         # Отрисовываем световое окружение:
         def render(self) -> "Light2D.LightLayer":
             # Если размер камеры отличается от старого размера:
-            if self.__old_size__ != (self.camera.width, self.camera.height):
+            if self._old_size_ != (self.camera.width, self.camera.height):
                 self.renderer.resize(self.camera.width, self.camera.height)
-                self.__old_size__ = (self.camera.width, self.camera.height)
+                self._old_size_ = (self.camera.width, self.camera.height)
 
             # Ограничиваем альфа-канал окружения от 0 до 1:
             self.ambient[3] = min(max(self.ambient[3], 0.0), 1.0)
@@ -48,13 +48,14 @@ class Light2D:
             self.renderer.begin()
 
             # Устанавливаем специальный режим смешивания:
+            # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
             gl_set_blend_mode(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
             # Рисуем источники света:
             self.batch.begin()
             for light in self.lights:
                 if type(light) is Light2D.PointLight:
-                    light.__render__()
+                    light._render_()
 
                 # Если это спрайтовый источник света:
                 elif type(light) is Light2D.SpriteLight:
@@ -76,6 +77,7 @@ class Light2D:
             self.batch.render()
 
             # Возвращаем обычный режим смешивания:
+            # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
             gl_set_blend_mode()
 
             # Рисуем слой света:
@@ -183,7 +185,7 @@ class Light2D:
             self.layer.lights.append(self)
 
         # Отрисовать источник света:
-        def __render__(self) -> None:
+        def _render_(self) -> None:
             """ Эта функция не нуждается в ручном вызове. Она вызывается в слое света автоматически. """
 
             self.shader.begin()

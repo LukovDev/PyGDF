@@ -20,7 +20,7 @@ class OpenGLContextNotSupportedError(OpenGLWindowError): pass
 
 # Ускоренная функция поворота вершин полигона спрайта:
 @numba.njit
-def __rotate_vertices__(x: float, y: float, width: int, height: int, angle: float) -> list:
+def _rotate_vertices_(x: float, y: float, width: int, height: int, angle: float) -> list:
     center_x      =  x + (width  / 2)
     center_y      =  y + (height / 2)
     angle_rad     = -numpy.radians(angle)

@@ -118,7 +118,7 @@ class Camera3D:
         self.near     = near       # Ближнее отсечение.
         self.yaw      = -90 + yaw  # Рыскание камеры.
         self.pitch    = pitch      # Тангаж камеры.
-        # self.roll     = roll       # Крен камеры.
+        # self.roll     = roll       # Крен камеры. TODO: Сделать крен камеры.
 
         self.modelview  = None
         self.projection = None
@@ -134,10 +134,9 @@ class Camera3D:
     def update(self) -> "Camera3D":
         self.rotation.xyz = self.rotation.x % 360, self.rotation.y % 360, self.rotation.z % 360
 
-        if self.fov  > 179    : self.fov = 179
-        if self.fov  < 1      : self.fov = 1
-        if self.far  < 1      : self.far = 1
-        if self.near < 0.0001 : self.near = 0.0001
+        self.fov  = clamp(self.fov, 0, 180)
+        self.far  = max(self.far, 1)
+        self.near = max(self.near, 0.0001)
 
         self.apply()
 

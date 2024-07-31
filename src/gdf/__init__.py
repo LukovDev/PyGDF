@@ -35,7 +35,7 @@ from . import utils        # Скрипт отвечающий за полезн
 # Если ваша версия питона ниже 3.11.0:
 if platform.python_version() < "3.11.0":
     sys.exit(
-        f"\nPyGDF: Error:\n"
+        f"\nGDF-Error:\n"
         f"    Sorry, but your python version ({platform.python_version()}) is lower than 3.11.0\n"
         f"    Please update your python to be at least 3.11.0"
     )

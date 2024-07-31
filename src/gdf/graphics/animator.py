@@ -11,15 +11,15 @@ if True:
 # Класс 2D аниматора:
 class Animator2D:
     def __init__(self, frames: int, duration: float) -> None:
-        self.frames    = frames    # Количество кадров анимации.
-        self.duration  = duration  # Продолжительность кадра в секундах.
-        self.count     = 0.0       # Счётчик кадров.
-        self.is_paused = False     # На паузе.
+        self.frames      = frames    # Количество кадров анимации.
+        self.duration    = duration  # Продолжительность кадра в секундах.
+        self.count       = 0.0       # Счётчик кадров.
+        self._is_paused_ = False     # Анимация на паузе.
 
     # Обновить анимацию:
     def update(self, delta_time: float) -> "Animator2D":
         # Если анимация не на паузе:
-        if not self.is_paused:
+        if not self._is_paused_:
             self.count += (1.0 / self.duration) * delta_time
 
         # Если счётчик превысил количество кадров, обнуляем его:
@@ -39,12 +39,12 @@ class Animator2D:
 
     # Остановить анимацию:
     def pause(self) -> "Animator2D":
-        self.is_paused = True
+        self._is_paused_ = True
         return self
 
     # Возобновить анимацию:
     def resume(self) -> "Animator2D":
-        self.is_paused = False
+        self._is_paused_ = False
         return self
 
     # Вернуть к первому кадру:

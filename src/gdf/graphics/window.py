@@ -160,7 +160,8 @@ class Window:
         self._winvars_["start-time"] = time.time()
 
         # Вызываем старт программы:
-        try: self.start()
+        try:
+            self.start()
         except KeyboardInterrupt: self.exit()
 
         # Основной цикл окна:

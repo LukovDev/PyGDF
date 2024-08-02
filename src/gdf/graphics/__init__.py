@@ -7,7 +7,9 @@
 if True:
     import os
     os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-    from ..math import numba, numpy
+
+    # Ускоренная функция поворота вершин полигона спрайта:
+    from .rot2drectverts import rot2drectverts as _rotate_vertices_
 
 
 # Ошибка окна OpenGL:
@@ -16,34 +18,6 @@ class OpenGLWindowError(Exception): pass
 
 # Неподдерживаемая указанная OpenGL версия:
 class OpenGLContextNotSupportedError(OpenGLWindowError): pass
-
-
-# Ускоренная функция поворота вершин полигона спрайта:
-@numba.njit
-def _rotate_vertices_(x: float, y: float, width: int, height: int, angle: float) -> list:
-    center_x      =  x + (width  / 2)
-    center_y      =  y + (height / 2)
-    angle_rad     = -numpy.radians(angle)
-    angle_rad_sin =  numpy.sin(angle_rad)
-    angle_rad_cos =  numpy.cos(angle_rad)
-
-    # Предварительно вычисляем смещения:
-    dx1, dy1 = x - center_x        , y - center_y
-    dx2, dy2 = x + width - center_x, y - center_y
-    dx3, dy3 = x + width - center_x, y + height - center_y
-    dx4, dy4 = x - center_x        , y + height - center_y
-
-    # Применяем поворот:
-    x1 = dx1 * angle_rad_cos - dy1 * angle_rad_sin + center_x
-    y1 = dx1 * angle_rad_sin + dy1 * angle_rad_cos + center_y
-    x2 = dx2 * angle_rad_cos - dy2 * angle_rad_sin + center_x
-    y2 = dx2 * angle_rad_sin + dy2 * angle_rad_cos + center_y
-    x3 = dx3 * angle_rad_cos - dy3 * angle_rad_sin + center_x
-    y3 = dx3 * angle_rad_sin + dy3 * angle_rad_cos + center_y
-    x4 = dx4 * angle_rad_cos - dy4 * angle_rad_sin + center_x
-    y4 = dx4 * angle_rad_sin + dy4 * angle_rad_cos + center_y
-
-    return [x1, y1, x2, y2, x3, y3, x4, y4]
 
 
 # Импортируем скрипты:

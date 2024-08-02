@@ -35,7 +35,7 @@ class SSBO:
         gl.glDeleteBuffers(1, [self.id])
 
 
-# Фреймбуфер:
+# Кадровый буфер:
 class FrameBuffer:
     def __init__(self, texture_id: int) -> None:
         self.id = gl.glGenFramebuffers(1)

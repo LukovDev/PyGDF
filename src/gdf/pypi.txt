@@ -14,7 +14,6 @@ pyopenal == 0.7.11a1
 pyogg    == 0.6.14a1
 
 numpy == 1.26.4
-numba == 0.60.0
 pyglm == 2.7.1
 
 pygame              == 2.5.2

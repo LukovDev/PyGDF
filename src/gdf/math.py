@@ -8,7 +8,6 @@ if True:
     import glm
     import math
     import numpy
-    import numba
     import random
     import decimal
     from glm import *

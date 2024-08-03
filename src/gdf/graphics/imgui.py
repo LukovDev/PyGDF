@@ -47,7 +47,7 @@ class ImGUI:
 
     # Нужен для указания события по типу ввода или изменения размера окна:
     def event(self, event) -> "ImGUI":
-        if event.type == pygame.VIDEORESIZE: return
+        if event.type == pygame.VIDEORESIZE: return self
         self.impl.process_event(event)
         return self
 

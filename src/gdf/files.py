@@ -63,12 +63,12 @@ def save_file(file_path: str, data: str, mode: str = "w+", encoding: str = "utf-
 
 
 # Загружаем json файл:
-def load_json(file_path: str, mode: str = "r+", encoding: str = "utf-8") -> dict:
-    with open(file_path, mode, encoding=encoding) as f: return dict(json.load(f))
+def load_json(file_path: str, mode: str = "r+", encoding: str = "utf-8") -> dict | list:
+    with open(file_path, mode, encoding=encoding) as f: return json.load(f)
 
 
 # Сохраняем json файл:
-def save_json(file_path: str, data: dict, mode: str = "w+", encoding: str = "utf-8", indent: int = 4) -> None:
+def save_json(file_path: str, data: dict | list, mode: str = "w+", encoding: str = "utf-8", indent: int = 4) -> None:
     with open(file_path, mode, encoding=encoding) as f: json.dump(data, f, indent=indent)
 
 

@@ -101,7 +101,7 @@ class GameClass(Window):
 
     # Вызывается при закрытии окна:
     def destroy(self) -> None:
-        pass
+        self.sprite.destroy()  # Удаляем текстуру в спрайте, чтобы освободить ресурсы.
 
 
 # Если этот скрипт запускают:
@@ -109,7 +109,5 @@ if __name__ == "__main__":
     # Выводим текущую версию фреймворка:
     print(f"PyGDF: {gdf.get_version()}\n")
 
-    # Выводим название платформы:
-    print(f"Platform: {gdf.get_platform()}\n")
-
+    # Создаём игровой класс:
     game = GameClass()

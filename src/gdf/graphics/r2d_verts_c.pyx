@@ -1,5 +1,5 @@
 #
-# rot2drectverts.pyx - Код для создания мега оптимизированной быстрой функции поворота вершин 2D спрайта.
+# r2d_verts_c.pyx - Код для создания мега оптимизированной быстрой функции поворота вершин 2D спрайта.
 #
 # Этот код никак не используется ядром, пока не будет скомпилирован в .pyd формат.
 #
@@ -9,42 +9,12 @@
 #
 
 
-""" Код для сборки этого файла на Python:
-
-# ----------------
-
-# Для использования кода ниже, необходимо установить Cython:
-# pip install cython
-
-# Команда для запуска кода:
-# python setup.py build_ext --inplace
-
-# Не забудьте удалить папку build и файлы с расширением .c после компиляции.
-
-# ----------------
-
-# Импортируем:
-from setuptools import setup, Extension
-from Cython.Build import cythonize
-
-# Компилируем:
-setup(
-    ext_modules = cythonize(
-        Extension(
-            "rot2drectverts",        # Название итогового модуля.
-            ["rot2drectverts.pyx"],  # Список файлов для компиляции.
-        )
-    )
-)
-"""
-
-
 # Импортируем:
 from libc.math cimport sin, cos, pi
 
 
 # Сверхбыстрая функция для поворота четырёх 2D вершин (для 2D прямоугольника), вокруг их общего центра:
-def rot2drectverts(float x, float y, int width, int height, float angle) -> list:
+def rot2d_vertices_rectangle(float x, float y, int width, int height, float angle) -> list:
     # Подготовка значений:
     cdef float center_x      =  x + (width  / 2.0)
     cdef float center_y      =  y + (height / 2.0)
@@ -53,19 +23,12 @@ def rot2drectverts(float x, float y, int width, int height, float angle) -> list
     cdef float angle_rad_cos =  cos(angle_rad)
 
     # Предварительные смещения:
-    # Вершина 1:
     cdef float dx1 = x - center_x
     cdef float dy1 = y - center_y
-
-    # Вершина 2:
     cdef float dx2 = x + width  - center_x
     cdef float dy2 = y - center_y
-
-    # Вершина 3:
     cdef float dx3 = x + width  - center_x
     cdef float dy3 = y + height - center_y
-
-    # Вершина 4:
     cdef float dx4 = x - center_x
     cdef float dy4 = y + height - center_y
 
@@ -79,5 +42,5 @@ def rot2drectverts(float x, float y, int width, int height, float angle) -> list
     cdef float x4 = dx4 * angle_rad_cos - dy4 * angle_rad_sin + center_x
     cdef float y4 = dx4 * angle_rad_sin + dy4 * angle_rad_cos + center_y
 
-    # Возвращаем 4 вершины прямоугольника:
+    # Возвращаем 4 вершины спрайта:
     return [x1, y1, x2, y2, x3, y3, x4, y4]

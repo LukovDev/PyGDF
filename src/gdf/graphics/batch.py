@@ -181,7 +181,7 @@ class AtlasTextureBatch2D:
         return self
 
     # Закончить отрисовку:
-    def end(self, color: list = None) -> "AtlasTextureBatch2D":
+    def end(self) -> "AtlasTextureBatch2D":
         if self._is_begin_:
             self._is_begin_ = False
         else:

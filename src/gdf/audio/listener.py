@@ -4,9 +4,8 @@
 
 
 # Импортируем:
-if True:
-    from .al import *
-    from ..math import *
+from .al import *
+from ..math import *
 
 
 # Класс слушателя:

@@ -4,11 +4,10 @@
 
 
 # Импортируем:
-if True:
-    import copy
-    import pypresence
-    from .graphics.camera import Camera2D
-    from .math import *
+import copy
+import pypresence
+from .graphics.camera import Camera2D
+from .math import *
 
 
 # Discord Rich Presence реализация:

@@ -4,16 +4,15 @@
 
 
 # Импортируем:
-if True:
-    import os
-    import json
-    import pygame
-    import zipfile
-    import requests
-    import tkinter as tk
-    from tkinter import filedialog
-    from .audio import Music, Sound
-    from .graphics import Image, Texture, Sprite2D
+import os
+import json
+import pygame
+import zipfile
+import requests
+import tkinter as tk
+from tkinter import filedialog
+from .audio import Music, Sound
+from .graphics import Image, Texture, Sprite2D
 
 
 # Загружаем изображение:

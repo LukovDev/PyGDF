@@ -4,11 +4,10 @@
 
 
 # Импортируем:
-if True:
-    import pygame
-    import numpy as np
-    from .gl import *
-    from .image import Image
+import pygame
+import numpy as np
+from .gl import *
+from .image import Image
 
 
 # Класс текстуры:

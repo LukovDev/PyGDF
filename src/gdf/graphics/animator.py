@@ -3,11 +3,6 @@
 #
 
 
-# Импортируем:
-if True:
-    pass
-
-
 # Класс 2D аниматора:
 class Animator2D:
     def __init__(self, frames: int, duration: float) -> None:

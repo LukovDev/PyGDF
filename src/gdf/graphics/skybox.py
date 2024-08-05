@@ -4,12 +4,11 @@
 
 
 # Импортируем:
-if True:
-    from .gl import *
-    from .texture import Texture
-    from .camera import Camera3D
-    from .shader import ShaderProgram
-    from ..math import *
+from .gl import *
+from .texture import Texture
+from .camera import Camera3D
+from .shader import ShaderProgram
+from ..math import *
 
 
 # Класс неба:

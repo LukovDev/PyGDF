@@ -4,16 +4,15 @@
 
 
 # Импортируем:
-if True:
-    import os
-    os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
-    # Ускоренная функция поворота вершин полигона спрайта:
-    try:
-        # Импортируем скомпилированную библиотеку r2d_verts_c:
-        from .r2d_verts_c import rot2d_vertices_rectangle as _rotate_vertices_
-    except (ModuleNotFoundError, ImportError) as error:
-        raise Exception(f"The compiled module could not be imported: {error}")
+# Ускоренная функция поворота вершин полигона спрайта:
+try:
+    # Импортируем скомпилированную библиотеку r2d_verts_c:
+    from .r2d_verts_c import rot2d_vertices_rectangle as _rotate_vertices_
+except (ModuleNotFoundError, ImportError) as error:
+    raise Exception(f"The compiled module could not be imported: {error}")
 
 
 # Ошибка окна OpenGL:

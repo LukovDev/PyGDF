@@ -4,17 +4,16 @@
 
 
 # Импортируем:
-if True:
-    import glm
-    import math
-    import numpy
-    import random
-    import decimal
-    from glm import *
-    from math import *
+import glm
+import math
+import numpy
+import random
+import decimal
+from glm import *
+from math import *
 
-    # Удаляем округление от glm:
-    del round
+# Удаляем округление от glm:
+del round
 
 
 # Класс чисел двойной точности:

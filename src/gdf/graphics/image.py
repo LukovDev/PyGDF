@@ -4,8 +4,7 @@
 
 
 # Импортируем:
-if True:
-    import pygame
+import pygame
 
 
 # Класс изображения:

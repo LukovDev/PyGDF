@@ -4,11 +4,10 @@
 
 
 # Импортируем:
-if True:
-    from .gl import *
-    from .texture import Texture
-    from .atlas import AtlasTexture
-    from . import _rotate_vertices_
+from .gl import *
+from .texture import Texture
+from .atlas import AtlasTexture
+from . import _rotate_vertices_
 
 
 # Класс спрайта:

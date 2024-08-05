@@ -4,9 +4,8 @@
 
 
 # Импортируем:
-if True:
-    import pygame
-    pygame.init()
+import pygame
+pygame.init()
 
 
 # Класс музыки:

@@ -4,15 +4,14 @@
 
 
 # Импортируем:
-if True:
-    from .gl import *
-    from .camera import Camera2D
-    from .sprite import Sprite2D
-    from .texture import Texture
-    from .atlas import AtlasTexture
-    from . import _rotate_vertices_
-    from ..math import *
-    from ..utils import *
+from .gl import *
+from .camera import Camera2D
+from .sprite import Sprite2D
+from .texture import Texture
+from .atlas import AtlasTexture
+from . import _rotate_vertices_
+from ..math import *
+from ..utils import *
 
 
 # Класс пакетной отрисовки спрайтов:

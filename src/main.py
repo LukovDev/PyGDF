@@ -4,13 +4,11 @@
 
 
 # Импортируем:
-if True:
-    # Ядро фреймворка:
-    import gdf
-    from gdf import files
-    from gdf.math import *
-    from gdf.input import InputHandler
-    from gdf.graphics import Window, Camera2D, Sprite2D
+import gdf
+from gdf import files
+from gdf.math import *
+from gdf.input import InputHandler
+from gdf.graphics import Window, Camera2D, Sprite2D
 
 
 # Класс игры:

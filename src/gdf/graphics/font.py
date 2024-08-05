@@ -4,11 +4,10 @@
 
 
 # Импортируем:
-if True:
-    import os
-    import pygame
-    from .image import Image
-    from .texture import Texture
+import os
+import pygame
+from .image import Image
+from .texture import Texture
 
 
 # Класс генератора текста из шрифта:

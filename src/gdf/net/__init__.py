@@ -4,12 +4,11 @@
 
 
 # Импортируем:
-if True:
-    import os
-    os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
-    import json
-    import socket
+import json
+import socket
 
 
 # Ниже 19 классов-исключений:

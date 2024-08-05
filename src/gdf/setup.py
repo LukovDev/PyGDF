@@ -1,17 +1,16 @@
 #
 # setup.py - В основном нужен для компиляции Cython файлов и для прочих настроек ядра.
 #
-# Компиляция: python setup.py build_ext --inplace
+# Компиляция (запуск этого скрипта): python setup.py build_ext --inplace
 #
 
 
 # Импортируем:
-if True:
-    import os
-    import glob
-    import shutil
-    from setuptools import setup, Extension
-    from Cython.Build import cythonize
+import os
+import glob
+import shutil
+from setuptools import setup, Extension
+from Cython.Build import cythonize
 
 
 # Функция для поиска всех файлов определённого формата:

@@ -4,9 +4,8 @@
 
 
 # Импортируем:
-if True:
-    from .input import InputHandler, Key
-    from .math import *
+from .input import InputHandler, Key
+from .math import *
 
 
 # Проверяем и перемещаем курсор мыши если тот рядом с границей окна:

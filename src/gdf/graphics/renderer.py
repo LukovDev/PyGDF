@@ -9,12 +9,11 @@
 
 
 # Импортируем:
-if True:
-    from .gl import *
-    from .camera import Camera2D
-    from .sprite import Sprite2D
-    from .texture import Texture
-    from .buffers import FrameBuffer
+from .gl import *
+from .camera import Camera2D
+from .sprite import Sprite2D
+from .texture import Texture
+from .buffers import FrameBuffer
 
 
 # Класс конвейера рендеринга 2D:

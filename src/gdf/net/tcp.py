@@ -4,11 +4,10 @@
 
 
 # Импортируем:
-if True:
-    import time
-    import errno
-    from threading import Thread
-    from . import *
+import time
+import errno
+from threading import Thread
+from . import *
 
 
 # Класс сервера TCP/IP:

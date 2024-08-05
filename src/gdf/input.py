@@ -4,12 +4,11 @@
 
 
 # Импортируем:
-if True:
-    import pygame
-    from pygame import constants as Key
-    from pygame import constants as Event
-    from .graphics import Window
-    from .math import *
+import pygame
+from pygame import constants as Key
+from pygame import constants as Event
+from .graphics import Window
+from .math import *
 
 
 # Специальный класс для получения состояния клавиш мыши:

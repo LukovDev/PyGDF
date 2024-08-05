@@ -4,9 +4,8 @@
 
 
 # Импортируем:
-if True:
-    from .gl import *
-    from ..math import *
+from .gl import *
+from ..math import *
 
 
 _texture_units_ = {}  # Словарь для хранения текстурных юнитов.

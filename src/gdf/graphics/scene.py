@@ -3,11 +3,6 @@
 #
 
 
-# Импортируем:
-if True:
-    pass
-
-
 # Класс сцены:
 class Scene:
     window = None

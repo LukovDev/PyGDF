@@ -4,8 +4,7 @@
 
 
 # Импортируем:
-if True:
-    from .texture import Texture
+from .texture import Texture
 
 
 # Класс текстуры атласа:

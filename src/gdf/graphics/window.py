@@ -4,18 +4,17 @@
 
 
 # Импортируем:
-if True:
-    import gc
-    import time
-    import pygame
+import gc
+import time
+import pygame
 
-    from .gl import *
-    from .image import Image
-    from .scene import Scene
-    from . import OpenGLWindowError, OpenGLContextNotSupportedError
+from .gl import *
+from .image import Image
+from .scene import Scene
+from . import OpenGLWindowError, OpenGLContextNotSupportedError
 
-    from ..audio.al import *
-    from ..math import vec2, numpy as np
+from ..audio.al import *
+from ..math import vec2, numpy as np
 
 
 # Класс окна:
@@ -135,23 +134,21 @@ class Window:
             del title, icon, size, vsync, fps, visible, fullscreen, min_size, max_size, samples, gl_major, gl_minor
             gc.collect()
 
-        # Настройка OpenGL:
-        if True:
-            # Включаем смешивание цветов:
-            gl.glEnable(gl.GL_BLEND)
-            
-            # Устанавливаем режим смешивания:
-            gl_set_blend_mode()  # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
+        # Включаем смешивание цветов:
+        gl.glEnable(gl.GL_BLEND)
+        
+        # Устанавливаем режим смешивания:
+        gl_set_blend_mode()  # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
 
-            # Разрешаем установку размера точки через шейдер:
-            gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
+        # Разрешаем установку размера точки через шейдер:
+        gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
-            # Делаем нулевой текстурный юнит привязанным к нулевой текстуре:
-            gl.glActiveTexture(gl.GL_TEXTURE0)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+        # Делаем нулевой текстурный юнит привязанным к нулевой текстуре:
+        gl.glActiveTexture(gl.GL_TEXTURE0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
-            # Настраиваем соотношение сторон:
-            self._reset_viewport_()
+        # Настраиваем соотношение сторон:
+        self._reset_viewport_()
 
         # Инициализируем OpenAL:
         al.oalInit()

@@ -4,15 +4,14 @@
 
 
 # Импортируем:
-if True:
-    from .gl import *
-    from .camera import Camera2D
-    from .shader import ShaderProgram
-    from .sprite import Sprite2D
-    from .texture import Texture
-    from .renderer import Renderer2D
-    from .batch import SpriteBatch2D
-    from ..math import *
+from .gl import *
+from .camera import Camera2D
+from .shader import ShaderProgram
+from .sprite import Sprite2D
+from .texture import Texture
+from .renderer import Renderer2D
+from .batch import SpriteBatch2D
+from ..math import *
 
 
 # Класс 2D освещения:

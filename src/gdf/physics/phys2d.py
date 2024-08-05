@@ -4,13 +4,12 @@
 
 
 # Импортируем:
-if True:
-    import pymunk
-    import pymunk.autogeometry
-    from pymunk import BB
+import pymunk
+import pymunk.autogeometry
+from pymunk import BB
 
-    from ..graphics.texture import Texture
-    from ..math import *
+from ..graphics.texture import Texture
+from ..math import *
 
 
 # Ошибка физики:

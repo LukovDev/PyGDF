@@ -4,11 +4,10 @@
 
 
 # Импортируем:
-if True:
-    import pygame
-    from .image import Image
-    from .texture import Texture
-    from .atlas import AtlasTexture
+import pygame
+from .image import Image
+from .texture import Texture
+from .atlas import AtlasTexture
 
 
 # Упаковщик текстур:

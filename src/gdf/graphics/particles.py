@@ -4,11 +4,10 @@
 
 
 # Импортируем:
-if True:
-    from .batch import SpriteBatch2D
-    from .texture import Texture
-    from ..math import *
-    from ..utils import Utils2D
+from .batch import SpriteBatch2D
+from .texture import Texture
+from ..math import *
+from ..utils import Utils2D
 
 
 # Класс 2D частиц:

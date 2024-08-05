@@ -4,12 +4,11 @@
 
 
 # Импортируем:
-if True:
-    import os
-    os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
-    import sys
-    import platform
+import sys
+import platform
 
 
 # Получить версию библиотеки:

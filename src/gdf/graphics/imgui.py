@@ -4,12 +4,11 @@
 
 
 # Импортируем:
-if True:
-    import pygame
-    import imgui
-    from imgui import *
-    from imgui.integrations.pygame import PygameRenderer
-    from ..math import *
+import pygame
+import imgui
+from imgui import *
+from imgui.integrations.pygame import PygameRenderer
+from ..math import *
 
 
 # Класс интерфейса:

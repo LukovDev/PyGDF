@@ -1,7 +1,7 @@
 #
 # setup.py - В основном нужен для компиляции Cython файлов и для прочих настроек ядра.
 #
-# Компиляция (запуск этого скрипта): python setup.py build_ext --inplace
+# Запуск этого скрипта: python setup.py build_ext --inplace
 #
 
 
@@ -28,6 +28,10 @@ def clear() -> None:
     build_directory = "build"
     if os.path.exists(build_directory):
         shutil.rmtree(build_directory)
+
+
+# Установка всех нужных библиотек:
+os.system("pip3 install -r pypi.txt")
 
 
 # Устанавливаем ядро:

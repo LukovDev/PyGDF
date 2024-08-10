@@ -7,6 +7,7 @@
 import os
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
+
 # Ускоренная функция поворота вершин полигона спрайта:
 try:
     # Импортируем скомпилированную библиотеку r2d_verts_c:

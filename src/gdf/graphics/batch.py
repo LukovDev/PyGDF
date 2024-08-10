@@ -49,13 +49,13 @@ class SpriteBatch2D:
                 "before the \".draw()\" function.")
 
         # Если камера не видит ваш спрайт, то мы пропускаем отрисовку спрайта:
-        # ИНОГДА, ЭТО МОЖЕТ НАОБОРОТ ЗАНИЗИТЬ СКОРОСТЬ ОТРИСОВКИ!
+        # ЕСЛИ ПЫТАТЬСЯ ОТРИСОВАТЬ МНОГО СПРАЙТОВ ИСПОЛЬЗУЯ ПРОВЕРКУ НИЖЕ, ПРОИЗВОДИТЕЛЬНОСТЬ УПАДЁТ:
         if cull_sprites and self.camera is not None:
-            zoom, meter = self.camera.zoom, self.camera.meter / 100
-            if not Intersects.circle_rectangle(vec2(x+(width/2), y+(height/2)), max(abs(width), abs(height))/2 * 1.5,
-                                               (self.camera.position.x-(self.camera.width*zoom)/2*meter,
-                                               self.camera.position.y-(self.camera.height*zoom)/2*meter,
-                                               self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
+            czom, cmtr = self.camera.zoom, self.camera.meter
+            sprad = max(abs(width), abs(height))/2 * 1.5
+            cmrad = max(abs(self.camera.size.x*czom*cmtr), abs(self.camera.size.y*czom*cmtr))/100/2 * 1.5
+            if not Intersects.circle_circle(vec2(x+width/2, y+height/2), sprad, self.camera.position.xy, cmrad):
+                return
 
         # Вращаем вершины спрайта:
         if angle != 0.0: vertices = _rotate_vertices_(x, y, width, height, angle)
@@ -152,13 +152,13 @@ class AtlasTextureBatch2D:
                 "before the \".draw()\" function.")
 
         # Если камера не видит ваш спрайт, то мы пропускаем отрисовку спрайта:
-        # ИНОГДА, ЭТО МОЖЕТ НАОБОРОТ ЗАНИЗИТЬ СКОРОСТЬ ОТРИСОВКИ!
+        # ЕСЛИ ПЫТАТЬСЯ ОТРИСОВАТЬ МНОГО СПРАЙТОВ ИСПОЛЬЗУЯ ПРОВЕРКУ НИЖЕ, ПРОИЗВОДИТЕЛЬНОСТЬ УПАДЁТ:
         if cull_sprites and self.camera is not None:
-            zoom, meter = self.camera.zoom, self.camera.meter / 100
-            if not Intersects.circle_rectangle(vec2(x+(width/2), y+(height/2)), max(abs(width), abs(height))/2 * 1.5,
-                                               (self.camera.position.x-(self.camera.width*zoom)/2*meter,
-                                               self.camera.position.y-(self.camera.height*zoom)/2*meter,
-                                               self.camera.width*zoom*meter, self.camera.height*zoom*meter)): return
+            czom, cmtr = self.camera.zoom, self.camera.meter
+            sprad = max(abs(width), abs(height))/2 * 1.5
+            cmrad = max(abs(self.camera.size.x*czom*cmtr), abs(self.camera.size.y*czom*cmtr))/100/2 * 1.5
+            if not Intersects.circle_circle(vec2(x+width/2, y+height/2), sprad, self.camera.position.xy, cmrad):
+                return
 
         # Вращаем вершины спрайта:
         if angle != 0.0: vertices = _rotate_vertices_(x, y, width, height, angle)

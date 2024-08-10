@@ -20,9 +20,6 @@ class NetServerTCP:
 
     # Вызывается каждый цикл обработки:
     def socket_handler(socket: NetSocket, address: tuple, delta_time: float) -> None:
-        # Слушаем пинг клиента. Если его нет, то значит он отключился:
-        if socket.recv_data() is None: socket.close()
-
         ...
 
     # Вызывается при отсоединении клиента:
@@ -122,15 +119,17 @@ class NetServerTCP:
 
     # Обработчик присоединений клиентов к серверу:
     def _connect_handler_(self) -> None:
-        """ Всевозможные отправленные сообщения сервером клиенту:
-            "key-wrong"         - Ключ не подошёл. Отключение клиента.
-            "key-timeout-error" - Сервер слишком долго ждал ключ. Отключение клиента.
-            "server-overflow"   - Сервер переполнен. Отключение клиента.
-            "key-success"       - Ключ подошёл. Регистрируем клиента в сервере.
-        """
-
         # Обрабатываем запросы на подключение:
         try:
+            # Метаданные отправляемые ответом сервера на подключение:
+            metadata = {
+                "pcsc-version": TCP_PCSC_VERSION
+            }
+
+            # Функция для преобразования простых данных в пакет данных для отправки:
+            send_package = lambda c, d: c.send_json({"data": d, "meta": metadata}, self._netvars_["de-encoding"])
+
+            # Вечный цикл:
             while True:
                 try:
                     # Принимаем новое подключение клиента к серверу:
@@ -145,7 +144,7 @@ class NetServerTCP:
                             # Даём клиенту timeout времени, чтобы тот предоставил ключ:
                             client.set_time_out(self._netvars_["timeout"])
 
-                            # Получаем ключ и преобразовываем его:
+                            # Получаем ключ и преобразовываем его в нормальный формат для ключей:
                             client_key = client.recv_data(1024, self._netvars_["de-encoding"]).strip()
                             server_key = str(self._netvars_["entry-key"]).strip()
 
@@ -154,7 +153,7 @@ class NetServerTCP:
                                 # Если ключ правильный, то регистрируем клиента на сервере.
 
                                 # Сообщаем клиенту, что тот прошёл:
-                                client.send_data("key-success", self._netvars_["de-encoding"])
+                                send_package(client, str(0x00))
 
                                 # Добавляем его в список клиентов на сервере:
                                 self._netvars_["clients"].append(client)
@@ -163,15 +162,15 @@ class NetServerTCP:
                                 Thread(target=self._client_handler_, args=(client, address), daemon=True).start()
                             else:
                                 # Если ключ клиента не подходит, то сообщаем ему об этом, и отключаем от сервера:
-                                client.send_data("key-wrong", self._netvars_["de-encoding"])
+                                send_package(client, str(NetClientKeyWrong.id_error))
                                 client.close()
                         except socket.timeout:
                             # Если клиент не успел предоставить ключ, то сообщаем ему об этом и отключаем его:
-                            client.send_data("key-timeout-error", self._netvars_["de-encoding"])
+                            send_package(client, str(NetClientKeyTimeout.id_error))
                             client.close()
                     else:
                         # Если сервер переполнен:
-                        client.send_data("server-overflow", self._netvars_["de-encoding"])
+                        send_package(client, str(NetServerOverflow.id_error))
                         client.close()
                 except (OSError, socket.timeout):
                     client.close()  # При любой непонятной ошибке, просто отключаем клиента.
@@ -275,9 +274,6 @@ class NetClientTCP:
 
     # Вызывается каждый цикл обработки:
     def socket_handler(socket: NetSocket, address: tuple, delta_time: float) -> None:
-        # Слушаем пинг сервера. Если его нет, то значит сервер отключился:
-        if socket.recv_data() is None: socket.close()
-
         ...
 
     # Вызывается при потери связи с сервером:
@@ -374,7 +370,7 @@ class NetClientTCP:
                 timeout: float = 10.0
                 ) -> "NetClientTCP":
         # Устанавливаем тайм-аут на ожидание подтверждения подключения к серверу:
-        self.socket.set_time_out(timeout+0.1)  # +0.1 секунда, на всякий случай.
+        self.socket.set_time_out(timeout)
 
         try:
             # Подключаемся к серверу:
@@ -385,25 +381,35 @@ class NetClientTCP:
             self.socket.send_data(key, self._netvars_["de-encoding"])
 
             # Получаем ответ от сервера:
-            data = self.socket.recv_data(1024, self._netvars_["de-encoding"])
+            rec = self.socket.recv_json(1024, self._netvars_["de-encoding"])
+            data, meta = rec["data"], rec["meta"]  # Делим ответ на ответ подключения и на прочую служебную информацию.
+
+            # Проверяем версию протокола подключения:
+            if meta["pcsc-version"] != TCP_PCSC_VERSION:
+                raise NetException(
+                     "Connection was not established: Different versions of the Protocol Connection Server-Client.\n"
+                    f"You PCSC version: \"{TCP_PCSC_VERSION}\", Server PCSC version: \"{meta['pcsc-version']}\"\n"
+                )
+
+            # Проверка полученного ответа от сервера на подключение по протоколу подключения сервер-клиент:
 
             # Если ключ не правильный:
-            if data == "key-wrong":
+            if int(data) == NetClientKeyWrong.id_error:
                 self.socket.close()
                 raise NetClientKeyWrong()
 
             # Иначе если время за которое мы должны были отправить ключ, вышло:
-            elif data == "key-timeout-error":
+            elif int(data) == NetClientKeyTimeout.id_error:
                 self.socket.close()
                 raise NetClientKeyTimeout()
 
             # Иначе если сервер переполнен:
-            elif data == "server-overflow":
+            elif int(data) == NetServerOverflow.id_error:
                 self.socket.close()
                 raise NetServerOverflow()
 
             # Иначе если ключ правильный:
-            elif data == "key-success":
+            elif int(data) == 0x00:
                 # Устанавливаем максимальное время ожидания ответа от сервера:
                 self.set_timeout(timeout)
 
@@ -416,7 +422,7 @@ class NetClientTCP:
                 # Создаём новый демонический поток для обработки сервера:
                 Thread(target=self._server_handler_, args=(self.socket, serv_addr), daemon=True).start()
             else:
-                raise NetException(f"Connection was not established for an unknown reason: {data}")
+                raise NetException(f"Connection was not established for an unknown reason: \"{data}\"")
 
         except socket.gaierror:
             self.socket.close()

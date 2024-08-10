@@ -57,19 +57,26 @@ class DiscordRPC:
 class Utils2D:
     # Получить позицию точки из окна в мировом пространстве:
     @staticmethod
-    def local_to_global(camera: Camera2D, point_pos: vec2) -> vec2:
-        """ Переводит координаты точки на экране, в мировые координаты в 2D измерении """
+    def local_to_global(camera: Camera2D, point: vec2) -> vec2:
+        """ Переводит координаты точки на экране, в мировые координаты в 2D пространстве """
 
         # Позиция нижнего левого угла камеры с учётом метра и зума камеры:
         camera_posx = camera.position.x - ((camera.width  * camera.zoom) / 2) * (camera.meter / 100)
         camera_posy = camera.position.y - ((camera.height * camera.zoom) / 2) * (camera.meter / 100)
 
         # Позиция точки с учётом метра и зума камеры (Y координату точки инвертируем):
-        point_posx = (+(point_pos.x                ) * (camera.meter / 100)) * camera.zoom
-        point_posy = (-(point_pos.y - camera.height) * (camera.meter / 100)) * camera.zoom
+        point_posx = (+(point.x                ) * (camera.meter / 100)) * camera.zoom
+        point_posy = (-(point.y - camera.height) * (camera.meter / 100)) * camera.zoom
 
         # Складываем и возвращаем результат:
         return vec2(camera_posx + point_posx, camera_posy + point_posy)
+
+        """ Сокращённая версия выглядит так:
+        # Для использования вам нужен экземпляр 2D камеры с названием camera и вектор точки с названием point.
+
+        p, s, z, m = camera.position.xy, camera.size.xy, camera.zoom, camera.meter
+        vec2(p.x-(s.x*z*m)/200+(point.x*m/100)*z, p.y-(s.y*z*m)/200-((point.y-s.y)*m/100)*z)
+        """
 
     # Найти угол наклона из двух координат:
     @staticmethod
@@ -153,6 +160,14 @@ class Intersects:
         x = (point[0]-(rect[0]+rect[2]/2))*cosrad-(point[1]-(rect[1]+rect[3]/2))*sinrad
         y = (point[0]-(rect[0]+rect[2]/2))*sinrad+(point[1]-(rect[1]+rect[3]/2))*cosrad
         return abs(x) <= abs(rect[2])/2 and abs(y) <= abs(rect[3])/2
+
+    # Функция для проверки пересечения круга с кругом:
+    @staticmethod
+    def circle_circle(center1: vec2, radius1: float, center2: vec2, radius2: float) -> bool:
+        """ Возвращает логическое значение при пересечении круга с кругом """
+
+        # Если расстояние меньше или равно сумме радиусов, то круги пересекаются:
+        return length(center2 - center1) <= (radius1 + radius2)
 
     # Функция для проверки пересечения точки с кругом:
     @staticmethod

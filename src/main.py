@@ -33,17 +33,11 @@ class GameClass(Window):
             fullscreen = False,
             min_size   = vec2(0, 0),
             max_size   = vec2(float("inf"), float("inf")),
-            samples    = 8  # [ 0 | 4 | 8 | 16 ] - MultiSampling (Anti-Aliasing).
+            samples    = 8  # 0 / 4 / 8 / 16 - MultiSampling (Anti-Aliasing).
         )
 
     # Вызывается при создании окна:
     def start(self) -> None:
-        # Выводим версию OpenGL:
-        print(f"OpenGL Version: {self.window.get_opengl_version()}\n")
-
-        # Выводим рендерер OpenGL:
-        print(f"OpenGL Renderer: {self.window.get_opengl_renderer()}\n")
-
         # Наш обработчик ввода данных:
         self.input = InputHandler(self.window)
 
@@ -64,9 +58,6 @@ class GameClass(Window):
 
     # Вызывается каждый кадр (игровой цикл):
     def update(self, delta_time: float, event_list: list) -> None:
-        for event in event_list:
-            pass  # События окна.
-
         # Какой-то код (логика).
 
     # Вызывается каждый кадр (игровая отрисовка):

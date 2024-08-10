@@ -6,9 +6,12 @@
 # Импортируем:
 import os
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-
 import json
 import socket
+
+
+# Константы:
+TCP_PCSC_VERSION = "v1.0"  # Версия TCP Протокола Подключения Сервер-Клиент.
 
 
 # Ниже 19 классов-исключений:
@@ -19,15 +22,15 @@ class NetException(Exception): pass
 
 
 # Сетевое исключение неправильного ключа-пароля от клиента:
-class NetClientKeyWrong(NetException): pass
+class NetClientKeyWrong(NetException): id_error = 0x1F
 
 
 # Сетевое исключение превышения ожидания ключа от клиента:
-class NetClientKeyTimeout(NetException): pass
+class NetClientKeyTimeout(NetException): id_error = 0x2F
 
 
 # Сетевое исключение отказа от подключения из за переполнения сервера:
-class NetServerOverflow(NetException): pass
+class NetServerOverflow(NetException): id_error = 0x3F
 
 
 # Сетевое исключение ошибки подключения к сокету, связанная с адресом (socket.gaierror):

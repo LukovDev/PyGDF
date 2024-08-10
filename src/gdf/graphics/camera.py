@@ -17,13 +17,13 @@ class Camera2D:
                  angle:    float = 0.0,
                  zoom:     float = 1.0,
                  meter:    float = 100) -> None:
-        self.width    = width          # Ширина камеры.
-        self.height   = height         # Высота камеры.
-        self.position = position       # Позиция камеры.
-        self.angle    = angle          # Угол наклона камеры.
-        self.zoom     = zoom           # Масштаб камеры.
-        self.meter    = meter          # Масштаб единицы измерения.
-        self.size     = width, height  # Размер камеры.
+        self.width    = width                # Ширина камеры.
+        self.height   = height               # Высота камеры.
+        self.position = position             # Позиция камеры.
+        self.angle    = angle                # Угол наклона камеры.
+        self.zoom     = zoom                 # Масштаб камеры.
+        self.meter    = meter                # Масштаб единицы измерения.
+        self.size     = vec2(width, height)  # Размер камеры.
 
         self.modelview  = None
         self.projection = None
@@ -55,7 +55,7 @@ class Camera2D:
     def resize(self, width: int, height: int) -> "Camera2D":
         self.width = int(width)
         self.height = int(height)
-        self.size = int(width), int(height)
+        self.size = vec2(int(width), int(height))
         gl.glDisable(gl.GL_DEPTH_TEST)
         # gl.glEnable(gl.GL_CULL_FACE)  # Вырезать невидимые грани.
         gl.glViewport(0, 0, self.width, self.height)

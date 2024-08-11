@@ -22,6 +22,8 @@ class Sound:
         try: self.sound = al.oalOpen(file_path)
         except Exception as error:
             raise Exception(f"Error in \"Sound.load()\": {error}\n")
+        self.set_min_distance(100.0)
+        self.set_max_distance(100000.0)
         return self
 
     # Проиграть звук:
@@ -73,7 +75,7 @@ class Sound:
     # Установить скорость звука:
     def set_pitch(self, pitch: float) -> "Sound":
         if self.sound is None: return self
-        self.sound.set_pitch(pitch)
+        self.sound.set_pitch(abs(pitch))
         return self
 
     # Получить скорость звука:
@@ -84,7 +86,7 @@ class Sound:
     # Установить громкость звука:
     def set_volume(self, volume: float) -> "Sound":
         if self.sound is None: return self
-        self.sound.set_gain(volume)
+        self.sound.set_gain(abs(volume))
         return self
 
     # Получить громкость звука:
@@ -95,7 +97,7 @@ class Sound:
     # Установить расстояние, при котором звук будет воспроизводиться с максимальной громкостью без затухания:
     def set_min_distance(self, value: float) -> "Sound":
         if self.sound is None: return self
-        self.sound.set_reference_distance(value)
+        self.sound.set_reference_distance(abs(value))
         return self
 
     # Получить расстояние, при котором звук будет воспроизводиться с максимальной громкостью без затухания:
@@ -106,7 +108,7 @@ class Sound:
     # Установить максимальное расстояние на котором слышен звук:
     def set_max_distance(self, value: float) -> "Sound":
         if self.sound is None: return self
-        self.sound.set_max_distance(value)
+        self.sound.set_max_distance(abs(value))
         return self
 
     # Получить максимальное расстояние на котором слышен звук:
@@ -117,7 +119,7 @@ class Sound:
     # Установить силу затухания звука с расстоянием:
     def set_rolloff_factor(self, value: float = 1.0) -> "Sound":
         if self.sound is None: return self
-        self.sound.set_rolloff_factor(value)
+        self.sound.set_rolloff_factor(abs(value))
         return self
 
     # Получить силу затухания звука с расстоянием:

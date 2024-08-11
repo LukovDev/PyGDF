@@ -12,6 +12,7 @@ import decimal
 from glm import *
 from math import *
 
+
 # Удаляем округление от glm:
 del round
 

@@ -28,7 +28,7 @@ class Listener:
     def update(self) -> "Listener":
         self.listener.set_position(self.position)
         self.listener.set_orientation(list(self.look_at) + list(self.up))
-        self.listener.set_gain(self.volume)
+        self.listener.set_gain(abs(self.volume))
         return self
 
     # Установить позицию слушателя:

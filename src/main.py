@@ -60,15 +60,15 @@ class GameClass(Window):
     def update(self, delta_time: float, event_list: list) -> None:
         # Какой-то код (логика).
 
+        # Обновляем камеру:
+        self.camera.update()
+
     # Вызывается каждый кадр (игровая отрисовка):
     def render(self, delta_time: float) -> None:
         # Очищаем окно (значения цвета от 0 до 1):
         self.window.clear(0, 0, 0)
 
         # Какой-то код (отрисовка).
-
-        # Обновляем камеру:
-        self.camera.update()
 
         # Отрисовываем наш спрайт (width и height можно убрать и тогда будет использоваться размер текстуры):
         self.sprite.render(x=-64, y=-64, width=128, height=128)

@@ -128,8 +128,9 @@ class Draw2D:
     # Нарисовать круг:
     @staticmethod
     def circle(color: list, center: tuple, radius: float, width: float = 1,
-               smooth: bool = False, num_vertices: int = 24) -> None:
+               smooth: bool = False, num_vertices: int = None) -> None:
         if not color: color = [1, 1, 1]
+        if num_vertices is None: num_vertices = int(pi*2*radius)//180
         if num_vertices < 3: num_vertices = 3
         vertices_list = []
         for index in range(num_vertices):

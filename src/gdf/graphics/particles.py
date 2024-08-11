@@ -145,8 +145,8 @@ class SimpleParticleEffect2D:
     def update(self, delta_time: float) -> "SimpleParticleEffect2D":
         if self.custom_update is not None: self.custom_update(delta_time, self.particles) ; return
 
-        # Если новый dt больше старого в 3 раза, то используем старый dt. А также ограничиваем dt до 1/10 кадра в сек:
-        dt = min(self._partvars_["old-dt"] if delta_time > self._partvars_["old-dt"] * 3 else delta_time, 1/10)
+        # Если новый dt больше старого в 2 раза, то используем старый dt. А также ограничиваем dt до 1/10 кадра в сек:
+        dt = min(self._partvars_["old-dt"] if delta_time > self._partvars_["old-dt"] * 2 else delta_time, 1/10)
         self._partvars_["old-dt"] = delta_time
 
         # Если количество частиц меньше установленного, создаём новые:

@@ -132,7 +132,7 @@ class Window:
         finally:
             # Удаляем лишние переменные, чтобы те больше не мешались в логике окна:
             del title, icon, size, vsync, fps, visible, fullscreen, min_size, max_size, samples, gl_major, gl_minor
-            gc.collect()
+            gc.collect()  # Вызываем сборщик мусора чтобы точно освободить ресурсы.
 
         # Включаем смешивание цветов:
         gl.glEnable(gl.GL_BLEND)

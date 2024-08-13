@@ -64,6 +64,7 @@ class Window:
                  fps:        int   = 60,
                  visible:    bool  = True,
                  titlebar:   bool  = True,
+                 resizable:  bool  = True,
                  fullscreen: bool  = False,
                  min_size:   vec2  = vec2(0, 0),
                  max_size:   vec2  = vec2(float("inf"), float("inf")),
@@ -82,6 +83,7 @@ class Window:
             "setted-fps": int(fps),
             "visible":    bool(visible),
             "titlebar":   bool(titlebar),
+            "resizable":  bool(resizable),
             "fullscreen": bool(fullscreen),
             "min-size":   vec2(min_size),
             "max-size":   vec2(max_size),
@@ -129,10 +131,6 @@ class Window:
             raise OpenGLContextNotSupportedError(f"OpenGL version {gl_major}.{gl_minor} is not supported.")
         except Exception as error:
             raise OpenGLWindowError(f"Error creating the window: {error}")
-        finally:
-            # Удаляем лишние переменные, чтобы те больше не мешались в логике окна:
-            del title, icon, size, vsync, fps, visible, fullscreen, min_size, max_size, samples, gl_major, gl_minor
-            gc.collect()  # Вызываем сборщик мусора чтобы точно освободить ресурсы.
 
         # Включаем смешивание цветов:
         gl.glEnable(gl.GL_BLEND)
@@ -262,8 +260,9 @@ class Window:
     # Пересоздать окно (обновить режим окна):
     def _recreate_(self, size: tuple | vec2 = None, flags: int = None) -> None:
         if size is None: size = (self._winvars_["width"], self._winvars_["height"])
-        flags = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE
+        flags = pygame.DOUBLEBUF | pygame.OPENGL
         flags |= pygame.SHOWN if self.get_visible() else pygame.HIDDEN
+        if self.get_resizable():    flags |= pygame.RESIZABLE
         if self.get_fullscreen():   flags |= pygame.FULLSCREEN
         if not self.get_titlebar(): flags |= pygame.NOFRAME
         pygame.display.set_mode(size, flags, vsync=self.get_vsync())
@@ -353,9 +352,18 @@ class Window:
     def get_titlebar(self) -> bool:
         return self._winvars_["titlebar"]
 
+    # Установить масштабируемость окна:
+    def set_resizable(self, resizable: bool) -> None:
+        self._winvars_["resizable"] = resizable
+        self._recreate_()
+
+    # Получить масштабируемость окна:
+    def get_resizable(self) -> bool:
+        return self._winvars_["resizable"]
+
     # Установить полноэкранный режим:
-    def set_fullscreen(self, is_fullscreen: bool, size: tuple | vec2 = None) -> None:
-        self._winvars_["fullscreen"] = is_fullscreen
+    def set_fullscreen(self, fullscreen: bool, size: tuple | vec2 = None) -> None:
+        self._winvars_["fullscreen"] = fullscreen
         self.set_size(*size if size is not None else self.get_monitor_size())
 
     # Получить полноэкранный режим:

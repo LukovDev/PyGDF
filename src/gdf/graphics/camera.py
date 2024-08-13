@@ -141,7 +141,6 @@ class Camera3D:
 
         self.modelview  = gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX)
         self.projection = gl.glGetDoublev(gl.GL_PROJECTION_MATRIX)
-
         return self
 
     # Изменение размера камеры:
@@ -152,7 +151,6 @@ class Camera3D:
         gl.glViewport(0, 0, self.width, self.height)
         glu.gluPerspective(self.fov, float(self.width) / self.height, self.near, self.far)
         gl.glMatrixMode(gl.GL_MODELVIEW)
-
         return self
 
     # Применить настройки камеры:

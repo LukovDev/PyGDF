@@ -73,7 +73,6 @@ class Renderer2D:
     # Очистить кадровый буфер:
     def clear(self, color: list = None) -> "Renderer2D":
         self.framebuffer.clear(color)
-
         return self
 
     # Изменить размер текстурки конвейера рендеринга:

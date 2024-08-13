@@ -77,7 +77,6 @@ class ShaderProgram:
     # Не используем шейдер:
     def end(self) -> "ShaderProgram":
         gl.glUseProgram(self._id_before_begin_)
-
         return self
 
     # Получить номер униформы шейдера:

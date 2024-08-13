@@ -20,13 +20,11 @@ class SSBO:
     def begin(self) -> "SSBO":
         gl.glBindBufferBase(gl.GL_SHADER_STORAGE_BUFFER, 0, self.id)
         gl.glMemoryBarrier(gl.GL_SHADER_STORAGE_BARRIER_BIT)
-
         return self
 
     # Перестать использовать буфер:
     def end(self) -> "SSBO":
         gl.glBindBufferBase(gl.GL_SHADER_STORAGE_BUFFER, 0, 0)
-
         return self
 
     # Удалить буфер:
@@ -47,13 +45,11 @@ class FrameBuffer:
     def begin(self) -> "FrameBuffer":
         self._id_before_begin_ = gl.glGetIntegerv(gl.GL_FRAMEBUFFER_BINDING)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.id)
-
         return self
 
     # Перестать использовать буфер:
     def end(self) -> "FrameBuffer":
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._id_before_begin_)
-
         return self
 
     # Очистить кадровый буфер:
@@ -68,7 +64,7 @@ class FrameBuffer:
         gl.glClearColor(*color if len(color) > 3 else (*color, 1.0))
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         self.end()
-
+    
         return self
 
     # Удалить буфер:

@@ -84,7 +84,6 @@ class SpriteBatch2D:
             raise Exception(
                 "The \".begin()\" function was not called before the \".end()\" function."
             )
-
         return self
 
     # Отрисовать все спрайты:
@@ -187,6 +186,7 @@ class AtlasTextureBatch2D:
             raise Exception(
                 "The \".begin()\" function was not called before the \".end()\" function."
             )
+        return self
 
     # Отрисовать все спрайты:
     def render(self, color: list = None) -> "AtlasTextureBatch2D":

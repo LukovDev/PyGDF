@@ -39,14 +39,12 @@ class Texture:
     def begin(self) -> "Texture":
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
-
         return self
 
     # Не используем текстуру:
     def end(self) -> "Texture":
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         gl.glDisable(gl.GL_TEXTURE_2D)
-
         return self
 
     # Получить данные текстуры:

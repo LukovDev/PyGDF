@@ -197,8 +197,8 @@ class Window:
 
                     # Проверяем, вышел ли размер окна за пределы допущенного. Если да, то выставляем крайний размер:
                     if not (min_size.x <= wsize[0] <= max_size.x and min_size.y <= wsize[1] <= max_size.y):
-                        wsize[0] = min(max(int(wsize[0]), int(min_size.x)), int(max_size.x))
-                        wsize[1] = min(max(int(wsize[1]), int(min_size.y)), int(max_size.y))
+                        wsize[0] = min(max(wsize[0], min_size.x), max_size.x)
+                        wsize[1] = min(max(wsize[1], min_size.y), max_size.y)
                         wsize = int(wsize[0]), int(wsize[1])
                         self.set_size(*wsize)
                     else:  # Иначе, просто вызываем функцию изменения размера:

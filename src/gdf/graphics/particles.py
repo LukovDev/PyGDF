@@ -159,13 +159,10 @@ class SimpleParticleEffect2D:
         # Урезаем лишние частицы:
         self.particles = self.particles[:self.count]
 
-        # Проходимся по частицам:
-        for particle in self.particles:
-            # Время жизни частицы. Если время вышло, удаляем частицу:
+        # Проходимся по частицам (проходимся по последней копии списка частиц):
+        for particle in list(self.particles):
+            # Уменьшаем время жизни частицы:
             particle.time -= dt
-            if particle.time <= 0.0:
-                self.particles.remove(particle)
-                if self.is_infinite: self._create_particle_()
 
             # Применяем гравитацию к направлению частицы:
             particle.velocity += self.gravity * (dt*60)
@@ -179,12 +176,18 @@ class SimpleParticleEffect2D:
             pst = particle.static_time
 
             # Вращаем частицу:
-            if self.end_angle is not None and type(self.end_angle) is vec2:
+            if not (self.end_angle is None or self.end_angle == self.start_angle) and type(self.end_angle) == float:
                 particle.angle += (self.end_angle/pst if pst > 0.0 else 0.0) * dt
 
             # Меняем размер:
-            if self.end_size is not None and type(self.end_size) is vec2:
+            if not (self.end_size is None or self.end_size.xy == self.start_size.xy) and type(self.end_size) == vec2:
                 particle.size.xy += ((self.end_size.xy - self.start_size.xy) / pst) * dt
+
+            # Удаляем частицу только после всех изменений и если её время вышло:
+            if particle.time <= 0.0:
+                self.particles.remove(particle)
+                if self.is_infinite: 
+                    self._create_particle_()
 
         self._partvars_["old-pos"].xy = self.position.xy
         return self

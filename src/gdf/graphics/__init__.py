@@ -54,7 +54,7 @@ from .batch     import SpriteBatch2D, AtlasTextureBatch2D
 from .buffers   import SSBO, FrameBuffer
 from .camera    import Camera2D, Camera3D
 from .draw      import Draw2D, Draw3D
-from .font      import FontGenerator
+from .font      import FontFile, FontGenerator
 from .image     import Image
 from .imgui     import ImGUI
 from .light     import Light2D

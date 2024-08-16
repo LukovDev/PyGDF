@@ -12,6 +12,7 @@ import requests
 import tkinter as tk
 from tkinter import filedialog
 from .audio import Music, Sound
+from .graphics.font import FontFile
 from .graphics import Image, Texture, Sprite2D
 
 
@@ -36,21 +37,6 @@ def save_texture(file_path: str, texture: Texture) -> None:
     pygame.image.save(image, file_path)
 
 
-# Загружаем текстуру, а потом превращаем в спрайт:
-def load_sprite(file_path: str, is_flip_y: bool = False) -> Sprite2D:
-    return Sprite2D(load_texture(file_path, is_flip_y))
-
-
-# Загружаем музыку:
-def load_music(file_path: str) -> Music:
-    return Music().load(file_path)
-
-
-# Загружаем звук:
-def load_sound(file_path: str) -> Sound:
-    return Sound().load(file_path)
-
-
 # Загружаем файл:
 def load_file(file_path: str, mode: str = "r+", encoding: str = "utf-8") -> str:
     with open(file_path, mode, encoding=encoding) as f: return str(f.read())
@@ -69,6 +55,26 @@ def load_json(file_path: str, mode: str = "r+", encoding: str = "utf-8") -> dict
 # Сохраняем json файл:
 def save_json(file_path: str, data: dict | list, mode: str = "w+", encoding: str = "utf-8", indent: int = 4) -> None:
     with open(file_path, mode, encoding=encoding) as f: json.dump(data, f, indent=indent)
+
+
+# Загружаем текстуру, а потом превращаем в спрайт:
+def load_sprite(file_path: str, is_flip_y: bool = False) -> Sprite2D:
+    return Sprite2D(load_texture(file_path, is_flip_y))
+
+
+# Загружаем музыку:
+def load_music(file_path: str) -> Music:
+    return Music().load(file_path)
+
+
+# Загружаем звук:
+def load_sound(file_path: str) -> Sound:
+    return Sound().load(file_path)
+
+
+# Загрузить файл шрифта:
+def load_font(file_path: str) -> FontFile:
+    return FontFile(file_path).load()
 
 
 # Создаем zip-файл и добавляем файлы и папки из списка:

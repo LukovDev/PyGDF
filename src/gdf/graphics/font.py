@@ -4,16 +4,30 @@
 
 
 # Импортируем:
+import io
 import os
 import pygame
 from .image import Image
 from .texture import Texture
 
 
+# Файл шрифта:
+class FontFile:
+    def __init__(self, file_path: str) -> None:
+        self.path = file_path
+        self.data = None
+
+    # Загрузить шрифт:
+    def load(self) -> "FontFile":
+        with open(self.path, "rb") as f:
+            self.data = f.read()
+        return self
+
+
 # Класс генератора текста из шрифта:
 class FontGenerator:
-    def __init__(self, file_path: str = None) -> None:
-        self._font_path_ = file_path
+    def __init__(self, font: FontFile = None) -> None:
+        self.font = font
         self.texture = None
 
     # Запечь текст шрифта, и получить новую текстуру:
@@ -33,8 +47,8 @@ class FontGenerator:
         bg_color = [c * 255 for c in bg_color]
 
         # Создаём экземпляр шрифта:
-        if self._font_path_ is not None and os.path.isfile(self._font_path_):
-            font = pygame.font.Font(self._font_path_, font_size)
+        if isinstance(self.font, FontFile):
+            font = pygame.font.Font(io.BytesIO(self.font.data), font_size)
         else: font = pygame.font.SysFont("Arial", font_size)
 
         # Создаём и получаем битмап текста из шрифта:

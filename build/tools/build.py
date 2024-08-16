@@ -10,6 +10,7 @@ import os
 import json
 import time
 import shutil
+import pkg_resources
 from threading import Thread
 
 
@@ -54,13 +55,15 @@ def main() -> None:
     pyinstaller_flags = config["pyinstaller-flags"]
     lg                = "--log-level "
     waiting_enabled   = any(flag in pyinstaller_flags for flag in [lg+"WARN", lg+"ERROR", lg+"FATAL"])
+    path_separator    = ";" if os.name == "nt" else ":"
 
     # Отдельный поток для вывода ожидания:
     waiting_thread = Thread(target=waiting, daemon=True)
     if not waiting_enabled: wait_text_len = 0
 
     # Генерация флагов компиляции:
-    flags = f"--noconfirm -n=\"{program_name}\" "
+    pyogg_data = f"{pkg_resources.resource_filename('pyogg', '')}{path_separator}pyogg"
+    flags = f"--noconfirm --add-data \"{pyogg_data}\" -n=\"{program_name}\" "
     for flag in pyinstaller_flags: flags += f"{flag} "
     if console_disabled:           flags +=  "--noconsole "
     if program_icon is not None:   flags += f"--icon=../../{program_icon} "
@@ -81,6 +84,9 @@ def main() -> None:
     if os.path.isdir("build"): shutil.rmtree("build")
     for file in os.listdir():
         if file.endswith(".spec"): os.remove(file)
+
+    # Копируем папку с данными:
+    print("\n\n\nCopying the data folder...")
 
     # Копируем содержимое сборки и содержимое data папки в папку out:
     if os.path.isdir("./dist/"):

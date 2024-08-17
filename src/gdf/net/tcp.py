@@ -237,9 +237,13 @@ class NetServerTCP:
         self._netvars_["timeout"] = timeout
         return self
 
+    # Получить список клиентов:
+    def get_connects(self) -> list:
+        return self._netvars_["clients"]
+
     # Получить количество соединений (клиентов):
     def get_connect_count(self) -> int:
-        return len(self._netvars_["clients"])
+        return len(self.get_connects())
 
     # Получить ip сервера:
     def get_host(self) -> str:

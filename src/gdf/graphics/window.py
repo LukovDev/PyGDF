@@ -170,16 +170,6 @@ class Window:
             self._winvars_["key-up"]       = []
             scn                            = self._winvars_["current-scene"]
 
-            # Если хотят закрыть окно:
-            if self._winvars_["is-exit"]:
-                # Вызываем функцию удаления ресурсов у сцены, если та существует:
-                if scn is not None and issubclass(type(scn), Scene): scn.destroy()
-                self.destroy()  # Вызываем удаление пользовательских ресурсов.
-                al.oalQuit()    # Закрываем OpenAL.
-                pygame.quit()   # Закрываем окно PyGame.
-                gc.collect()    # Собираем мусор (на всякий случай).
-                return          # Возвращаемся из этого класса.
-
             # Проверяем установлена ли новая сцена. Если да, то сбрасываем окно просмотра:
             if self._winvars_["is-new-scene"]: self._winvars_["is-new-scene"] = False ; self._reset_viewport_()
 
@@ -241,13 +231,23 @@ class Window:
                 # Если у нас установлена сцена:
                 if scn is not None and issubclass(type(scn), Scene):
                     scn.update(self._winvars_["dtime"], event_list)
-                    scn.render(self._winvars_["dtime"])
+                    if not self._winvars_["is-exit"]: scn.render(self._winvars_["dtime"])
 
                 # Если сцены нет, используем встроенные функции:
                 else:
                     self.update(self._winvars_["dtime"], event_list)
-                    self.render(self._winvars_["dtime"])
+                    if not self._winvars_["is-exit"]: self.render(self._winvars_["dtime"])
             except KeyboardInterrupt: self.exit()
+
+            # Если хотят закрыть окно:
+            if self._winvars_["is-exit"]:
+                # Вызываем функцию удаления ресурсов у сцены, если та существует:
+                if scn is not None and issubclass(type(scn), Scene): scn.destroy()
+                self.destroy()  # Вызываем удаление пользовательских ресурсов.
+                al.oalQuit()    # Закрываем OpenAL.
+                pygame.quit()   # Закрываем окно PyGame.
+                gc.collect()    # Собираем мусор (на всякий случай).
+                return          # Возвращаемся из этого класса.
 
             # Делаем задержку между кадрами:
             self.clock.tick(self._winvars_["setted-fps"]) if not self._winvars_["vsync"] else self.clock.tick(0)
@@ -503,6 +503,8 @@ class Window:
 
     # Вызовите, когда хотите закрыть окно:
     def exit(self) -> None:
+        self.set_visible(False)
+        self.clear(0, 0, 0)
         self._winvars_["is-exit"] = True
 
     # Очистка окна (цвета от 0 до 1):

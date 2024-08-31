@@ -509,7 +509,7 @@ class Window:
 
     # Очистка окна (цвета от 0 до 1):
     @staticmethod
-    def clear(red: float = 0, green: float = 0, blue: float = 0) -> None:
+    def clear(red: float = 0.0, green: float = 0.0, blue: float = 0.0) -> None:
         gl.glClearColor(abs(red), abs(green), abs(blue), 1.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 

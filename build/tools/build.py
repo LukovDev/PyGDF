@@ -10,7 +10,7 @@ import os
 import json
 import time
 import shutil
-import pkg_resources
+from importlib import resources
 from threading import Thread
 
 
@@ -62,8 +62,8 @@ def main() -> None:
     if not waiting_enabled: wait_text_len = 0
 
     # Генерация флагов компиляции:
-    pyogg_data = f"{pkg_resources.resource_filename('pyogg', '')}{path_separator}pyogg"
-    flags = f"--noconfirm --add-data \"{pyogg_data}\" -n=\"{program_name}\" "
+    pyogg_data = f"{resources.files('pyogg')}{path_separator}pyogg"
+    flags = f"--noconfirm --add-data \"{pyogg_data}\" -n=\"{program_name}\" --exclude-module setuptools.msvc "
     for flag in pyinstaller_flags: flags += f"{flag} "
     if console_disabled:           flags +=  "--noconsole "
     if program_icon is not None:   flags += f"--icon=../../{program_icon} "

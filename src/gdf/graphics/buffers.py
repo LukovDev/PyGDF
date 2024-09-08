@@ -70,3 +70,52 @@ class FrameBuffer:
     # Удалить буфер:
     def destroy(self) -> None:
         gl.glDeleteFramebuffers(1, [self.id])
+
+
+# Создать вершинный буфер:
+class VBO:
+    def __init__(self, vertices: np.ndarray, mode: int = gl.GL_STATIC_DRAW) -> None:
+        self.id       = gl.glGenBuffers(1)
+        self.vertices = vertices
+
+        # Vertex buffer:
+        gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.id)
+        gl.glBufferData(gl.GL_ARRAY_BUFFER, vertices.nbytes, vertices, int(mode))
+
+    # Отрисовать буфер:
+    def render(self,
+               color: list = None,
+               draw_mode: int = gl.GL_TRIANGLES,
+               poly_mode: int = gl.GL_FILL,
+               triangle_vertices: int = 3,
+               accuracy: int = gl.GL_FLOAT) -> None:
+        if color is None: color = [1.0, 1.0, 1.0]
+
+        # Проверка правильности параметра accuracy:
+        if accuracy not in (gl.GL_DOUBLE, gl.GL_FLOAT, gl.GL_INT):
+            raise ValueError("Unsupported accuracy type. Use GL_FLOAT or GL_INT.")
+
+        # Устанавливаем цвет заливки модели:
+        gl.glColor(*color[:4])
+
+        # Режим отображения:
+        gl.glPolygonMode(gl.GL_FRONT_AND_BACK, poly_mode)
+
+        # Настройка перед отрисовкой:
+        gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.id)
+        gl.glVertexPointer(3, int(accuracy), 0, None)
+        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
+
+        # Отрисовка:
+        gl.glDrawArrays(draw_mode, 0, len(self.vertices) // triangle_vertices)
+
+        # Возвращаем настройки отрисовки по умолчанию:
+        gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
+        gl.glBindBuffer(gl.GL_ARRAY_BUFFER, 0)
+
+        # Возвращаем обычный режим отрисовки:
+        gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_FILL)
+
+    # Удалить буфер:
+    def destroy(self) -> None:
+        gl.glDeleteBuffers(1, [self.id])

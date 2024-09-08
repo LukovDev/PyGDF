@@ -16,7 +16,7 @@ class Texture:
         self.image  = image
         self.id     = int
         if image is None or image.surface is None:
-            surface = pygame.Surface(size if size is not None else (1, 1))
+            surface = pygame.Surface(tuple(size) if size is not None else (1, 1))
         else: surface = image.surface
         self.data   = pygame.image.tostring(surface, "RGBA", is_flip_y)
         self.width  = surface.get_width()
@@ -75,3 +75,4 @@ class Texture:
     # Удалить текстуру:
     def destroy(self) -> None:
         gl.glDeleteTextures(self.id)
+        self.id = 0

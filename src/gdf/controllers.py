@@ -69,20 +69,16 @@ class CameraController2D:
         self.camera.position.x += ((self.target_pos.x-self.camera.position.x)*self.friction)*(delta_time*60)
         self.camera.position.y += ((self.target_pos.y-self.camera.position.y)*self.friction)*(delta_time*60)
 
-        self.camera.update()
-
 
 # Класс управления 3D камеры:
 class CameraController3D:
     def __init__(self, input: InputHandler, camera,
                  mouse_sensitivity: float = 1.0,
-                 ctrl_speed:        float = .75,
+                 ctrl_speed:        float = 0.75,
                  speed:             float = 6,
                  shift_speed:       float = 24,
-                 friction:          float = 1,
-                 pitch_min:         float = -89,
-                 pitch_max:         float = +89,
-                 move_up_forward: bool = False) -> None:
+                 friction:          float = 1.0,
+                 up_forward:        bool  = False) -> None:
         self.input             = input
         self.camera            = camera
 
@@ -90,15 +86,15 @@ class CameraController3D:
         self.ctrl_speed        = ctrl_speed
         self.speed             = speed
         self.shift_speed       = shift_speed
-
-        self.is_movement       = False
-
         self.friction          = friction
-        self.pitch_min         = pitch_min
-        self.pitch_max         = pitch_max
-        self.move_up_forward   = move_up_forward
+        self.up_forward        = up_forward
 
+        self.is_movement   = False
         self.camera_target = vec3(self.camera.position.xyz)
+
+        self.up      = vec3(0, 1, 0)
+        self.right   = vec3(1, 0, 0)
+        self.forward = vec3(0, 0, 0)
 
         self.pressed_pass = False
         self.is_pressed = False
@@ -139,17 +135,17 @@ class CameraController3D:
             self.is_movement = True
         else: self.is_movement = False
 
-        self.camera.update()
+        if any([isnan(v) for v in self.camera_target.xyz]): self.camera_target = vec3(0)
 
     # Управление с помощью мыши:
     def mouse_control(self, mouse_delta_xy: tuple[int, int]) -> None:
         # Добавляем смещение мыши к рысканью и тангажу:
-        self.camera.yaw   += mouse_delta_xy[0] * (self.mouse_sensitivity * 0.1)
-        self.camera.pitch -= mouse_delta_xy[1] * (self.mouse_sensitivity * 0.1)
+        self.camera.rotation.y += mouse_delta_xy[0] * (self.mouse_sensitivity * 0.1)  # По горизонтали.
+        self.camera.rotation.x -= mouse_delta_xy[1] * (self.mouse_sensitivity * 0.1)  # По вертикали.
         check_mouse_pos(self.input, self.camera, 16, 16)  # Проверяем позицию мыши.
 
-        # Ограничиваем угол обзора камеры (вверх и вниз):
-        self.camera.pitch = clamp(self.camera.pitch, self.pitch_min, self.pitch_max)
+        # Если мы не перемещаемся вверх-вниз в зависимости от направления, ограничиваем взгляд по вертикали на 90 град.:
+        if not self.up_forward: self.camera.rotation.x = clamp(self.camera.rotation.x, -90, +90)
 
     # Управление с помощью клавиатуры:
     def keyboard_control(self, delta_time: float) -> None:
@@ -163,17 +159,30 @@ class CameraController3D:
             speed = self.ctrl_speed * delta_time
         else: speed = self.speed * delta_time
 
-        # Настраиваем вектора:
-        self.camera.right = normalize(cross(self.camera.forward, vec3(0, 1, 0)))
+        # Углы камеры:
+        yaw   = -radians(self.camera.rotation.y)
+        pitch = +radians(self.camera.rotation.x)
 
-        if not self.move_up_forward:
-            self.camera.forward = -normalize(cross(self.camera.right, vec3(0, 1, 0)))
-        else: self.camera.up = cross(-self.camera.forward, self.camera.right)
+        # Направления по осям:
+        self.forward = normalize(vec3(
+            +cos(pitch) * sin(yaw),
+            -sin(pitch),
+            +cos(pitch) * cos(yaw)
+        ))
+        self.right = normalize(cross(self.forward, vec3(0, 1, 0)))
 
-        # Управление клавишами:
-        if keys[Key.K_w]: self.camera_target += self.camera.forward * speed
-        if keys[Key.K_s]: self.camera_target -= self.camera.forward * speed
-        if keys[Key.K_a]: self.camera_target -= self.camera.right   * speed
-        if keys[Key.K_d]: self.camera_target += self.camera.right   * speed
-        if keys[Key.K_q]: self.camera_target -= self.camera.up      * speed
-        if keys[Key.K_e]: self.camera_target += self.camera.up      * speed
+        # Перемещать ли камеру вверх-вниз в зависимости от направления взгляда или нет:
+        if self.up_forward: self.up = cross(-self.forward, self.right)
+        else:               self.forward = -normalize(cross(self.right, vec3(0, 1, 0)))
+
+        # Управление движением:
+        if keys[Key.K_w]: self.camera_target -= self.forward * speed
+        if keys[Key.K_s]: self.camera_target += self.forward * speed
+        if keys[Key.K_a]: self.camera_target += self.right * speed
+        if keys[Key.K_d]: self.camera_target -= self.right * speed
+        if keys[Key.K_q]: self.camera_target -= self.up * speed
+        if keys[Key.K_e]: self.camera_target += self.up * speed
+
+        # Вращать крен камеры:
+        if keys[Key.K_LEFT]:  self.camera.rotation.z -= 15.0 * delta_time
+        if keys[Key.K_RIGHT]: self.camera.rotation.z += 15.0 * delta_time

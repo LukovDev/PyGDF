@@ -17,9 +17,9 @@ class ShaderProgramError(RuntimeError): pass
 
 # Класс шейдерной программы:
 class ShaderProgram:
-    def __init__(self, frag: str | int = None, vert: str | int = None, geom: str | int = None) -> None:
-        self.frag = frag
+    def __init__(self, vert: str = None, frag: str = None, geom: str = None) -> None:
         self.vert = vert
+        self.frag = frag
         self.geom = geom
         self.program = gls.glCreateProgram()
         self._id_before_begin_ = gl.glGetIntegerv(gl.GL_CURRENT_PROGRAM)
@@ -53,11 +53,11 @@ class ShaderProgram:
 
         # Пытаемся скомпилировать шейдер:
         try:
-            # Если фрагментный шейдер есть:
-            if type(self.frag) is str: shaders.append(compile_shader(self.frag, gl.GL_FRAGMENT_SHADER))
-
             # Если вершинный шейдер есть:
             if type(self.vert) is str: shaders.append(compile_shader(self.vert, gl.GL_VERTEX_SHADER))
+
+            # Если фрагментный шейдер есть:
+            if type(self.frag) is str: shaders.append(compile_shader(self.frag, gl.GL_FRAGMENT_SHADER))
 
             # Если геометрический шейдер есть:
             if self.geom is not None: shaders.append(compile_shader(self.geom, gl.GL_GEOMETRY_SHADER))

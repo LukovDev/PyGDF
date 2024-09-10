@@ -231,12 +231,14 @@ class Window:
                 # Если у нас установлена сцена:
                 if scn is not None and issubclass(type(scn), Scene):
                     scn.update(self._winvars_["dtime"], event_list)
-                    if not self._winvars_["is-exit"]: scn.render(self._winvars_["dtime"])
+                    if not self._winvars_["is-exit"]:
+                        scn.render(self._winvars_["dtime"])
 
                 # Если сцены нет, используем встроенные функции:
                 else:
                     self.update(self._winvars_["dtime"], event_list)
-                    if not self._winvars_["is-exit"]: self.render(self._winvars_["dtime"])
+                    if not self._winvars_["is-exit"]:
+                        self.render(self._winvars_["dtime"])
             except KeyboardInterrupt: self.exit()
 
             # Если хотят закрыть окно:

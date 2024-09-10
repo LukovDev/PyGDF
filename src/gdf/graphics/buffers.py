@@ -4,8 +4,34 @@
 
 
 # Импортируем:
+import array
 from .gl import *
 from ..math import numpy as np
+
+
+# Класс для отслеживания количества отрисованных примитивов:
+class GLQuery:
+    def __init__(self) -> None:
+        self.id = gl.glGenQueries(1)[0]
+
+    # Начать отслеживание отрисовки:
+    def begin(self) -> "GLQueries":
+        gl.glBeginQuery(gl.GL_PRIMITIVES_GENERATED, self.id)
+        return self
+
+    # Закончить отслеживание отрисовки:
+    def end(self) -> "GLQueries":
+        gl.glEndQuery(gl.GL_PRIMITIVES_GENERATED)
+        return self
+
+    # Получить количество отрисованных примитивов:
+    def get_primitives(self) -> int:
+        return gl.glGetQueryObjectuiv(self.id, gl.GL_QUERY_RESULT)
+
+    # Удалить буфер:
+    def destroy(self) -> None:
+        gl.glDeleteQueries(1, [self.id])
+        self.id = None
 
 
 # Shader Storage Buffer Object:
@@ -17,8 +43,8 @@ class SSBO:
         gl.glBindBuffer(gl.GL_SHADER_STORAGE_BUFFER, 0)
 
     # Использовать буфер:
-    def begin(self) -> "SSBO":
-        gl.glBindBufferBase(gl.GL_SHADER_STORAGE_BUFFER, 0, self.id)
+    def begin(self, bind_base: int = 0) -> "SSBO":
+        gl.glBindBufferBase(gl.GL_SHADER_STORAGE_BUFFER, int(bind_base), self.id)
         gl.glMemoryBarrier(gl.GL_SHADER_STORAGE_BARRIER_BIT)
         return self
 
@@ -30,6 +56,7 @@ class SSBO:
     # Удалить буфер:
     def destroy(self) -> None:
         gl.glDeleteBuffers(1, [self.id])
+        self.id = None
 
 
 # Кадровый буфер:
@@ -70,25 +97,30 @@ class FrameBuffer:
     # Удалить буфер:
     def destroy(self) -> None:
         gl.glDeleteFramebuffers(1, [self.id])
+        self.id = None
 
 
 # Создать вершинный буфер:
 class VBO:
-    def __init__(self, vertices: np.ndarray, mode: int = gl.GL_STATIC_DRAW) -> None:
+    def __init__(self, vertices: np.ndarray | list, mode: int = gl.GL_STATIC_DRAW) -> None:
         self.id       = gl.glGenBuffers(1)
         self.vertices = vertices
 
         # Vertex buffer:
         gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.id)
-        gl.glBufferData(gl.GL_ARRAY_BUFFER, vertices.nbytes, vertices, int(mode))
+        if not isinstance(vertices, np.ndarray):
+            linear_list = vertices if type(vertices[0]) not in (tuple, list) else [i for s in vertices for i in s]
+            vrts = array.array("f", linear_list).tobytes()
+        else: vrts = vertices
+        gl.glBufferData(gl.GL_ARRAY_BUFFER, vrts.nbytes if isinstance(vrts, np.ndarray) else len(vrts), vrts, int(mode))
 
     # Отрисовать буфер:
     def render(self,
-               color: list = None,
-               draw_mode: int = gl.GL_TRIANGLES,
-               poly_mode: int = gl.GL_FILL,
+               color:             list = None,
+               draw_mode:         int = gl.GL_TRIANGLES,
+               poly_mode:         int = gl.GL_FILL,
                triangle_vertices: int = 3,
-               accuracy: int = gl.GL_FLOAT) -> None:
+               accuracy:          int = gl.GL_FLOAT) -> None:
         if color is None: color = [1.0, 1.0, 1.0]
 
         # Проверка правильности параметра accuracy:
@@ -119,3 +151,4 @@ class VBO:
     # Удалить буфер:
     def destroy(self) -> None:
         gl.glDeleteBuffers(1, [self.id])
+        self.id = None

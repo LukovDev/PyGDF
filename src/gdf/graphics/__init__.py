@@ -51,7 +51,7 @@ from . import window
 from .animator  import Animator2D
 from .atlas     import AtlasTexture
 from .batch     import SpriteBatch2D, AtlasTextureBatch2D
-from .buffers   import SSBO, FrameBuffer, VBO
+from .buffers   import GLQuery, SSBO, FrameBuffer, VBO
 from .camera    import Camera2D, Camera3D
 from .draw      import Draw2D, Draw3D
 from .font      import FontFile, FontGenerator
@@ -65,5 +65,5 @@ from .scene     import Scene
 from .shader    import ShaderProgram
 from .skybox    import SkyBox
 from .sprite    import Sprite2D
-from .texture   import Texture
+from .texture   import Texture, Texture3D
 from .window    import Window

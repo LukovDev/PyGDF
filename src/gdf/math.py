@@ -11,6 +11,7 @@ import random
 import decimal
 from glm import *
 from math import *
+import array
 
 
 # Удаляем округление от glm:

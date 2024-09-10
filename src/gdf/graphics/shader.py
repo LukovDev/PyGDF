@@ -133,37 +133,35 @@ class ShaderProgram:
 
     # Установить значение для униформы типа sampler2d:
     def set_sampler2d(self, name: str, value: int) -> "ShaderProgram":
+        return self._set_sampler_(name, value, gl.GL_TEXTURE_2D)
+
+    # Установить значение для униформы типа sampler3d:
+    def set_sampler3d(self, name: str, value: int) -> "ShaderProgram":
+        return self._set_sampler_(name, value, gl.GL_TEXTURE_3D)
+
+    # Специальная функция для установки семплера:
+    def _set_sampler_(self, name: str, value: int, texture_type: int) -> "ShaderProgram":
         global _texture_units_
         location = self.get_uniform(name)
         if location == -1: return
-
-        # Создаем элемент для текущего экземпляра класса, если его ещё нет:
         if id(self) not in _texture_units_: _texture_units_[id(self)] = {}
-
-        # Ищем свободный текстурный юнит для униформы:
         if name not in _texture_units_[id(self)]:
-            # Ищем свободный текстурный юнит:
-            tunit = 1  # texture unit.
+            tunit = 1
             while tunit in [unit for units in _texture_units_.values() for unit in units.values()]: tunit += 1
-            
-            # Сохраняем соответствие между именем униформы и текстурным юнитом:
             _texture_units_[id(self)][name] = tunit
         else: tunit = _texture_units_[id(self)][name]
 
-        # Активируем текстурный юнит:
         gl.glActiveTexture(gl.GL_TEXTURE0 + tunit)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, value)
+        gl.glBindTexture(texture_type, value)
         gl.glUniform1i(location, tunit)
-
-        # Возвращаемся к нулевому текстурному юниту и нулевой текстуре:
         gl.glActiveTexture(gl.GL_TEXTURE0)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-
+        gl.glBindTexture(texture_type, 0)
         return self
 
     # Удаление шейдера:
     def destroy(self) -> None:
         gl.glDeleteProgram(self.program)
+        self.program = None
 
 
 # Класс вычислительного шейдера:

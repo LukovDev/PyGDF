@@ -121,13 +121,11 @@ class Camera3D:
         self.right   = vec3(1, 0, 0)
         self.forward = vec3(0, 0, 0)
 
-        self._enabled_ = {
-            "depth-test": True,
-            "cull-faces": True
-        }
+        # Проверка глубины:
+        self.set_depth_test(True)
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
-        gl.glEnable(gl.GL_CULL_FACE)
+        # Отсечение невидимых сторон:
+        self.set_cull_faces(True)
 
         self.apply()
 
@@ -158,20 +156,10 @@ class Camera3D:
     # Применить настройки камеры:
     def apply(self, depth_test: bool = True, cull_faces: bool = True) -> "Camera3D":
         # Проверка глубины:
-        if depth_test and not self._enabled_["depth-test"]:
-            self._enabled_["depth-test"] = True
-            gl.glEnable(gl.GL_DEPTH_TEST)
-        elif not depth_test and self._enabled_["depth-test"]:
-            self._enabled_["depth-test"] = False
-            gl.glDisable(gl.GL_DEPTH_TEST)
+        self.set_depth_test(depth_test)
 
         # Отсечение невидимых сторон:
-        if cull_faces and not self._enabled_["cull-faces"]:
-            self._enabled_["cull-faces"] = True
-            gl.glEnable(gl.GL_CULL_FACE)
-        elif not cull_faces and self._enabled_["cull-faces"]:
-            self._enabled_["cull-faces"] = False
-            gl.glDisable(gl.GL_CULL_FACE)
+        self.set_cull_faces(cull_faces)
 
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()
@@ -186,6 +174,16 @@ class Camera3D:
         gl.glRotate(+self.rotation.y, False, True, False)  # Вращаем камеру по Y-оси.
         gl.glTranslate(-self.position.x, -self.position.y, -self.position.z)
 
+        return self
+
+    # Установить тест глубины:
+    def set_depth_test(self, enabled: bool) -> "Camera3D":
+        gl.glEnable(gl.GL_DEPTH_TEST) if enabled else gl.glDisable(gl.GL_DEPTH_TEST)
+        return self
+
+    # Установить отсечение сторон:
+    def set_cull_faces(self, enabled: bool) -> "Camera3D":
+        gl.glEnable(gl.GL_CULL_FACE) if enabled else gl.glDisable(gl.GL_CULL_FACE)
         return self
 
     # Освобождаем ресурсы:

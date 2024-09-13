@@ -137,10 +137,11 @@ class Camera3D:
         self.far  = max(self.far, 1)
         self.near = max(self.near, 0.0001)
 
-        self.apply(depth_test, cull_faces)
-
         self.modelview  = gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX)
         self.projection = gl.glGetDoublev(gl.GL_PROJECTION_MATRIX)
+
+        self.apply(depth_test, cull_faces)
+
         return self
 
     # Изменение размера камеры:

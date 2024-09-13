@@ -104,23 +104,27 @@ class FrameBuffer:
 class VBO:
     def __init__(self, vertices: np.ndarray | list, mode: int = gl.GL_STATIC_DRAW) -> None:
         self.id       = gl.glGenBuffers(1)
-        self.vertices = vertices
+        self.vertices = None
 
-        # Vertex buffer:
-        gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.id)
+        # VBO:
         if not isinstance(vertices, np.ndarray):
             linear_list = vertices if type(vertices[0]) not in (tuple, list) else [i for s in vertices for i in s]
-            vrts = array.array("f", linear_list).tobytes()
-        else: vrts = vertices
-        gl.glBufferData(gl.GL_ARRAY_BUFFER, vrts.nbytes if isinstance(vrts, np.ndarray) else len(vrts), vrts, int(mode))
+            self.vertices = array.array("f", linear_list).tobytes()
+        else: self.vertices = vertices
+
+        gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.id)
+        gl.glBufferData(gl.GL_ARRAY_BUFFER,
+                        self.vertices.nbytes if isinstance(self.vertices, np.ndarray) else len(self.vertices),
+                        self.vertices, int(mode))
 
     # Отрисовать буфер:
     def render(self,
-               color:             list = None,
-               draw_mode:         int = gl.GL_TRIANGLES,
-               poly_mode:         int = gl.GL_FILL,
-               triangle_vertices: int = 3,
-               accuracy:          int = gl.GL_FLOAT) -> None:
+               color:               list = None,
+               draw_mode:           int = gl.GL_TRIANGLES,
+               poly_mode:           int = gl.GL_FILL,
+               triangle_vertices:   int = 3,
+               vertice_value_count: int = 3,
+               accuracy:            int = gl.GL_FLOAT) -> None:
         if color is None: color = [1.0, 1.0, 1.0]
 
         # Проверка правильности параметра accuracy:
@@ -135,7 +139,7 @@ class VBO:
 
         # Настройка перед отрисовкой:
         gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.id)
-        gl.glVertexPointer(3, int(accuracy), 0, None)
+        gl.glVertexPointer(vertice_value_count, int(accuracy), 0, None)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
 
         # Отрисовка:

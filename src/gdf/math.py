@@ -182,6 +182,35 @@ class double:
         return other._value_ if isinstance(other, double) else decimal.Decimal(other)
 
 
+# Матрица преобразования для модели (opengl):
+class ModelMatrix:
+    def __init__(self) -> None:
+        self._mat4_ = mat4(1.0)
+
+    # Получить матрицу модели:
+    @property
+    def matrix(self) -> list: return [[self._mat4_[i][j] for j in range(4)] for i in range(4)]
+
+    # Дополнительная информация об этом объекте:
+    def __repr__(self) -> str:
+        return f"ModelMatrix({self.matrix})"
+
+    # Масштабировать матрицу модели:
+    def scale(self, size: vec3 | list) -> "ModelMatrix":
+        self._mat4_ = scale(self._mat4_, size)
+        return self
+
+    # Переместить матрицу модели:
+    def translate(self, offset: vec3 | list) -> "ModelMatrix":
+        self._mat4_ = translate(self._mat4_, offset)
+        return self
+
+    # Вращать матрицу модели:
+    def rotate(self, angle: float, axis: vec3 | list) -> "ModelMatrix":
+        self._mat4_ = rotate(self._mat4_, angle, axis)
+        return self
+
+
 # Класс двумерного вектора:
 class vec2(glm.vec2): pass
 

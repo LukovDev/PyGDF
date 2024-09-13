@@ -126,6 +126,10 @@ class ShaderProgram:
         elif type(value) is list and len(value) == 4 and type(value[0]) is list:
             gl.glUniformMatrix4fv(location, 1, gl.GL_FALSE, value)
 
+        # Тип ModelMatrix:
+        elif isinstance(value, ModelMatrix):
+            gl.glUniformMatrix4fv(location, 1, gl.GL_FALSE, value.matrix)
+
         # Иначе, если неизвестный тип данных:
         else: raise ValueError(f"Unsupported data type. Your data type: {type(value)}, not supported.")
 

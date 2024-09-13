@@ -5,6 +5,7 @@
 
 # Импортируем:
 import array
+import ctypes
 from .gl import *
 from ..math import numpy as np
 
@@ -120,12 +121,14 @@ class VBO:
     # Отрисовать буфер:
     def render(self,
                color:               list = None,
-               draw_mode:           int = gl.GL_TRIANGLES,
-               poly_mode:           int = gl.GL_FILL,
-               triangle_vertices:   int = 3,
-               vertice_value_count: int = 3,
-               accuracy:            int = gl.GL_FLOAT) -> None:
-        if color is None: color = [1.0, 1.0, 1.0]
+               draw_mode:           int  = gl.GL_TRIANGLES,
+               poly_mode:           int  = gl.GL_FILL,
+               triangle_vertices:   int  = 3,
+               vertice_value_count: int  = 3,
+               attributes:          list = None,
+               accuracy:            int  = gl.GL_FLOAT) -> None:
+        if color      is None: color = [1.0, 1.0, 1.0]
+        if attributes is None: attributes = [(3, ctypes.c_float)]
 
         # Проверка правильности параметра accuracy:
         if accuracy not in (gl.GL_DOUBLE, gl.GL_FLOAT, gl.GL_INT):
@@ -139,13 +142,25 @@ class VBO:
 
         # Настройка перед отрисовкой:
         gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.id)
-        gl.glVertexPointer(vertice_value_count, int(accuracy), 0, None)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
+
+        # Устанавливаем каждый атрибут:
+        offset, stride = 0, sum(count for count, _ in attributes)
+        for i, (count, attr_type) in enumerate(attributes):
+            gl.glEnableVertexAttribArray(i)
+            gl.glVertexAttribPointer(
+                i, count, int(accuracy), gl.GL_FALSE,
+                stride * ctypes.sizeof(attr_type),
+                ctypes.c_void_p(offset))
+
+            # Смещаем указатель на следующий атрибут:
+            offset += count * ctypes.sizeof(attr_type)
 
         # Отрисовка:
         gl.glDrawArrays(draw_mode, 0, len(self.vertices) // triangle_vertices)
 
         # Возвращаем настройки отрисовки по умолчанию:
+        for i in range(len(attributes)): gl.glDisableVertexAttribArray(i)
         gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
         gl.glBindBuffer(gl.GL_ARRAY_BUFFER, 0)
 

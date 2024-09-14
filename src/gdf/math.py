@@ -7,6 +7,7 @@
 import glm
 import math
 import numpy
+import ctypes
 import random
 import decimal
 from glm import *
@@ -184,8 +185,14 @@ class double:
 
 # Матрица преобразования для модели (opengl):
 class ModelMatrix:
-    def __init__(self) -> None:
+    def __init__(self, position: vec3 = None, rotation: vec3 = None, size: vec3 = None) -> None:
         self._mat_ = mat4(1.0)
+        if position is not None: self.translate(position.xyz)
+        if rotation is not None:
+            self.rotate(rotation.y, vec3(False, True, False))
+            self.rotate(rotation.x, vec3(True, False, False))
+            self.rotate(rotation.z, vec3(False, False, True))
+        if size is not None: self.scale(size.xyz)
 
     # Получить матрицу модели:
     @property
@@ -207,7 +214,12 @@ class ModelMatrix:
 
     # Вращать матрицу модели:
     def rotate(self, angle: float, axis: vec3 | list) -> "ModelMatrix":
-        self._mat_ = rotate(self._mat_, angle, axis)
+        self._mat_ = rotate(self._mat_, radians(angle), axis)
+        return self
+
+    # Сбросить матрицу модели:
+    def reset(self) -> "ModelMatrix":
+        self._mat_ = mat4(1.0)
         return self
 
 

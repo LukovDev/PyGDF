@@ -12,7 +12,7 @@ from .image import Image
 
 # Класс обычной текстуры:
 class Texture:
-    def __init__(self, image: Image, is_flip_y: bool = False, size: tuple = None) -> None:
+    def __init__(self, image: Image, is_flip_y: bool = False, size: tuple = None, use_mipmap: bool = False) -> None:
         self.image  = image
         self.id     = int
         if image is None or image.surface is None:
@@ -25,12 +25,13 @@ class Texture:
 
         gl.glEnable(gl.GL_TEXTURE_2D)
 
-        wdth, hght = self.width, self.height
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
         self.set_linear()
         self.set_filter([gl.GL_TEXTURE_WRAP_S, gl.GL_TEXTURE_WRAP_T], gl.GL_CLAMP_TO_EDGE)
+
+        wdth, hght = self.width, self.height
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
         gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA, wdth, hght, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, self.data)
-        gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
+        if use_mipmap: gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         gl.glDisable(gl.GL_TEXTURE_2D)
 

@@ -135,6 +135,40 @@ class ShaderProgram:
 
         return self
 
+    # Установить униформу массива:
+    def set_uniform_list(self, name: str, value: int) -> "ShaderProgram":
+        if isinstance(value, (glm.vec2, glm.vec3, glm.vec4, tuple)): value = list(value)
+        if type(value) is numpy.ndarray: value = value.tolist()
+        if type(value) is not list: return
+        location = self.get_uniform(name)
+        if location == -1: return
+
+        # Тип bool:
+        if type(value[0]) is bool:
+            gl.glUniform1iv(location, len(value), value)
+
+        # Тип int:
+        elif type(value[0]) is int:
+            gl.glUniform1iv(location, len(value), value)
+
+        # Тип float:
+        elif type(value[0]) is float:
+            gl.glUniform1fv(location, len(value), value)
+
+        # Тип vec2:
+        elif type(value[0]) in (list, tuple) and len(value[0]) == 2:
+            gl.glUniform2fv(location, len(value), value)
+
+        # Тип vec3:
+        elif type(value[0]) in (list, tuple) and len(value[0]) == 3:
+            gl.glUniform3fv(location, len(value), value)
+
+        # Тип vec4:
+        elif type(value[0]) in (list, tuple) and len(value[0]) == 4:
+            gl.glUniform4fv(location, len(value), value)
+
+        return self
+
     # Установить значение для униформы типа sampler2d:
     def set_sampler2d(self, name: str, value: int) -> "ShaderProgram":
         return self._set_sampler_(name, value, gl.GL_TEXTURE_2D)

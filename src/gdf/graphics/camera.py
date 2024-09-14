@@ -114,8 +114,8 @@ class Camera3D:
         self.far      = far          # Дальнее отсечение.
         self.near     = near         # Ближнее отсечение.
 
-        self.modelview  = None
-        self.projection = None
+        self.modelview  = gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX)
+        self.projection = gl.glGetDoublev(gl.GL_PROJECTION_MATRIX)
 
         self.up      = vec3(0, 1, 0)
         self.right   = vec3(1, 0, 0)

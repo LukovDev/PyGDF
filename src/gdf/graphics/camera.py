@@ -101,7 +101,7 @@ class Camera3D:
                  height:   int,
                  position: vec3,
                  rotation: vec3  = vec3(0),  # X-Pitch, Y-Yaw, Z-Roll.
-                 scale:    vec3  = vec3(1),
+                 size:     vec3  = vec3(1),
                  fov:      int   = 60,
                  far:      float = 1000,
                  near:     float = 0.01) -> None:
@@ -109,7 +109,7 @@ class Camera3D:
         self.height   = int(height)  # Высота камеры.
         self.position = position     # Позиция камеры.
         self.rotation = rotation     # Вращение камеры.
-        self.scale    = scale        # Размер камеры.
+        self.size     = size         # Размер камеры.
         self.fov      = fov          # Угол обзора камеры.
         self.far      = far          # Дальнее отсечение.
         self.near     = near         # Ближнее отсечение.
@@ -169,7 +169,7 @@ class Camera3D:
 
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
-        gl.glScale(1 / self.scale.x, 1 / self.scale.y, 1 / self.scale.z)
+        gl.glScale(1 / self.size.x, 1 / self.size.y, 1 / self.size.z)
         gl.glRotate(+self.rotation.z, False, False, True)  # Вращаем камеру по Z-оси.
         gl.glRotate(-self.rotation.x, True, False, False)  # Вращаем камеру по X-оси.
         gl.glRotate(+self.rotation.y, False, True, False)  # Вращаем камеру по Y-оси.

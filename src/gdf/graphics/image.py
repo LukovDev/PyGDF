@@ -44,6 +44,11 @@ class Image:
         self.surface.set_alpha(abs(int(alpha)))
         return self
 
+    # Установить пиксель:
+    def set_pixel(self, x: int, y: int, color: list) -> "Image":
+        self.surface.set_at((x, y), color)
+        return self
+
     # Закрасить изображение:
     def fill(self, color: list) -> "Image":
         if len(color) < 3: color = [0, 0, 0]

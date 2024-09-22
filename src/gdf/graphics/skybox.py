@@ -93,7 +93,7 @@ class SkyBox:
                      coef_mie:             float = 0.000001,
                      height_rlh:           float = 10_000.0,
                      height_mie:           float = 1200.0,
-                     g_mie:                float = 0.758,
+                     g_mie:                float = 0.985,
                      box_size:             float = 1) -> None:
             self.camera = camera
 

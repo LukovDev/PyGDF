@@ -14,7 +14,7 @@ from libc.math cimport sin, cos, pi
 
 
 # Сверхбыстрая функция для поворота четырёх 2D вершин (для 2D прямоугольника), вокруг их общего центра:
-def _rot2d_vertices_rectangle_(float x, float y, int width, int height, float angle) -> list:
+cpdef list _rot2d_vertices_rectangle_(float x, float y, int width, int height, float angle):
     # Подготовка значений:
     cdef float center_x      =  x + (width  / 2.0)
     cdef float center_y      =  y + (height / 2.0)

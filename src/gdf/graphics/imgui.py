@@ -56,7 +56,7 @@ class ImGUI:
         return self
 
     # Сохранить весь интерфейс в ini файл:
-    def save_gui(self) -> "ImGUI":
+    def save(self) -> "ImGUI":
         self.io.ini_file_name = self.ini_file_name.encode()
         imgui.save_ini_settings_to_disk(self.ini_file_name)
         return self

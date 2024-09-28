@@ -7,7 +7,7 @@
 from .gl import *
 from .texture import Texture
 from .atlas import AtlasTexture
-from . import _rotate_vertices_
+from . import _rot2d_vertices_rectangle_
 
 
 # Класс спрайта:
@@ -45,7 +45,7 @@ class Sprite2D:
 
         # Вращаем вершины спрайта:
         if angle != 0.0:
-            vertices = _rotate_vertices_(x, y, wdth, hght, angle)
+            vertices = _rot2d_vertices_rectangle_(x, y, wdth, hght, angle)
         else:
             vertices = [
                 x       , y       ,
@@ -68,7 +68,7 @@ class Sprite2D:
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
 
         gl.glColor(*color)
-        gl.glBegin(gl.GL_QUADS)
+        gl.glBegin(gl.GL_TRIANGLE_FAN)
         for index in range(0, len(vertices), 2):
             gl.glTexCoord(texcoords[index], texcoords[index+1])
             gl.glVertex(vertices[index], vertices[index+1])

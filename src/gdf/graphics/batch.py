@@ -9,7 +9,7 @@ from .camera import Camera2D
 from .sprite import Sprite2D
 from .texture import Texture
 from .atlas import AtlasTexture
-from . import _rotate_vertices_
+from . import _rot2d_vertices_rectangle_
 from ..math import *
 from ..utils import *
 
@@ -58,7 +58,7 @@ class SpriteBatch2D:
                 return
 
         # Вращаем вершины спрайта:
-        if angle != 0.0: vertices = _rotate_vertices_(x, y, width, height, angle)
+        if angle != 0.0: vertices = _rot2d_vertices_rectangle_(x, y, width, height, angle)
         else:
             vertices = [
                 x        , y         ,  # Нижний левый угол.
@@ -160,7 +160,7 @@ class AtlasTextureBatch2D:
                 return
 
         # Вращаем вершины спрайта:
-        if angle != 0.0: vertices = _rotate_vertices_(x, y, width, height, angle)
+        if angle != 0.0: vertices = _rot2d_vertices_rectangle_(x, y, width, height, angle)
         else:
             vertices = [
                 x        , y         ,  # Нижний левый угол.

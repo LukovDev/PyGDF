@@ -1,5 +1,5 @@
 #
-# r2d_verts_c.pyx - Код для создания мега оптимизированной быстрой функции поворота вершин 2D спрайта.
+# graphics_utils.pyx - Код для создания очень быстрых функций (на уровне языка си) для работы с графикой.
 #
 # Этот код никак не используется ядром, пока не будет скомпилирован.
 #
@@ -44,3 +44,21 @@ cpdef list _rot2d_vertices_rectangle_(float x, float y, int width, int height, f
 
     # Возвращаем 4 вершины спрайта:
     return [x1, y1, x2, y2, x3, y3, x4, y4]
+
+
+# Функция для конвертации списка квадратов в список треугольников:
+cpdef list _convert_quads_to_triangles_(list vertices):
+    cdef list new_vertices = []
+    cdef int i
+
+    for i in range(0, len(vertices), 8):
+        new_vertices += [
+            vertices[i+0],   vertices[i+1],  # Нижний левый угол.
+            vertices[i+2],   vertices[i+3],  # Нижний правый угол.
+            vertices[i+4],   vertices[i+5],  # Верхний правый угол.
+            vertices[i+4],   vertices[i+5],  # Верхний правый угол.
+            vertices[i+6],   vertices[i+7],  # Верхный левый угол.
+            vertices[i+0],   vertices[i+1],  # Нижний левый угол.
+        ]
+
+    return new_vertices

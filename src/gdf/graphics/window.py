@@ -382,7 +382,7 @@ class Window:
 
     # Установить максимальный размер окна:
     def set_max_size(self, width: int, height: int) -> None:
-        self._winvars_["max-size"] = vec2(int(width), int(height))
+        self._winvars_["max-size"] = vec2(width, height)
 
     # Получить максимальный размер окна:
     def get_max_size(self) -> vec2:
@@ -402,8 +402,18 @@ class Window:
         return self._winvars_["samples"]
 
     # Установить конфигурацию окна:
-    def set_config(self, title: str, icon: Image, size: vec2, vsync: bool, fps: int,
-                   visible: bool, min_size: vec2 = vec2(0), max_size: vec2 = vec2(float("inf"),
+    def set_config(self,
+                   title:      str,
+                   icon:       Image,
+                   size:       vec2,
+                   vsync:      bool,
+                   fps:        int,
+                   visible:    bool,
+                   titlebar:   bool,
+                   resizable:  bool,
+                   fullscreen: bool,
+                   min_size: vec2 = vec2(0),
+                   max_size: vec2 = vec2(float("inf"),
                    float("inf")), samples: int = 0) -> None:
         self.set_title(title)
         self.set_icon(icon)
@@ -411,6 +421,9 @@ class Window:
         self.set_vsync(vsync)
         self.set_fps(fps)
         self.set_visible(visible)
+        self.set_titlebar(titlebar)
+        self.set_resizable(resizable)
+        self.set_fullscreen(fullscreen, size)
         self.set_min_size(*min_size)
         self.set_max_size(*max_size)
         self.set_samples(samples)
@@ -418,9 +431,18 @@ class Window:
     # Получить конфигурацию окна:
     def get_config(self) -> list:
         return [
-            self.get_title(), self.get_icon(), self.get_size(),
-            self.get_vsync(), self.get_fps(), self.get_visible(),
-            self.get_min_size(), self.get_max_size(), self.get_samples()
+            self.get_title(),
+            self.get_icon(),
+            self.get_size(),
+            self.get_vsync(),
+            self.get_fps(),
+            self.get_visible(),
+            self.get_titlebar(),
+            self.get_resizable(),
+            self.get_fullscreen(),
+            self.get_min_size(),
+            self.get_max_size(),
+            self.get_samples()
         ]
 
     # Установить игровую сцену:

@@ -63,4 +63,4 @@ class ImGUI:
 
     # Вызывайте, при закрытии окна:
     def destroy(self, save_gui: bool = True) -> None:
-        if save_gui: self.save_gui()
+        if save_gui: self.save()

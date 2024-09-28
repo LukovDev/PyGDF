@@ -27,8 +27,9 @@ def save_image(file_path: str, image: Image) -> None:
 
 
 # Загружаем текстуру:
-def load_texture(file_path: str, is_flip_y: bool = False) -> Texture:
-    return Texture(Image((0, 0)).load(file_path), is_flip_y)
+def load_texture(file_path: str, is_flip_y: bool = False, pixelized: bool = False) -> Texture:
+    texture = Texture(Image((0, 0)).load(file_path), is_flip_y)
+    return texture.set_pixelized() if pixelized else texture
 
 
 # Сохраняем текстуру:
@@ -58,8 +59,8 @@ def save_json(file_path: str, data: dict | list, mode: str = "w+", encoding: str
 
 
 # Загружаем текстуру, а потом превращаем в спрайт:
-def load_sprite(file_path: str, is_flip_y: bool = False) -> Sprite2D:
-    return Sprite2D(load_texture(file_path, is_flip_y))
+def load_sprite(file_path: str, is_flip_y: bool = False, pixelized: bool = False) -> Sprite2D:
+    return Sprite2D(load_texture(file_path, is_flip_y, pixelized))
 
 
 # Загружаем музыку:

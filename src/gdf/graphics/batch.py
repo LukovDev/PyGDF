@@ -87,7 +87,7 @@ class SpriteBatch2D:
         return self
 
     # Отрисовать все спрайты:
-    def render(self, color: list = None) -> "SpriteBatch2D":
+    def render(self, color: list = None, clear_batch: bool = True) -> "SpriteBatch2D":
         if self._is_begin_:
             raise Exception(
                 "You cannot call the \".render()\" function after \".begin()\" and not earlier than \".end()\""
@@ -105,13 +105,13 @@ class SpriteBatch2D:
             gl.glVertexPointer(2, gl.GL_DOUBLE, 0, numpy.array(vertices))
             gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, numpy.array([0, 1, 1, 1, 1, 0, 0, 0] * (len(vertices) // 8)))
             gl.glDrawArrays(gl.GL_QUADS, 0, len(vertices) // 2)
-
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+
         gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY)
         gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
         gl.glDisable(gl.GL_TEXTURE_2D)
 
-        self.texture_batches.clear()
+        if clear_batch: self.texture_batches.clear()
 
         return self
 
@@ -189,7 +189,7 @@ class AtlasTextureBatch2D:
         return self
 
     # Отрисовать все спрайты:
-    def render(self, color: list = None) -> "AtlasTextureBatch2D":
+    def render(self, color: list = None, clear_batch: bool = True) -> "AtlasTextureBatch2D":
         if self._is_begin_:
             raise Exception(
                 "You cannot call the \".render()\" function after \".begin()\" and not earlier than \".end()\""
@@ -207,12 +207,12 @@ class AtlasTextureBatch2D:
             gl.glVertexPointer(2, gl.GL_DOUBLE, 0, numpy.array(vertices))
             gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, numpy.array(texcoords))
             gl.glDrawArrays(gl.GL_QUADS, 0, len(vertices) // 2)
-
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+
         gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY)
         gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
         gl.glDisable(gl.GL_TEXTURE_2D)
 
-        self.texture_batches.clear()
+        if clear_batch: self.texture_batches.clear()
 
         return self

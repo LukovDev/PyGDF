@@ -34,15 +34,26 @@ def clear() -> None:
 os.system("pip3 install -r pypi.txt")
 
 
+# Найти файлы .cyt и переименовать их в .pyx:
+cyt_files = find_files("cyt")
+for file in cyt_files:
+    pyx_file = file[:-4] + ".pyx"
+    os.rename(file, pyx_file)  # Переименовать .cyt в .pyx
+
 # Устанавливаем ядро:
 setup(
-    ext_modules = cythonize([
+    ext_modules=cythonize([
         Extension(
             name=os.path.splitext(os.path.relpath(file))[0].replace(os.path.sep, "."),
             sources=[file]
         ) for file in find_files("pyx")
     ])
 )
+
+# Переименовать файлы обратно из .pyx в .cyt:
+for file in find_files("pyx"):
+    cyt_file = file[:-4] + ".cyt"
+    os.rename(file, cyt_file)
 
 
 # Удаляем мусор:

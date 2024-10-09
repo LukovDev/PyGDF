@@ -116,6 +116,23 @@ class NetSocket:
             raise NetTimeout("Receive data timed-out.")
         except OSError: return None
 
+    # Отправить сырые данные:
+    def send_raw(self, data: any) -> "NetSocket":
+        try: self.socket.sendall(data)
+        except (TimeoutError, socket.timeout):
+            raise NetTimeout("Send data timed-out.")
+        except OSError: return self
+        finally: return self
+
+    # Получить сырые данные:
+    def recv_raw(self, buffer_size: int = 1024) -> str | None:
+        try:
+            data = self.socket.recv(buffer_size)
+            return data if data != "" else None
+        except (TimeoutError, socket.timeout):
+            raise NetTimeout("Receive data timed-out.")
+        except OSError: return None
+
     # Отправить пакет данных:
     def send_json(self, data: dict, encoding: str = "utf-8") -> "NetSocket":
         self.send_data(json.dumps(data), encoding)

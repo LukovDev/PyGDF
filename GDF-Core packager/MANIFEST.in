@@ -1,0 +1,5 @@
+include ../src/gdf/**/*.py
+include ../src/gdf/**/*.pyd
+include ../src/gdf/**/*.dll
+include ../src/gdf/**/*.o
+include ../src/gdf/**/*.lib

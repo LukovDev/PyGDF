@@ -531,6 +531,9 @@ class Window:
         self.clear(0, 0, 0)
         self._winvars_["is-exit"] = True
 
+    # Альтернатива функции exit(). Нет никаких отличий. Просто кому как удобнее:
+    def close(self) -> None: self.exit()
+
     # Очистка окна (цвета от 0 до 1):
     @staticmethod
     def clear(red: float = 0.0, green: float = 0.0, blue: float = 0.0) -> None:

@@ -1,5 +1,5 @@
 #
-# setup.py - В основном нужен для компиляции Cython файлов и для прочих настроек ядра.
+# compile.py - В основном нужен для компиляции Cython файлов и для прочих настроек ядра.
 #
 # Запуск этого скрипта: python setup.py build_ext --inplace
 #
@@ -41,6 +41,7 @@ for file in cyt_files:
     pyx_file = file[:-4] + ".pyx"
     os.rename(file, pyx_file)  # Переименовать .cyt в .pyx
 
+
 # Устанавливаем ядро:
 try:
     setup(
@@ -53,6 +54,7 @@ try:
         ])
     )
 except Exception as error: pass
+
 
 # Переименовать файлы обратно из .pyx в .cyt:
 for file in find_files("pyx"):

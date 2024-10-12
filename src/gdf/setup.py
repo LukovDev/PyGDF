@@ -8,6 +8,7 @@
 # Импортируем:
 import os
 import glob
+import numpy
 import shutil
 from setuptools import setup, Extension
 from Cython.Build import cythonize
@@ -41,14 +42,17 @@ for file in cyt_files:
     os.rename(file, pyx_file)  # Переименовать .cyt в .pyx
 
 # Устанавливаем ядро:
-setup(
-    ext_modules=cythonize([
-        Extension(
-            name=os.path.splitext(os.path.relpath(file))[0].replace(os.path.sep, "."),
-            sources=[file]
-        ) for file in find_files("pyx")
-    ])
-)
+try:
+    setup(
+        ext_modules=cythonize([
+            Extension(
+                name=os.path.splitext(os.path.relpath(file))[0].replace(os.path.sep, "."),
+                sources=[file],
+                include_dirs=[numpy.get_include()]
+            ) for file in find_files("pyx")
+        ])
+    )
+except Exception as error: pass
 
 # Переименовать файлы обратно из .pyx в .cyt:
 for file in find_files("pyx"):

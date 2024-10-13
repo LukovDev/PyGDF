@@ -143,6 +143,8 @@ class SimpleParticleEffect2D:
 
     # Обновление частиц:
     def update(self, delta_time: float) -> "SimpleParticleEffect2D":
+        if self.particles is None: return
+
         if self.custom_update is not None: self.custom_update(delta_time, self.particles) ; return
 
         # Если новый dt больше старого в 2 раза, то используем старый dt. А также ограничиваем dt до 1/10 кадра в сек:
@@ -193,14 +195,17 @@ class SimpleParticleEffect2D:
         return self
 
     # Отрисовка частиц:
-    def render(self, color: list = None) -> "SimpleParticleEffect2D":
+    def render(self, color: list = None, batch: SpriteBatch2D = None) -> "SimpleParticleEffect2D":
+        if self.particles is None: return
+
         # Проходимся по частицам:
-        self._partvars_["batch"].begin()
+        if batch is None: self._partvars_["batch"].begin()
         for particle in self.particles:
             angl = Utils2D.get_angle_points(vec2(0), normalize(particle.velocity)) + 90 if self.is_dir_angle else 0.0
 
             # Рисуем частицу:
-            self._partvars_["batch"].draw(
+            sprite_batch = self._partvars_["batch"] if batch is None else batch
+            sprite_batch.draw(
                 sprite = particle.texture,
                 x      = particle.position.x - (particle.size.x/2),
                 y      = particle.position.y - (particle.size.y/2),
@@ -208,9 +213,9 @@ class SimpleParticleEffect2D:
                 height = particle.size.y,
                 angle  = angl + particle.angle
             )
-        self._partvars_["batch"].end()
-
-        self._partvars_["batch"].render(color)
+        if batch is None:
+            self._partvars_["batch"].end()
+            self._partvars_["batch"].render(color)
         return self
 
     # Удалить систему частиц:

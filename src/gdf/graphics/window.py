@@ -246,7 +246,7 @@ class Window:
                 # Вызываем функцию удаления ресурсов у сцены, если та существует:
                 if scn is not None and issubclass(type(scn), Scene): scn.destroy()
                 self.destroy()  # Вызываем удаление пользовательских ресурсов.
-                al.oalQuit()    # Закрываем OpenAL.
+                al_quit()       # Закрываем OpenAL.
                 pygame.quit()   # Закрываем окно PyGame.
                 gc.collect()    # Собираем мусор (на всякий случай).
                 return          # Возвращаемся из этого класса.

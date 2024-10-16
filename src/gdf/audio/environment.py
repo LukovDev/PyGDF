@@ -11,9 +11,10 @@ from ..math import *
 
 # Класс звукового окружения:
 class SoundEnvironment:
-    def __init__(self, listener: Listener) -> None:
+    def __init__(self, listener: Listener, volume: float = 1.0) -> None:
         self.listener = listener  # Слушатель.
         self.sounds   = []        # Список звуков.
+        self.volume   = volume    # Громкость всех звуков в окружении.
 
     # Обновление среды:
     def update(self) -> "SoundEnvironment":
@@ -22,7 +23,8 @@ class SoundEnvironment:
             distance = length(self.listener.position.xy-sound.get_position().xy)
             min_dst, max_dst, rolloff = sound.get_min_distance(), sound.get_max_distance(), sound.get_rolloff_factor()
             normal_val = (distance-max_dst)/(min_dst-max_dst) if min_dst != max_dst else distance-min_dst
-            sound.set_volume(smoothstep(0.0, 1.0, normal_val**rolloff if distance < max_dst else 0.0))
+            volume = smoothstep(0.0, 1.0, normal_val**rolloff if distance < max_dst else 0.0)
+            sound.set_volume(max(volume*float(self.volume), 0.0))
         return self
 
     # Добавить новый звук в окружающую среду:

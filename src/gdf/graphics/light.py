@@ -31,14 +31,14 @@ class Light2D:
             self._old_size_ = (self.camera.width, self.camera.height)
 
         # Отрисовываем световое окружение:
-        def render(self) -> "Light2D.LightLayer":
+        def render(self, color: list = None) -> "Light2D.LightLayer":
             # Если размер камеры отличается от старого размера:
             if self._old_size_ != (self.camera.width, self.camera.height):
                 self.renderer.resize(self.camera.width, self.camera.height)
                 self._old_size_ = (self.camera.width, self.camera.height)
 
             # Ограничиваем альфа-канал окружения от 0 до 1:
-            self.ambient[3] = min(max(self.ambient[3], 0.0), 1.0)
+            self.ambient[3] = clamp(self.ambient[3], 0.0, 1.0)
 
             # Закрашиваем текстуру кадрового буфера в фоновый цвет освещения:
             self.renderer.clear(self.ambient)
@@ -63,8 +63,8 @@ class Light2D:
                             light.sprite,
                             light.position.x - light.size.x / 2,
                             light.position.y - light.size.y / 2,
-                            light.size.x, light.size.y,
-                            light.angle)
+                            light.size.x, light.size.y, light.angle
+                        )
                     else:
                         light.sprite.render(
                             light.position.x - light.size.x / 2,
@@ -73,7 +73,7 @@ class Light2D:
                             light.angle, light.color
                         )
             self.batch.end()
-            self.batch.render()
+            self.batch.render(color)
 
             # Возвращаем обычный режим смешивания:
             # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!

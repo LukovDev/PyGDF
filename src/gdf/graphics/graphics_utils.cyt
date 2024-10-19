@@ -16,7 +16,7 @@ from libc.math cimport sin, cos, pi
 
 
 # Сверхбыстрая функция для поворота четырёх 2D вершин (для 2D прямоугольника), вокруг их общего центра:
-cpdef list _rot2d_vertices_rectangle_(float x, float y, int width, int height, float angle):
+cpdef list _rot2d_vertices_rectangle_(float x, float y, float width, float height, float angle):
     # Подготовка значений:
     cdef float center_x      =  x + (width  / 2.0)
     cdef float center_y      =  y + (height / 2.0)
@@ -55,12 +55,12 @@ cpdef list _convert_quads_to_triangles_(list vertices):
 
     for i in range(0, len(vertices), 8):
         new_vertices += [
-            vertices[i+0],   vertices[i+1],  # Нижний левый угол.
-            vertices[i+2],   vertices[i+3],  # Нижний правый угол.
-            vertices[i+4],   vertices[i+5],  # Верхний правый угол.
-            vertices[i+4],   vertices[i+5],  # Верхний правый угол.
-            vertices[i+6],   vertices[i+7],  # Верхный левый угол.
-            vertices[i+0],   vertices[i+1],  # Нижний левый угол.
+            vertices[i+0], vertices[i+1],  # Нижний левый угол.
+            vertices[i+2], vertices[i+3],  # Нижний правый угол.
+            vertices[i+4], vertices[i+5],  # Верхний правый угол.
+            vertices[i+4], vertices[i+5],  # Верхний правый угол.
+            vertices[i+6], vertices[i+7],  # Верхный левый угол.
+            vertices[i+0], vertices[i+1],  # Нижний левый угол.
         ]
 
     return new_vertices

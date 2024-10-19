@@ -38,8 +38,8 @@ class SpriteBatch2D:
              sprite:       Sprite2D | Texture,
              x:            float,
              y:            float,
-             width:        int,
-             height:       int,
+             width:        float,
+             height:       float,
              angle:        float = 0.0,
              cull_sprites: bool  = False
              ) -> "SpriteBatch2D":

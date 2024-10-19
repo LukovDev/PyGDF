@@ -174,16 +174,16 @@ class SimpleParticleEffect2D:
             particle.position += (normalize(particle.velocity) * particle.speed) * (dt*60)
             if self.is_local_pos: particle.position += self.position - self._partvars_["old-pos"]
 
-            # Статическое время жизни частицы:
-            pst = particle.static_time
+            # Прогресс жизни частицы от 0 до 1:
+            life_progress = 1.0 - (particle.time / particle.static_time)
 
             # Вращаем частицу:
-            if not (self.end_angle is None or self.end_angle == self.start_angle) and type(self.end_angle) == float:
-                particle.angle += (self.end_angle/pst if pst > 0.0 else 0.0) * dt
+            if not (self.end_angle is None or self.end_angle == self.start_angle):
+                particle.angle = mix(self.start_angle, self.end_angle, life_progress)
 
             # Меняем размер:
             if not (self.end_size is None or self.end_size.xy == self.start_size.xy) and type(self.end_size) == vec2:
-                particle.size.xy += ((self.end_size.xy - self.start_size.xy) / pst) * dt
+                particle.size.xy = mix(self.start_size.xy, self.end_size.xy, life_progress)
 
             # Удаляем частицу только после всех изменений и если её время вышло:
             if particle.time <= 0.0:
@@ -207,8 +207,8 @@ class SimpleParticleEffect2D:
             sprite_batch = self._partvars_["batch"] if batch is None else batch
             sprite_batch.draw(
                 sprite = particle.texture,
-                x      = particle.position.x - (particle.size.x/2),
-                y      = particle.position.y - (particle.size.y/2),
+                x      = particle.position.x - particle.size.x / 2,
+                y      = particle.position.y - particle.size.y / 2,
                 width  = particle.size.x,
                 height = particle.size.y,
                 angle  = angl + particle.angle

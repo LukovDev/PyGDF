@@ -5,6 +5,7 @@
 
 # Импортируем:
 import os
+import io
 import json
 import pygame
 import zipfile
@@ -39,7 +40,8 @@ def save_texture(file_path: str, texture: Texture) -> None:
 
 
 # Загружаем файл:
-def load_file(file_path: str, mode: str = "r+", encoding: str = "utf-8") -> str:
+def load_file(file_path: str | io.BytesIO, mode: str = "r+", encoding: str = "utf-8") -> str:
+    if isinstance(file_path, io.BytesIO): return file_path.getvalue().decode(encoding)
     with open(file_path, mode, encoding=encoding) as f: return str(f.read())
 
 
@@ -80,15 +82,19 @@ def load_font(file_path: str) -> FontFile:
 
 # Создаем zip-файл и добавляем файлы и папки из списка:
 def create_zip_file(file_path: str, file_folder_list: list) -> None:
-    with zipfile.ZipFile(file_path, "w") as zipf:
+    if isinstance(file_folder_list, str): file_folder_list = [file_folder_list]
+
+    with zipfile.ZipFile(file_path, "w", zipfile.ZIP_DEFLATED) as zipf:
         for item in file_folder_list:
-            if os.path.isfile(item):
-                zipf.write(item, os.path.basename(item))
+            if os.path.isfile(item): zipf.write(item, os.path.basename(item))
             elif os.path.isdir(item):
+                # Обходим все подкаталоги и файлы:
                 for root, dirs, files in os.walk(item):
                     for file in files:
-                        file_path = os.path.join(root, file)
-                        zipf.write(file_path, os.path.relpath(file_path, os.path.join(item, "..")))
+                        current_file_path = os.path.join(root, file)
+                        # Проверяем, чтобы не добавлять сам архив в себя:
+                        if os.path.abspath(current_file_path) != os.path.abspath(file_path):
+                            zipf.write(current_file_path, os.path.relpath(current_file_path, os.path.join(item, "..")))
 
 
 # Извлекаем файлы из zip-файла:

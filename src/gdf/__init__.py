@@ -12,7 +12,7 @@ import platform
 
 
 # Получить версию библиотеки:
-def get_version() -> str: return "v1.1-in-dev"
+def get_version() -> str: return "v1.1-release"
 
 
 # Получить полное название системы:

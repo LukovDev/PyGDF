@@ -181,22 +181,22 @@ class Window:
 
                 # Проверка на то, изменился ли размер окна или нет:
                 elif event.type == pygame.VIDEORESIZE:
-                    wsize = list(event.dict["size"])
+                    size = list(event.dict["size"])
                     min_size = self._winvars_["min-size"]
                     max_size = self._winvars_["max-size"]
 
                     # Проверяем, вышел ли размер окна за пределы допущенного. Если да, то выставляем крайний размер:
-                    if not (min_size.x <= wsize[0] <= max_size.x and min_size.y <= wsize[1] <= max_size.y):
-                        wsize[0] = min(max(wsize[0], min_size.x), max_size.x)
-                        wsize[1] = min(max(wsize[1], min_size.y), max_size.y)
-                        wsize = int(wsize[0]), int(wsize[1])
-                        self.set_size(*wsize)
+                    if not (min_size.x <= size[0] <= max_size.x and min_size.y <= size[1] <= max_size.y):
+                        size[0] = min(max(size[0], min_size.x), max_size.x)
+                        size[1] = min(max(size[1], min_size.y), max_size.y)
+                        size = int(size[0]), int(size[1])
+                        self.set_size(*size)
                     else:  # Иначе, просто вызываем функцию изменения размера:
-                        wsize = int(wsize[0]), int(wsize[1])
-                        scn.resize(*wsize) if scn is not None and issubclass(type(scn), Scene) else self.resize(*wsize)
+                        size = int(size[0]), int(size[1])
+                        scn.resize(*size) if scn is not None and issubclass(type(scn), Scene) else self.resize(*size)
 
                     # Обновляем размер окна в переменных окна:
-                    self._winvars_["width"], self._winvars_["height"] = wsize
+                    self._winvars_["width"], self._winvars_["height"] = size
 
                 # Проверяем на то, развернуто окно или нет:
                 elif event.type == pygame.ACTIVEEVENT:
@@ -246,7 +246,7 @@ class Window:
                 # Вызываем функцию удаления ресурсов у сцены, если та существует:
                 if scn is not None and issubclass(type(scn), Scene): scn.destroy()
                 self.destroy()  # Вызываем удаление пользовательских ресурсов.
-                al.oalQuit()    # Закрываем OpenAL.
+                al_quit()       # Закрываем OpenAL.
                 pygame.quit()   # Закрываем окно PyGame.
                 gc.collect()    # Собираем мусор (на всякий случай).
                 return          # Возвращаемся из этого класса.
@@ -465,8 +465,11 @@ class Window:
         # Сбрасываем окно просмотра:
         self._winvars_["is-new-scene"] = True
 
-        # Если мы установили сцену в виде None, то просто возвращаемся:
-        if scene is None: return
+        # Если мы установили сцену в виде None:
+        if scene is None:
+            # Обновляем масштабирование окна на всякий случай:
+            self.resize(int(self._winvars_["width"]), int(self._winvars_["height"]))
+            return  # Возвращаемся из этой функции (будет установлена встроенная сцена в этот класс).
 
         # Указываем ссылку на основное окно:
         self._winvars_["current-scene"].window = self
@@ -523,13 +526,16 @@ class Window:
         else:     gl.glReadBuffer(gl.GL_BACK)   # Задний (в процессе рисовки) буфер.
         w, h = s = self.get_size()
         p = np.frombuffer(gl.glReadPixels(0, 0, *s, gl.GL_RGB, gl.GL_UNSIGNED_BYTE), dtype=np.uint8).reshape((h, w, 3))
-        return Image(surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
+        return Image((0, 0), surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
 
     # Вызовите, когда хотите закрыть окно:
     def exit(self) -> None:
         self.set_visible(False)
         self.clear(0, 0, 0)
         self._winvars_["is-exit"] = True
+
+    # Альтернатива функции exit(). Нет никаких отличий. Просто кому как удобнее:
+    def close(self) -> None: self.exit()
 
     # Очистка окна (цвета от 0 до 1):
     @staticmethod

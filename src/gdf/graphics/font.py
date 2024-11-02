@@ -13,13 +13,14 @@ from .texture import Texture
 
 # Файл шрифта:
 class FontFile:
-    def __init__(self, file_path: str) -> None:
+    def __init__(self, file_path: str = None) -> None:
         self.path = file_path
         self.data = None
 
     # Загрузить шрифт:
-    def load(self) -> "FontFile":
-        with open(self.path, "rb") as f:
+    def load(self, file_path: str = None) -> "FontFile":
+        self.path = file_path if isinstance(file_path, str) else self.path
+        with open(file_path if isinstance(file_path, str) else self.path, "rb") as f:
             self.data = f.read()
         return self
 

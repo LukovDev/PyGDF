@@ -9,7 +9,7 @@ from .camera import Camera2D
 from .sprite import Sprite2D
 from .texture import Texture
 from .atlas import AtlasTexture
-from . import _rot2d_vertices_rectangle_
+from . import _rot2d_vertices_rectangle_, _render_sprite_batch_2d_, _render_atlas_texture_batch_2d_
 from ..math import *
 from ..utils import *
 
@@ -38,8 +38,8 @@ class SpriteBatch2D:
              sprite:       Sprite2D | Texture,
              x:            float,
              y:            float,
-             width:        int,
-             height:       int,
+             width:        float,
+             height:       float,
              angle:        float = 0.0,
              cull_sprites: bool  = False
              ) -> "SpriteBatch2D":
@@ -95,21 +95,8 @@ class SpriteBatch2D:
 
         gl.glColor(*[1, 1, 1] if color is None else color)
 
-        gl.glEnable(gl.GL_TEXTURE_2D)
-        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
-        gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
-
-        # Пройдитесь по каждой текстуре и отрендерьте все квадраты с этой текстурой:
-        for texture, vertices in self.texture_batches.items():
-            gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
-            gl.glVertexPointer(2, gl.GL_DOUBLE, 0, numpy.array(vertices))
-            gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, numpy.array([0, 1, 1, 1, 1, 0, 0, 0] * (len(vertices) // 8)))
-            gl.glDrawArrays(gl.GL_QUADS, 0, len(vertices) // 2)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-
-        gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY)
-        gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
-        gl.glDisable(gl.GL_TEXTURE_2D)
+        # Рисуем пакет спрайтов через ускоренную функцию Cython:
+        _render_sprite_batch_2d_(self.texture_batches)
 
         if clear_batch: self.texture_batches.clear()
 
@@ -197,21 +184,8 @@ class AtlasTextureBatch2D:
 
         gl.glColor(*[1, 1, 1] if color is None else color)
 
-        gl.glEnable(gl.GL_TEXTURE_2D)
-        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
-        gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
-
-        # Пройдитесь по каждой текстуре и отрендерьте все квадраты с этой текстурой:
-        for texture, (vertices, texcoords) in self.texture_batches.items():
-            gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
-            gl.glVertexPointer(2, gl.GL_DOUBLE, 0, numpy.array(vertices))
-            gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, numpy.array(texcoords))
-            gl.glDrawArrays(gl.GL_QUADS, 0, len(vertices) // 2)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-
-        gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY)
-        gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
-        gl.glDisable(gl.GL_TEXTURE_2D)
+        # Рисуем пакет спрайтов через ускоренную функцию Cython:
+        _render_atlas_texture_batch_2d_(self.texture_batches)
 
         if clear_batch: self.texture_batches.clear()
 

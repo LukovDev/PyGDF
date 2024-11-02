@@ -14,6 +14,7 @@ from gdf.graphics import Window, Camera2D, Sprite2D
 # Класс игры:
 class GameClass(Window):
     def __init__(self) -> None:
+        self.input  = None  # Обработчик ввода.
         self.camera = None  # Игровая камера.
         self.sprite = None  # Наш спрайт.
 

@@ -65,9 +65,14 @@ class FrameBuffer:
     def __init__(self, texture_id: int) -> None:
         self.id = gl.glGenFramebuffers(1)
         self._id_before_begin_ = gl.glGetIntegerv(gl.GL_FRAMEBUFFER_BINDING)
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.id)
-        gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT0, gl.GL_TEXTURE_2D, texture_id, 0)
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._id_before_begin_)
+        self.attach_texture(texture_id, gl.GL_COLOR_ATTACHMENT0)
+
+    # Привязать текстуру к фреймбуферу:
+    def attach_texture(self, texture_id: int, attach_type: int = gl.GL_COLOR_ATTACHMENT0) -> "FrameBuffer":
+        self.begin()
+        gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, attach_type, gl.GL_TEXTURE_2D, texture_id, 0)
+        self.end()
+        return self
 
     # Использовать буфер:
     def begin(self) -> "FrameBuffer":

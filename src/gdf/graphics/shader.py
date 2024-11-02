@@ -5,6 +5,7 @@
 
 # Импортируем:
 from .gl import *
+from .texture import Texture, Texture3D
 from ..math import *
 
 
@@ -167,18 +168,21 @@ class ShaderProgram:
         elif type(value[0]) in (list, tuple) and len(value[0]) == 4:
             gl.glUniform4fv(location, len(value), value)
 
+        # Иначе, если неизвестный тип данных:
+        else: raise ValueError(f"Unsupported data type. Your data type: {type(value)}, not supported.")
+
         return self
 
     # Установить значение для униформы типа sampler2d:
-    def set_sampler2d(self, name: str, value: int) -> "ShaderProgram":
+    def set_sampler2d(self, name: str, value: int | Texture | Texture3D) -> "ShaderProgram":
         return self._set_sampler_(name, value, gl.GL_TEXTURE_2D)
 
     # Установить значение для униформы типа sampler3d:
-    def set_sampler3d(self, name: str, value: int) -> "ShaderProgram":
+    def set_sampler3d(self, name: str, value: int | Texture | Texture3D) -> "ShaderProgram":
         return self._set_sampler_(name, value, gl.GL_TEXTURE_3D)
 
     # Специальная функция для установки семплера:
-    def _set_sampler_(self, name: str, value: int, texture_type: int) -> "ShaderProgram":
+    def _set_sampler_(self, name: str, value: int, texture_type: int | Texture | Texture3D) -> "ShaderProgram":
         global _texture_units_
         location = self.get_uniform(name)
         if location == -1: return
@@ -189,8 +193,19 @@ class ShaderProgram:
             _texture_units_[id(self)][name] = tunit
         else: tunit = _texture_units_[id(self)][name]
 
+        tex_index = 0
+
+        # Тип int:
+        if isinstance(value, int): tex_index = value
+
+        # Тип Texture / Texture3D:
+        elif type(value) in (Texture, Texture3D): tex_index = value.id
+
+        # Иначе, если неизвестный тип данных:
+        else: raise ValueError(f"Unsupported texture type. Your texture type: {type(value)}, not supported.")
+
         gl.glActiveTexture(gl.GL_TEXTURE0 + tunit)
-        gl.glBindTexture(texture_type, value)
+        gl.glBindTexture(texture_type, tex_index)
         gl.glUniform1i(location, tunit)
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(texture_type, 0)

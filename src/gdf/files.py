@@ -81,7 +81,7 @@ def load_font(file_path: str) -> FontFile:
 
 
 # Создаем zip-файл и добавляем файлы и папки из списка:
-def create_zip_file(file_path: str, file_folder_list: list) -> None:
+def create_zip_file(file_path: str, file_folder_list: list | str) -> None:
     if isinstance(file_folder_list, str): file_folder_list = [file_folder_list]
 
     with zipfile.ZipFile(file_path, "w", zipfile.ZIP_DEFLATED) as zipf:

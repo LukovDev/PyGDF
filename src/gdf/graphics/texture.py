@@ -77,7 +77,7 @@ class Texture:
     # Удалить текстуру:
     def destroy(self) -> None:
         if self.id != 0:
-            gl.glDeleteTextures(self.id)
+            gl.glDeleteTextures(1, [self.id])
             self.id = 0
 
 
@@ -145,5 +145,5 @@ class Texture3D:
     # Удалить текстуру:
     def destroy(self) -> None:
         if self.id != 0:
-            gl.glDeleteTextures(self.id)
+            gl.glDeleteTextures(1, [self.id])
             self.id = 0

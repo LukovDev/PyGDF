@@ -11,6 +11,10 @@ import shutil
 from setuptools import setup, find_packages
 
 
+# Версия ядра:
+VERSION = "1.2"
+
+
 def load_requirements(file):
     with open(file) as f:
         return [line.strip() for line in f if line and not line.startswith("#")]
@@ -19,10 +23,10 @@ def load_requirements(file):
 # Упаковываем ядро:
 setup(
     name                 = "gdf",
-    version              = "1.0",
+    version              = f"{VERSION}",
     description          = "Python Game Development Framework (PyGDF or GDF-Core)",
     package_dir          = {"": "../src/"},
-    packages             = find_packages(where="../src/"),
+    packages             = find_packages(where="../src"),
     author               = "LukovDev",
     author_email         = "lakuworx@gmail.com",
     url                  = "https://pygdf.github.io/",
@@ -67,7 +71,7 @@ if os.path.exists(dist_dir):
 # Переименовываем полученный файл:
 
 # Исходное имя файла:
-old_wheel_name = "gdf-1.0-py3-none-any.whl"
+old_wheel_name = f"gdf-{VERSION}-py3-none-any.whl"
 
 # Новая часть имени, на которую нужно заменить:
 new_suffix = "cp311-cp311-win_amd64.whl"

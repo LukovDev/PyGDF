@@ -69,8 +69,8 @@ class Window:
                  min_size:   vec2  = vec2(0, 0),
                  max_size:   vec2  = vec2(float("inf"), float("inf")),
                  samples:    int   = 0,
-                 gl_major:   int   = None,
-                 gl_minor:   int   = None) -> None:
+                 gl_major:   int   = 3,
+                 gl_minor:   int   = 1) -> None:
         self.clock = pygame.time.Clock()
         self.window = self
         self._winvars_ = {
@@ -108,6 +108,9 @@ class Window:
             "is-new-scene":   False,
         }
 
+        # Делаем окно временно скрытым (изменяем переменную напрямую чтобы не пересоздавать несуществующее окно):
+        _before_visible_ = self._winvars_["visible"] ; self._winvars_["visible"] = False
+
         # Создание окна:
         try:
             pygame.init()
@@ -132,11 +135,23 @@ class Window:
         except Exception as error:
             raise OpenGLWindowError(f"Error creating the window: {error}")
 
+        # Проверка на совместимость (если текущая версия OpenGL ниже установленной, вызываем исключение):
+        gl_version = self.get_opengl_version()
+        msg_error = "GDF-Core" if gl_version < "3.1" else "game" if gl_version < f"{gl_major}.{gl_minor}" else None
+        if msg_error is not None:
+            raise OpenGLWindowError(
+                f"Your OpenGL version is lower than the {msg_error} requires.\n"
+                f"Required version: {gl_major}.{gl_minor} Your version: {gl_version}"
+            )
+
+        # Показываем окно (до этого момента оно было скрыто, чтобы правильно и незаметно применить параметры):
+        self.set_visible(_before_visible_)
+
         # Включаем смешивание цветов:
         gl.glEnable(gl.GL_BLEND)
-        
+
         # Устанавливаем режим смешивания:
-        gl_set_blend_mode()  # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
         # Разрешаем установку размера точки через шейдер:
         gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
@@ -161,14 +176,15 @@ class Window:
 
         # Основной цикл окна:
         while True:
-            start_frame_time               = time.time()
+            start_frame_time = time.time()
+            scn = self._winvars_["current-scene"]
+
             self._winvars_["mouse-scroll"] = vec2(0)
             self._winvars_["mouse-rel"]    = vec2(pygame.mouse.get_rel())
             self._winvars_["mouse-down"]   = [False, False, False]
             self._winvars_["mouse-up"]     = [False, False, False]
             self._winvars_["key-down"]     = []
             self._winvars_["key-up"]       = []
-            scn                            = self._winvars_["current-scene"]
 
             # Проверяем установлена ли новая сцена. Если да, то сбрасываем окно просмотра:
             if self._winvars_["is-new-scene"]: self._winvars_["is-new-scene"] = False ; self._reset_viewport_()

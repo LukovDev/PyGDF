@@ -13,15 +13,21 @@ from .texture import Texture
 
 # Файл шрифта:
 class FontFile:
-    def __init__(self, file_path: str = None) -> None:
-        self.path = file_path
-        self.data = None
+    def __init__(self, file_path: str | io.BytesIO = None) -> None:
+        self.path = file_path if isinstance(file_path, str) else None
+        self.data = file_path if isinstance(file_path, io.BytesIO) else None
 
     # Загрузить шрифт:
-    def load(self, file_path: str = None) -> "FontFile":
+    def load(self, file_path: str | io.BytesIO = None) -> "FontFile":
         self.path = file_path if isinstance(file_path, str) else self.path
-        with open(file_path if isinstance(file_path, str) else self.path, "rb") as f:
-            self.data = f.read()
+
+        # Если мы передали уже загруженный файл, то добавляем его в данные и возвращаемся:
+        if isinstance(file_path, io.BytesIO): self.data = file_path ; return self
+        elif isinstance(self.data, io.BytesIO) and self.path is None: return self
+
+        # Иначе, читаем содержимое файла:
+        with open(self.path, "rb") as f: self.data = f.read()
+
         return self
 
 
@@ -49,7 +55,8 @@ class FontGenerator:
 
         # Создаём экземпляр шрифта:
         if isinstance(self.font, FontFile):
-            font = pygame.font.Font(io.BytesIO(self.font.data), font_size)
+            data = self.font.data
+            font = pygame.font.Font(io.BytesIO(data) if not isinstance(data, io.BytesIO) else data, font_size)
         else: font = pygame.font.SysFont("Arial", font_size)
 
         # Создаём и получаем битмап текста из шрифта:

@@ -77,7 +77,7 @@ def load_sound(file_path: str) -> Sound:
 
 # Загрузить файл шрифта:
 def load_font(file_path: str) -> FontFile:
-    return FontFile(file_path).load()
+    return FontFile().load(file_path)
 
 
 # Создаем zip-файл и добавляем файлы и папки из списка:

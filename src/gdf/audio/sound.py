@@ -11,7 +11,7 @@ from ..math import *
 # Класс звука:
 class Sound:
     def __init__(self, file_path: str = None) -> None:
-        self.path         = file_path
+        self.path         = file_path if isinstance(file_path, str) else None
         self.sound        = None
         self._is_playing_ = False
         self._is_paused_  = False
@@ -20,12 +20,15 @@ class Sound:
     # Загрузить звук:
     def load(self, file_path: str = None) -> "Sound":
         self.path = file_path if isinstance(file_path, str) else self.path
+
         # Пытаемся загрузить:
-        try: self.sound = al.oalOpen(file_path if isinstance(file_path, str) else self.path)
+        try: self.sound = al.oalOpen(self.path)
         except Exception as error:
             raise Exception(f"Error in \"Sound.load()\": {error}\n")
+
         self.set_min_distance(100.0)
         self.set_max_distance(100000.0)
+
         return self
 
     # Проиграть звук:

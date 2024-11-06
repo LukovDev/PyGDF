@@ -25,7 +25,7 @@ class GameClass(Window):
     def init(self) -> None:
         super().__init__(
             title      = "PyGDF Window",
-            icon       = files.load_image("./data/icons/runapp-icon.png"),
+            icon       = files.load_image("data/icons/runapp-icon.png"),
             size       = vec2(960, 540),
             vsync      = False,
             fps        = 60,
@@ -53,7 +53,7 @@ class GameClass(Window):
         )
 
         # Загружаем текстуру, которую укажем в нашем спрайте чтобы её отрисовать:
-        texture = files.load_texture("./data/icons/runapp-icon.png")
+        texture = files.load_texture("data/icons/runapp-icon.png")
 
         # Наш спрайт. Принимает текстуру, которую будет отрисовывать:
         self.sprite = Sprite2D(texture)

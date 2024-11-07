@@ -47,6 +47,10 @@ class Animator2D:
         self.count = 0.0
         return self
 
+    # Получить активность анимации:
+    def get_active(self) -> bool:
+        return not self._is_paused_
+
     # Получить кадр анимации:
     def get_frame(self) -> int:
         return int(self.count)

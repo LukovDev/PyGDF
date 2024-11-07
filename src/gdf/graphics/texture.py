@@ -12,7 +12,7 @@ from .image import Image
 
 # Класс обычной текстуры:
 class Texture:
-    def __init__(self, image: Image, is_flip_y: bool = False, size: tuple = None, use_mipmap: bool = False,
+    def __init__(self, image: Image = None, is_flip_y: bool = False, size: tuple = None, use_mipmap: bool = False,
                  texture_format: int = gl.GL_RGBA, data_type: int = gl.GL_UNSIGNED_BYTE) -> None:
         self.image  = image
         self.id     = int

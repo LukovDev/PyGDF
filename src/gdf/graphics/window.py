@@ -419,30 +419,31 @@ class Window:
 
     # Установить конфигурацию окна:
     def set_config(self,
-                   title:      str,
-                   icon:       Image,
-                   size:       vec2,
-                   vsync:      bool,
-                   fps:        int,
-                   visible:    bool,
-                   titlebar:   bool,
-                   resizable:  bool,
-                   fullscreen: bool,
-                   min_size: vec2 = vec2(0),
-                   max_size: vec2 = vec2(float("inf"),
-                   float("inf")), samples: int = 0) -> None:
-        self.set_title(title)
-        self.set_icon(icon)
+                   title:      str   = None,
+                   icon:       Image = None,
+                   size:       vec2  = None,
+                   vsync:      bool  = None,
+                   fps:        int   = None,
+                   visible:    bool  = None,
+                   titlebar:   bool  = None,
+                   resizable:  bool  = None,
+                   fullscreen: bool  = None,
+                   min_size:   vec2  = vec2(0),
+                   max_size:   vec2  = vec2(float("inf"), float("inf")),
+                   samples:    int   = 0) -> None:
+        size = size if size is not None else self.get_size()
+        self.set_title(title           if title is not None else self.get_title())
+        self.set_icon(icon             if icon  is not None else self.get_icon())
         self.set_size(*size)
-        self.set_vsync(vsync)
-        self.set_fps(fps)
-        self.set_visible(visible)
-        self.set_titlebar(titlebar)
-        self.set_resizable(resizable)
-        self.set_fullscreen(fullscreen, size)
-        self.set_min_size(*min_size)
-        self.set_max_size(*max_size)
-        self.set_samples(samples)
+        self.set_vsync(vsync           if vsync      is not None else self.get_vsync())
+        self.set_fps(fps               if fps        is not None else self.get_setted_fps())
+        self.set_visible(visible       if visible    is not None else self.get_visible())
+        self.set_titlebar(titlebar     if titlebar   is not None else self.get_titlebar())
+        self.set_resizable(resizable   if resizable  is not None else self.get_resizable())
+        self.set_fullscreen(fullscreen if fullscreen is not None else self.get_fullscreen(), size)
+        self.set_min_size(*min_size    if min_size   is not None else self.get_min_size())
+        self.set_max_size(*max_size    if max_size   is not None else self.get_max_size())
+        self.set_samples(samples       if samples    is not None else self.get_samples())
 
     # Получить конфигурацию окна:
     def get_config(self) -> list:

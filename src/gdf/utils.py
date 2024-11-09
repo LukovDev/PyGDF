@@ -82,7 +82,7 @@ class Utils2D:
     def get_angle_points(point_1: vec2, point_2: vec2) -> float:
         """ Возвращает угол между первой и второй координатой """
 
-        return -degrees(atan2(point_2.y - point_1.y, point_2.x - point_1.x))
+        return -degrees(atan2(point_2.y - point_1.y, point_2.x - point_1.x))+90
 
     # Найти точку из угла и радиуса:
     @staticmethod
@@ -102,10 +102,10 @@ class Utils2D:
 
     # Получить вектор направления из угла:
     @staticmethod
-    def get_angle_in_direction(angle: float) -> vec2:
+    def get_direction_in_angle(angle: float) -> vec2:
         """ Возвращает 2 числа в виде направления из угла """
 
-        return vec2(-sin(radians(angle-90)), -cos(radians(angle-90)))
+        return vec2(sin(radians(angle)), cos(radians(angle)))
 
     # Получить скорость из вектора:
     @staticmethod

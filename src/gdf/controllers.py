@@ -4,6 +4,7 @@
 
 
 # Импортируем:
+from .graphics import Camera2D, Camera3D
 from .input import InputHandler, Key
 from .math import *
 
@@ -21,7 +22,7 @@ def check_mouse_pos(input, camera, x_pos_detect: int = 16, y_pos_detect: int = 1
 
 # Класс управления 2D камеры:
 class CameraController2D:
-    def __init__(self, input: InputHandler, camera,
+    def __init__(self, input: InputHandler, camera: Camera2D,
                  offset_scale: float = 1.0,
                  min_zoom:     float = 1/1000,
                  max_zoom:     float = 128000,
@@ -72,7 +73,7 @@ class CameraController2D:
 
 # Класс управления 3D камеры:
 class CameraController3D:
-    def __init__(self, input: InputHandler, camera,
+    def __init__(self, input: InputHandler, camera: Camera3D,
                  mouse_sensitivity: float = 1.0,
                  ctrl_speed:        float = 0.75,
                  speed:             float = 6,

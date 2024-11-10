@@ -67,8 +67,8 @@ class Light2D:
                     vec4 ambient_color = texture(u_ambient_texture, TexCoords);
                     vec4 light_color = texture(u_light_texture, TexCoords);
 
-                    // Альфа цвета пикселей:
-                    float light_alpha = ((light_color.r+light_color.g+light_color.b+light_color.a)/4.0) * u_intensity;
+                    // Альфа цвета пикселей (из их суммарной средней яркости):
+                    float light_alpha = (light_color.r+light_color.g+light_color.b+light_color.a)/4.0*u_intensity;
                     float ambient_alpha = (ambient_color.r+ambient_color.g+ambient_color.b+ambient_color.a)/4.0;
 
                     // Основной смешанный цвет:

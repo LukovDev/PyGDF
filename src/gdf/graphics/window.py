@@ -100,8 +100,8 @@ class Window:
             "mouse-visible":  True,
             "key-down":       [],
             "key-up":         [],
-            "dtime":          1/60,
-            "old-dtime":      1/60,
+            "dtime":          1/(60 if fps <= 0 else fps),
+            "dtime-old":      1/(60 if fps <= 0 else fps),
             "is-exit":        False,
             "start-time":     0.0,
             "current-scene":  None,
@@ -187,7 +187,14 @@ class Window:
             self._winvars_["key-up"]       = []
 
             # Проверяем установлена ли новая сцена. Если да, то сбрасываем окно просмотра:
-            if self._winvars_["is-new-scene"]: self._winvars_["is-new-scene"] = False ; self._reset_viewport_()
+            if self._winvars_["is-new-scene"]:
+                self._winvars_["is-new-scene"] = False
+                self._winvars_["dtime"] = 0.0  # Сбрасываем дельту чтобы не регестрировать задержку в переключении сцен.
+                self._reset_viewport_()        # Сбрасываем окно просмотра (настройки камеры).
+
+            # Проверяем чтобы дельта времени не была равна нулю. Иначе используем прошлую дельту времени:
+            if self._winvars_["dtime"] > 0.0: self._winvars_["dtime-old"] = self._winvars_["dtime"]
+            else: self._winvars_["dtime"] = self._winvars_["dtime-old"]
 
             # Обработка событий под капотом:
             event_list = pygame.event.get()
@@ -271,9 +278,7 @@ class Window:
             self.clock.tick(self._winvars_["setted-fps"]) if not self._winvars_["vsync"] else self.clock.tick(0)
 
             # Получаем дельту времени (время кадра или же время обработки одного цикла окна):
-            dt = time.time() - start_frame_time
-            if dt > 0.0: self._winvars_["old-dtime"] = self._winvars_["dtime"] = dt
-            else: self._winvars_["dtime"] = self._winvars_["old-dtime"]  # Использовать DT прошлого кадра.
+            self._winvars_["dtime"] = time.time() - start_frame_time
 
     # Пересоздать окно (обновить режим окна):
     def _recreate_(self, size: tuple | vec2 = None, flags: int = None) -> None:

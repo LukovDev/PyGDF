@@ -21,12 +21,13 @@ class FontFile:
     def load(self, file_path: str | io.BytesIO = None) -> "FontFile":
         self.path = file_path if isinstance(file_path, str) else self.path
 
-        # Если мы передали уже загруженный файл, то добавляем его в данные и возвращаемся:
-        if isinstance(file_path, io.BytesIO): self.data = file_path ; return self
-        elif isinstance(self.data, io.BytesIO) and self.path is None: return self
-
-        # Иначе, читаем содержимое файла:
-        with open(self.path, "rb") as f: self.data = f.read()
+        if isinstance(self.path, str):
+            with open(self.path, "rb") as f:
+                self.data = io.BytesIO(f.read())
+        elif isinstance(file_path, io.BytesIO):
+            self.data = file_path
+        elif isinstance(self.data, io.BytesIO) and file_path is None and self.path is None:
+            pass  # Значит мы уже загрузили данные шрифта.
 
         return self
 
@@ -50,13 +51,18 @@ class FontGenerator:
         # Настраиваем цвета:
         if color    is None: color    = [1, 1, 1, 1]
         if bg_color is None: bg_color = [0, 0, 0, 0]
+
+        # Контролируем чтобы в цветах был альфа канал, даже если его не передают:
+        if len(color)    < 4: color.append(1)
+        if len(bg_color) < 4: bg_color.append(1)
+
+        # Конвертируем цвета из 1-ричного в 256-ричный (0-255):
         color    = [c * 255 for c in color]
         bg_color = [c * 255 for c in bg_color]
 
         # Создаём экземпляр шрифта:
         if isinstance(self.font, FontFile):
-            data = self.font.data
-            font = pygame.font.Font(io.BytesIO(data) if not isinstance(data, io.BytesIO) else data, font_size)
+            font = pygame.font.Font(io.BytesIO(self.font.data.getbuffer()), font_size)
         else: font = pygame.font.SysFont("Arial", font_size)
 
         # Создаём и получаем битмап текста из шрифта:

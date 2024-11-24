@@ -287,7 +287,7 @@ class Light2D:
     # Класс спрайтного источника света:
     class SpriteLight:
         def __init__(self,
-                     layer:    "SpriteLight.LightLayer",
+                     layer:    "Light2D.LightLayer",
                      sprite:   Sprite2D | Texture,
                      position: vec2,
                      angle:    float,

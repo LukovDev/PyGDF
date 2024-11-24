@@ -16,12 +16,12 @@ class GLQuery:
         self.id = gl.glGenQueries(1)[0]
 
     # Начать отслеживание отрисовки:
-    def begin(self) -> "GLQueries":
+    def begin(self) -> "GLQuery":
         gl.glBeginQuery(gl.GL_PRIMITIVES_GENERATED, self.id)
         return self
 
     # Закончить отслеживание отрисовки:
-    def end(self) -> "GLQueries":
+    def end(self) -> "GLQuery":
         gl.glEndQuery(gl.GL_PRIMITIVES_GENERATED)
         return self
 

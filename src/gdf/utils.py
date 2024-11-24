@@ -166,7 +166,7 @@ class Intersects:
         """ Возвращает логическое значение при пересечении круга с кругом """
 
         # Если расстояние меньше или равно сумме радиусов, то круги пересекаются:
-        return length(center2 - center1) <= (radius1 + radius2)
+        return glm.length(center2 - center1) <= (radius1 + radius2)
 
     # Функция для проверки пересечения точки с кругом:
     @staticmethod

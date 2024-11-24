@@ -131,7 +131,7 @@ class CameraController3D:
             self.camera.position += ((self.camera_target-self.camera.position)*1/fr) * delta_time
         else: self.camera.position = self.camera_target
 
-        if round(length(self.camera_target-self.camera.position), 4) > 0.001 or \
+        if round(glm.length(self.camera_target-self.camera.position), 4) > 0.001 or \
            (not (mdxy[0] == 0 and mdxy[1] == 0) and self.input.get_mouse_pressed()[2]):
             self.is_movement = True
         else: self.is_movement = False

@@ -204,17 +204,17 @@ class ModelMatrix:
 
     # Масштабировать матрицу модели:
     def scale(self, size: vec3 | list) -> "ModelMatrix":
-        self._mat_ = scale(self._mat_, size)
+        self._mat_ = glm.scale(self._mat_, size)
         return self
 
     # Переместить матрицу модели:
     def translate(self, offset: vec3 | list) -> "ModelMatrix":
-        self._mat_ = translate(self._mat_, offset)
+        self._mat_ = glm.translate(self._mat_, offset)
         return self
 
     # Вращать матрицу модели:
     def rotate(self, angle: float, axis: vec3 | list) -> "ModelMatrix":
-        self._mat_ = rotate(self._mat_, radians(angle), axis)
+        self._mat_ = glm.rotate(self._mat_, radians(angle), axis)
         return self
 
     # Сбросить матрицу модели:

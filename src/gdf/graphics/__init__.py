@@ -14,8 +14,10 @@ try:
     from .graphics_utils import (
         _rot2d_vertices_rectangle_,
         _convert_quads_to_triangles_,
-        _render_sprite_batch_2d_,
-        _render_atlas_texture_batch_2d_
+        _sprite_batch_2d_draw_,
+        _atlas_texture_batch_2d_draw_,
+        _sprite_batch_2d_render_,
+        _atlas_texture_batch_2d_render_,
     )
 except (ModuleNotFoundError, ImportError) as error:
     raise Exception(f"The compiled module could not be imported: {error}")

@@ -38,53 +38,53 @@ class Light2D:
             # Шейдер:
             self.shader = ShaderProgram(
                 vert="""
-                #version 330 core
+                    #version 330 core
 
-                layout (location = 0) in vec3 a_position;
+                    layout (location = 0) in vec3 a_position;
 
-                void main(void) {
-                    gl_Position = vec4(a_position, 1.0);
-                }
+                    void main(void) {
+                        gl_Position = vec4(a_position, 1.0);
+                    }
                 """,
                 frag="""
-                #version 330 core
+                    #version 330 core
 
-                uniform sampler2D u_ambient_texture;
-                uniform sampler2D u_light_texture;
-                uniform vec2      u_resolution;
-                uniform float     u_intensity;
-                uniform float     u_mix_level;
+                    uniform sampler2D u_ambient_texture;
+                    uniform sampler2D u_light_texture;
+                    uniform vec2      u_resolution;
+                    uniform float     u_intensity;
+                    uniform float     u_mix_level;
 
-                out vec4 FragColor;
+                    out vec4 FragColor;
 
-                void main(void) {
-                    vec2 TexCoords = gl_FragCoord.xy / u_resolution.xy;
+                    void main(void) {
+                        vec2 TexCoords = gl_FragCoord.xy / u_resolution.xy;
 
-                    // Ограничиваем параметр смешивания:
-                    float mix_level = clamp(u_mix_level, 0.0, 1.0);
+                        // Ограничиваем параметр смешивания:
+                        float mix_level = clamp(u_mix_level, 0.0, 1.0);
 
-                    // Получаем цвета пикселей из текстур:
-                    vec4 ambient_color = texture(u_ambient_texture, TexCoords);
-                    vec4 light_color = texture(u_light_texture, TexCoords);
+                        // Получаем цвета пикселей из текстур:
+                        vec4 ambient_color = texture(u_ambient_texture, TexCoords);
+                        vec4 light_color = texture(u_light_texture, TexCoords);
 
-                    // Альфа цвета пикселей (из их суммарной средней яркости):
-                    float light_alpha = (light_color.r+light_color.g+light_color.b+light_color.a)/4.0*u_intensity;
-                    float ambient_alpha = (ambient_color.r+ambient_color.g+ambient_color.b+ambient_color.a)/4.0;
+                        // Альфа цвета пикселей (из их суммарной средней яркости):
+                        float light_alpha = (light_color.r+light_color.g+light_color.b+light_color.a)/4.0*u_intensity;
+                        float ambient_alpha = (ambient_color.r+ambient_color.g+ambient_color.b+ambient_color.a)/4.0;
 
-                    // Основной смешанный цвет:
-                    vec3 color = mix(
-                        // Смешивание окружающего освещения и источников света (без "дымки"):
-                        mix(ambient_color.rgb, light_color.rgb, ambient_alpha+light_alpha),
+                        // Основной смешанный цвет:
+                        vec3 color = mix(
+                            // Смешивание окружающего освещения и источников света (без "дымки"):
+                            mix(ambient_color.rgb, light_color.rgb, ambient_alpha+light_alpha),
 
-                        // Складывание окружающего освещения и источников света для создания "дымки":
-                        ambient_color.rgb + light_color.rgb,
-                    mix_level);
+                            // Складывание окружающего освещения и источников света для создания "дымки":
+                            ambient_color.rgb + light_color.rgb,
+                        mix_level);
 
-                    // Основной смешанный альфа цвет:
-                    float alpha = mix(ambient_color.a-light_alpha, ambient_color.a-light_color.a, mix_level);
+                        // Основной смешанный альфа цвет:
+                        float alpha = mix(ambient_color.a-light_alpha, ambient_color.a-light_color.a, mix_level);
 
-                    FragColor = vec4(color, alpha);
-                }
+                        FragColor = vec4(color, alpha);
+                    }
                 """
             ).compile()
 

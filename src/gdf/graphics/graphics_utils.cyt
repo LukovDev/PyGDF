@@ -5,7 +5,7 @@
 #
 # Это код на Cython. Создаёт файл динамического импорта модуля после компиляции.
 # Этот код нужен чтобы не использовать тяжёлый numba, который увеличивает скорость запуска и размер сборки на ~+30-35мб.
-# Но при этом, код ниже даже быстрее, чем если использовать numba @njit.
+# Но при этом, код ниже даже быстрее, чем если использовать numba @njit (по крайней мере в моих тестах).
 #
 
 
@@ -48,7 +48,7 @@ cpdef list _rot2d_vertices_rectangle_(float x, float y, float width, float heigh
     return [x1, y1, x2, y2, x3, y3, x4, y4]
 
 
-# Функция для конвертации списка квадратов в список треугольников:
+# Функция для конвертации массива квадратов в массив треугольников:
 cpdef list _convert_quads_to_triangles_(list vertices):
     cdef list new_vertices = []
     cdef int i
@@ -66,8 +66,52 @@ cpdef list _convert_quads_to_triangles_(list vertices):
     return new_vertices
 
 
+# Добавление спрайта в пакет текстур для пакетной отрисовки:
+cpdef _sprite_batch_2d_draw_(dict tbat, int tid, float x, float y, float wdth, float hgth, float ang):
+    cdef list vertices
+
+    # Вращаем вершины спрайта:
+    if ang != 0.0:
+        vertices = _rot2d_vertices_rectangle_(x, y, wdth, hgth, ang)
+    else:
+        vertices = [
+            x       , y       ,  # Нижний левый угол.
+            x + wdth, y       ,  # Нижний правый угол.
+            x + wdth, y + hgth,  # Верхний правый угол.
+            x       , y + hgth,  # Верхный левый угол.
+        ]
+
+    # Если текстурки нет в уникальных текстурках:
+    if tid not in tbat: tbat[tid] = []
+
+    # Добавляем новый полигон для текстуры:
+    tbat[tid] += vertices
+
+
+# Добавление текстуры в пакет текстур для пакетной отрисовки:
+cpdef _atlas_texture_batch_2d_draw_(dict tbat, int tid, list tcrd, float x, float y, float wdth, float hgth, float ang):
+    cdef list vertices
+
+    # Вращаем вершины спрайта:
+    if ang != 0.0:
+        vertices = _rot2d_vertices_rectangle_(x, y, wdth, hgth, ang)
+    else:
+        vertices = [
+            x       , y       ,  # Нижний левый угол.
+            x + wdth, y       ,  # Нижний правый угол.
+            x + wdth, y + hgth,  # Верхний правый угол.
+            x       , y + hgth,  # Верхный левый угол.
+        ]
+
+    # Если текстурки нет в уникальных текстурках:
+    if tid not in tbat: tbat[tid] = ([], [])
+
+    tbat[tid][0] += vertices
+    tbat[tid][1] += tcrd
+
+
 # Отрисовка пакета 2D спрайтов:
-cpdef _render_sprite_batch_2d_(dict texture_batches):
+cpdef _sprite_batch_2d_render_(dict texture_batches):
     cdef int texture
     cdef list vertices
 
@@ -89,7 +133,7 @@ cpdef _render_sprite_batch_2d_(dict texture_batches):
 
 
 # Отрисовка атласного пакета 2D спрайтов:
-cpdef _render_atlas_texture_batch_2d_(dict texture_batches):
+cpdef _atlas_texture_batch_2d_render_(dict texture_batches):
     cdef int texture
     cdef list vertices, texcoords
 

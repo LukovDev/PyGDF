@@ -9,9 +9,14 @@ from .camera import Camera2D
 from .sprite import Sprite2D
 from .texture import Texture
 from .atlas import AtlasTexture
-from . import _rot2d_vertices_rectangle_, _render_sprite_batch_2d_, _render_atlas_texture_batch_2d_
 from ..math import *
 from ..utils import *
+from . import (
+    _sprite_batch_2d_draw_,
+    _atlas_texture_batch_2d_draw_,
+    _sprite_batch_2d_render_,
+    _atlas_texture_batch_2d_render_,
+)
 
 
 # Класс пакетной отрисовки спрайтов:
@@ -54,25 +59,10 @@ class SpriteBatch2D:
             czom, cmtr = self.camera.zoom, self.camera.meter
             sprad = max(abs(width), abs(height))/2 * 1.5
             cmrad = max(abs(self.camera.size.x*czom*cmtr), abs(self.camera.size.y*czom*cmtr))/100/2 * 1.5
-            if not Intersects.circle_circle(vec2(x+width/2, y+height/2), sprad, self.camera.position.xy, cmrad):
-                return
+            if not Intersects.circle_circle(vec2(x+width/2, y+height/2), sprad, self.camera.position.xy, cmrad): return
 
-        # Вращаем вершины спрайта:
-        if angle != 0.0: vertices = _rot2d_vertices_rectangle_(x, y, width, height, angle)
-        else:
-            vertices = [
-                x        , y         ,  # Нижний левый угол.
-                x + width, y         ,  # Нижний правый угол.
-                x + width, y + height,  # Верхний правый угол.
-                x        , y + height,  # Верхный левый угол.
-            ]
-
-        # Если текстурки нет в уникальных текстурках:
-        if sprite.id not in self.texture_batches:
-            self.texture_batches[sprite.id] = []
-
-        # Добавляем новый полигон для текстуры:
-        self.texture_batches[sprite.id].extend(vertices)
+        # Добавляем спрайт в пакет текстур используя оптимизированную функцию на Cython:
+        _sprite_batch_2d_draw_(self.texture_batches, sprite.id, x, y, width, height, angle)
 
         return self
 
@@ -95,8 +85,8 @@ class SpriteBatch2D:
 
         gl.glColor(*[1, 1, 1] if color is None else color)
 
-        # Рисуем пакет спрайтов через ускоренную функцию Cython:
-        _render_sprite_batch_2d_(self.texture_batches)
+        # Рисуем пакет спрайтов через ускоренную функцию на Cython:
+        _sprite_batch_2d_render_(self.texture_batches)
 
         if clear_batch: self.texture_batches.clear()
 
@@ -143,25 +133,10 @@ class AtlasTextureBatch2D:
             czom, cmtr = self.camera.zoom, self.camera.meter
             sprad = max(abs(width), abs(height))/2 * 1.5
             cmrad = max(abs(self.camera.size.x*czom*cmtr), abs(self.camera.size.y*czom*cmtr))/100/2 * 1.5
-            if not Intersects.circle_circle(vec2(x+width/2, y+height/2), sprad, self.camera.position.xy, cmrad):
-                return
+            if not Intersects.circle_circle(vec2(x+width/2, y+height/2), sprad, self.camera.position.xy, cmrad): return
 
-        # Вращаем вершины спрайта:
-        if angle != 0.0: vertices = _rot2d_vertices_rectangle_(x, y, width, height, angle)
-        else:
-            vertices = [
-                x        , y         ,  # Нижний левый угол.
-                x + width, y         ,  # Нижний правый угол.
-                x + width, y + height,  # Верхний правый угол.
-                x        , y + height,  # Верхный левый угол.
-            ]
-
-        # Если текстурки нет в уникальных текстурках:
-        if texture.texture.id not in self.texture_batches:
-            self.texture_batches[texture.id] = ([], [])
-
-        self.texture_batches[texture.id][0].extend(vertices)
-        self.texture_batches[texture.id][1].extend(texture.texcoords)
+        # Добавляем текстуру в пакет текстур используя оптимизированную функцию на Cython:
+        _atlas_texture_batch_2d_draw_(self.texture_batches, texture.id, texture.texcoords, x, y, width, height, angle)
 
         return self
 
@@ -184,8 +159,8 @@ class AtlasTextureBatch2D:
 
         gl.glColor(*[1, 1, 1] if color is None else color)
 
-        # Рисуем пакет спрайтов через ускоренную функцию Cython:
-        _render_atlas_texture_batch_2d_(self.texture_batches)
+        # Рисуем пакет спрайтов через ускоренную функцию на Cython:
+        _atlas_texture_batch_2d_render_(self.texture_batches)
 
         if clear_batch: self.texture_batches.clear()
 

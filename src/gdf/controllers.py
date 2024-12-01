@@ -13,7 +13,7 @@ from .math import *
 def check_mouse_pos(input, camera, x_pos_detect: int = 16, y_pos_detect: int = 16) -> None:
     mouse_pos = input.get_mouse_pos()
     set_mouse = input.set_mouse_pos
-    win_size = camera.width, camera.height
+    win_size  = camera.width, camera.height
     if mouse_pos[0] < x_pos_detect:               set_mouse((win_size[0] - x_pos_detect, mouse_pos[1]))
     if mouse_pos[0] > win_size[0] - x_pos_detect: set_mouse((x_pos_detect, mouse_pos[1]))
     if mouse_pos[1] < y_pos_detect:               set_mouse((mouse_pos[0], win_size[1] - y_pos_detect))
@@ -27,7 +27,7 @@ class CameraController2D:
                  min_zoom:     float = 1/1000,
                  max_zoom:     float = 128000,
                  friction:     float = 0.2) -> None:
-        self.input = input
+        self.input  = input
         self.camera = camera
 
         self.fixed_mouse_pos = (0, 0)
@@ -80,8 +80,8 @@ class CameraController3D:
                  shift_speed:       float = 24,
                  friction:          float = 1.0,
                  up_forward:        bool  = False) -> None:
-        self.input             = input
-        self.camera            = camera
+        self.input  = input
+        self.camera = camera
 
         self.mouse_sensitivity = mouse_sensitivity
         self.ctrl_speed        = ctrl_speed
@@ -174,7 +174,7 @@ class CameraController3D:
 
         # Перемещать ли камеру вверх-вниз в зависимости от направления взгляда или нет:
         if self.up_forward: self.up = cross(-self.forward, self.right)
-        else:               self.forward = -normalize(cross(self.right, vec3(0, 1, 0)))
+        else: self.forward = -normalize(cross(self.right, vec3(0, 1, 0)))
 
         # Управление движением:
         if keys[Key.K_w]: self.camera_target -= self.forward * speed

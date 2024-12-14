@@ -81,9 +81,8 @@ cpdef list _p2d_space_find_objects_(Physics2D, space, list objects, point: vec2,
 
     cdef dict body_to_object = {obj.body: obj for obj in objects}
     cdef list fobj = [], objs = []
-    cdef Physics2D.FindedObject obj
 
-    cdef info
+    cdef info, obj
     for info in info_list:
         obj = body_to_object.get(info.shape.body)
         if obj and obj not in objs:

@@ -5,7 +5,6 @@
 
 # Импортируем:
 from .gl import *
-from .camera import Camera2D
 from .sprite import Sprite2D
 from .texture import Texture
 from .atlas import AtlasTexture
@@ -23,10 +22,9 @@ from . import (
 class SpriteBatch2D:
     """ Этот класс не поддерживает отрисовку текстур атласов. Для этого есть класс AtlasTextureBatch2D """
 
-    def __init__(self, camera: Camera2D = None) -> None:
-        self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
-        self.texture_batches = {}      # Словарь хранит уникальные текстурки, и их вершины.
-        self._is_begin_      = False
+    def __init__(self) -> None:
+        self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
+        self._is_begin_  = False
 
     # Начать отрисовку:
     def begin(self) -> "SpriteBatch2D":
@@ -45,21 +43,12 @@ class SpriteBatch2D:
              y:            float,
              width:        float,
              height:       float,
-             angle:        float = 0.0,
-             cull_sprites: bool  = False
+             angle:        float = 0.0
              ) -> "SpriteBatch2D":
         if not self._is_begin_:
             raise Exception(
                 "The \".begin()\" function was not called "
                 "before the \".draw()\" function.")
-
-        # Если камера не видит ваш спрайт, то мы пропускаем отрисовку спрайта:
-        # ЕСЛИ ПЫТАТЬСЯ ОТРИСОВАТЬ МНОГО СПРАЙТОВ ИСПОЛЬЗУЯ ПРОВЕРКУ НИЖЕ, ПРОИЗВОДИТЕЛЬНОСТЬ УПАДЁТ:
-        if cull_sprites and self.camera is not None:
-            czom, cmtr = self.camera.zoom, self.camera.meter
-            sprad = max(abs(width), abs(height))/2 * 1.5
-            cmrad = max(abs(self.camera.size.x*czom*cmtr), abs(self.camera.size.y*czom*cmtr))/100/2 * 1.5
-            if not Intersects.circle_circle(vec2(x+width/2, y+height/2), sprad, self.camera.position.xy, cmrad): return
 
         # Добавляем спрайт в пакет текстур используя оптимизированную функцию на Cython:
         _sprite_batch_2d_draw_(self.texture_batches, sprite.id, x, y, width, height, angle)
@@ -71,9 +60,7 @@ class SpriteBatch2D:
         if self._is_begin_:
             self._is_begin_ = False
         else:
-            raise Exception(
-                "The \".begin()\" function was not called before the \".end()\" function."
-            )
+            raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
         return self
 
     # Отрисовать все спрайты:
@@ -97,10 +84,9 @@ class SpriteBatch2D:
 class AtlasTextureBatch2D:
     """ Этот класс не поддерживает отрисовку спрайтов. Для этого есть класс SpriteBatch2D """
 
-    def __init__(self, camera: Camera2D = None) -> None:
-        self.camera          = camera  # Передайте 2D камеру если хотите увеличить скорость отрисовки.
+    def __init__(self) -> None:
         self.texture_batches = {}  # Словарь хранит уникальные текстурки, и их вершины.
-        self._is_begin_      = False
+        self._is_begin_  = False
 
     # Начать отрисовку:
     def begin(self) -> "AtlasTextureBatch2D":
@@ -127,14 +113,6 @@ class AtlasTextureBatch2D:
                 "The \".begin()\" function was not called "
                 "before the \".draw()\" function.")
 
-        # Если камера не видит ваш спрайт, то мы пропускаем отрисовку спрайта:
-        # ЕСЛИ ПЫТАТЬСЯ ОТРИСОВАТЬ МНОГО СПРАЙТОВ ИСПОЛЬЗУЯ ПРОВЕРКУ НИЖЕ, ПРОИЗВОДИТЕЛЬНОСТЬ УПАДЁТ:
-        if cull_sprites and self.camera is not None:
-            czom, cmtr = self.camera.zoom, self.camera.meter
-            sprad = max(abs(width), abs(height))/2 * 1.5
-            cmrad = max(abs(self.camera.size.x*czom*cmtr), abs(self.camera.size.y*czom*cmtr))/100/2 * 1.5
-            if not Intersects.circle_circle(vec2(x+width/2, y+height/2), sprad, self.camera.position.xy, cmrad): return
-
         # Добавляем текстуру в пакет текстур используя оптимизированную функцию на Cython:
         _atlas_texture_batch_2d_draw_(self.texture_batches, texture.id, texture.texcoords, x, y, width, height, angle)
 
@@ -145,9 +123,7 @@ class AtlasTextureBatch2D:
         if self._is_begin_:
             self._is_begin_ = False
         else:
-            raise Exception(
-                "The \".begin()\" function was not called before the \".end()\" function."
-            )
+            raise Exception("The \".begin()\" function was not called before the \".end()\" function.")
         return self
 
     # Отрисовать все спрайты:

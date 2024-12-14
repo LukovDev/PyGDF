@@ -26,14 +26,14 @@ class Light2D:
                      ) -> None:
             ambient = [0, 0, 0, 0.5] if ambient is None else ambient
 
-            self.camera              = camera                 # Ваша 2D камера.
-            self.ambient             = ambient                # Цвет окружающего света.
-            self.intensity           = intensity              # Яркость всего освещения.
-            self.mix_level           = mix_level              # Сила смешивания окружающего света и источников света.
-            self.lights              = []                     # Список источников света.
-            self.batch               = SpriteBatch2D(camera)  # Пакетная отрисовка спрайтов.
-            self.ambient_framebuffer = Renderer2D(camera)     # Кадровый буфер окружающего освещения.
-            self.light_framebuffer   = Renderer2D(camera)     # Кадровый буфер источников света.
+            self.camera              = camera              # Ваша 2D камера.
+            self.ambient             = ambient             # Цвет окружающего света.
+            self.intensity           = intensity           # Яркость всего освещения.
+            self.mix_level           = mix_level           # Сила смешивания окружающего света и источников света.
+            self.lights              = []                  # Список источников света.
+            self.batch               = SpriteBatch2D()     # Пакетная отрисовка спрайтов.
+            self.ambient_framebuffer = Renderer2D(camera)  # Кадровый буфер окружающего освещения.
+            self.light_framebuffer   = Renderer2D(camera)  # Кадровый буфер источников света.
 
             # Шейдер:
             self.shader = ShaderProgram(

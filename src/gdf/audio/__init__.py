@@ -18,6 +18,6 @@ from . import sound
 
 # Импортируем основной функционал из скриптов:
 from .environment import SoundEnvironment
-from .listener    import Listener
+from .listener    import SoundListener
 from .music       import Music
 from .sound       import Sound

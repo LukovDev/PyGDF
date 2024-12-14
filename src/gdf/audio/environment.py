@@ -4,14 +4,14 @@
 
 
 # Импортируем:
-from .listener import Listener
+from .listener import SoundListener
 from .sound import Sound
 from ..math import *
 
 
 # Класс звукового окружения:
 class SoundEnvironment:
-    def __init__(self, listener: Listener, volume: float = 1.0) -> None:
+    def __init__(self, listener: SoundListener, volume: float = 1.0) -> None:
         self.listener = listener  # Слушатель.
         self.sounds   = []        # Список звуков.
         self.volume   = volume    # Громкость всех звуков в окружении.

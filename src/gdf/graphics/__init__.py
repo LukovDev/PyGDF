@@ -8,7 +8,7 @@ import os
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 
-# Ускоренная функция поворота вершин полигона спрайта:
+# Утилиты написанные на Cython:
 try:
     # Импортируем скомпилированную библиотеку графических утилит:
     from .graphics_utils import (

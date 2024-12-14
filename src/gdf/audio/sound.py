@@ -155,9 +155,9 @@ class Sound:
         return self.sound.max_gain
 
     # Установить позицию:
-    def set_position(self, position: vec3) -> "Sound":
+    def set_position(self, position: vec2 | vec3) -> "Sound":
         if self.sound is None: return self
-        self.sound.set_position(position)
+        self.sound.set_position(position if isinstance(position, vec3) else vec3(position, 0.0))
         return self
 
     # Получить позицию:

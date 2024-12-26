@@ -163,7 +163,7 @@ class Sound:
         self._sound_vars_["pitch"] = abs(pitch)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_pitch(abs(pitch))
+        for s in self.sounds: s.set_pitch(abs(pitch))
         return self
 
     # Получить скорость звука:
@@ -176,7 +176,7 @@ class Sound:
         self._sound_vars_["volume"] = abs(volume)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_gain(abs(volume))
+        for s in self.sounds: s.set_gain(abs(volume))
         return self
 
     # Получить громкость звука:
@@ -189,7 +189,7 @@ class Sound:
         self._sound_vars_["min-dist"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_reference_distance(abs(value))
+        for s in self.sounds: s.set_reference_distance(abs(value))
         return self
 
     # Получить расстояние, при котором звук будет воспроизводиться с максимальной громкостью без затухания:
@@ -202,7 +202,7 @@ class Sound:
         self._sound_vars_["max-dist"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_max_distance(abs(value))
+        for s in self.sounds: s.set_max_distance(abs(value))
         return self
 
     # Получить максимальное расстояние на котором слышен звук:
@@ -215,7 +215,7 @@ class Sound:
         self._sound_vars_["rolloff"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_rolloff_factor(abs(value))
+        for s in self.sounds: s.set_rolloff_factor(abs(value))
         return self
 
     # Получить силу затухания звука с расстоянием:
@@ -228,7 +228,7 @@ class Sound:
         self._sound_vars_["min-volume"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_min_gain(abs(value))
+        for s in self.sounds: s.set_min_gain(abs(value))
         return self
 
     # Получить минимальное значение громкости звука:
@@ -241,7 +241,7 @@ class Sound:
         self._sound_vars_["max-volume"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_max_gain(abs(value))
+        for s in self.sounds: s.set_max_gain(abs(value))
         return self
 
     # Получить максимальное значение громкости звука:
@@ -255,7 +255,7 @@ class Sound:
         self._sound_vars_["position"] = position if isinstance(position, vec3) else vec3(position, 0.0)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_position(self._sound_vars_["position"])
+        for s in self.sounds: s.set_position(self._sound_vars_["position"])
         return self
 
     # Получить позицию:
@@ -269,7 +269,7 @@ class Sound:
         self._sound_vars_["velocity"] = velocity if isinstance(velocity, vec3) else vec3(velocity, 0.0)
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_velocity(self._sound_vars_["velocity"])
+        for s in self.sounds: s.set_velocity(self._sound_vars_["velocity"])
         return self
 
     # Получить скорость звука:
@@ -282,7 +282,7 @@ class Sound:
         self._sound_vars_["relative"] = is_relative
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_source_relative(is_relative)
+        for s in self.sounds: s.set_source_relative(is_relative)
         return self
 
     # Получить звук относительно слушателя:

@@ -23,7 +23,7 @@ class Sound:
         self.sounds = []    # Стек воспроизводимых звуков.
 
         # Скрытые параметры звука. Только для использования внутри класса:
-        self._sound_vars_ = {
+        self._soundvars_ = {
             "paused-snd": None,
             "is-paused":  False,
             "is-loop":    False,
@@ -38,11 +38,11 @@ class Sound:
             "velocity":   vec3(0.0),
             "relative":   False,
         }
-        self._sound_vars_copy_ = dict(self._sound_vars_)
+        self._soundvars_copy_ = dict(self._soundvars_)
 
     # Проверить все звуки, чтобы удалить ненужные и освободить память:
     def _check_sounds_(self) -> None:
-        psd_snd = self._sound_vars_["paused-snd"]
+        psd_snd = self._soundvars_["paused-snd"]
 
         # Фильтруем звуки от тех, что больше не воспроизводятся:
         self.sounds = [s for s in self.sounds if (s.get_state() == al.AL_PLAYING or s == psd_snd) or s.destroy()]
@@ -55,9 +55,9 @@ class Sound:
         # self.sounds = new_stack
 
         # Удаляем звук на паузе если больше не воспроизводится даже если не на паузе:
-        if psd_snd is not None and psd_snd.get_state() != al.AL_PLAYING and not self._sound_vars_["is-paused"]:
+        if psd_snd is not None and psd_snd.get_state() != al.AL_PLAYING and not self._soundvars_["is-paused"]:
             if psd_snd in self.sounds: self.sounds.remove(psd_snd)
-            psd_snd.destroy() ; self._sound_vars_["paused-snd"] = None
+            psd_snd.destroy() ; self._soundvars_["paused-snd"] = None
 
     # Загрузить звук:
     def load(self, file_path: str = None) -> "Sound":
@@ -80,7 +80,7 @@ class Sound:
     # Проиграть звук:
     def play(self, loop: bool = False, overlay: bool = True) -> "Sound":
         if self.buffer is None: return self  # Мы не можем создать звуки если буфера не существует.
-        self._sound_vars_["is-loop"] = loop
+        self._soundvars_["is-loop"] = loop
         self._check_sounds_()
 
         # Если не используем наложение звуков, очищаем все прошлые звуки чтобы воспроизвести только один звук:
@@ -95,24 +95,24 @@ class Sound:
             sound = al.Source(self.buffer)
 
             # Устанавливаем параметры звука:
-            sound.set_pitch(self._sound_vars_["pitch"])
-            sound.set_gain(self._sound_vars_["volume"])
-            sound.set_reference_distance(self._sound_vars_["min-dist"])
-            sound.set_max_distance(self._sound_vars_["max-dist"])
-            sound.set_rolloff_factor(self._sound_vars_["rolloff"])
-            sound.set_min_gain(self._sound_vars_["min-volume"])
-            sound.set_max_gain(self._sound_vars_["max-volume"])
-            sound.set_position(self._sound_vars_["position"])
-            sound.set_velocity(self._sound_vars_["velocity"])
-            sound.set_source_relative(self._sound_vars_["relative"])
-            sound.set_looping(self._sound_vars_["is-loop"])
+            sound.set_pitch(self._soundvars_["pitch"])
+            sound.set_gain(self._soundvars_["volume"])
+            sound.set_reference_distance(self._soundvars_["min-dist"])
+            sound.set_max_distance(self._soundvars_["max-dist"])
+            sound.set_rolloff_factor(self._soundvars_["rolloff"])
+            sound.set_min_gain(self._soundvars_["min-volume"])
+            sound.set_max_gain(self._soundvars_["max-volume"])
+            sound.set_position(self._soundvars_["position"])
+            sound.set_velocity(self._soundvars_["velocity"])
+            sound.set_source_relative(self._soundvars_["relative"])
+            sound.set_looping(self._soundvars_["is-loop"])
 
             # Воспроизводим звук и добавляем в список звуков:
             sound.play()
             self.sounds.append(sound)
         except Exception as e: pass
 
-        self._sound_vars_["is-paused"] = False
+        self._soundvars_["is-paused"] = False
         return self
 
     # Остановить проигрывание звука:
@@ -123,7 +123,7 @@ class Sound:
         [s.stop() for s in self.sounds] if all else self.sounds[-1].stop()
         self._check_sounds_()
 
-        self._sound_vars_["is-paused"] = False
+        self._soundvars_["is-paused"] = False
         return self
 
     # Поставить проигрывание звука на паузу:
@@ -131,12 +131,12 @@ class Sound:
         self._check_sounds_()
         if not self.sounds: return self
 
-        if not self._sound_vars_["is-paused"]:
-            self._sound_vars_["paused-snd"] = self.sounds[-1]
-            paused_snd = self._sound_vars_["paused-snd"]
+        if not self._soundvars_["is-paused"]:
+            self._soundvars_["paused-snd"] = self.sounds[-1]
+            paused_snd = self._soundvars_["paused-snd"]
             if paused_snd.get_state() == al.AL_PLAYING:
-                self._sound_vars_["paused-snd"].pause()
-            self._sound_vars_["is-paused"] = True
+                self._soundvars_["paused-snd"].pause()
+            self._soundvars_["is-paused"] = True
         return self
 
     # Возобновить проигрывание звука:
@@ -144,11 +144,11 @@ class Sound:
         self._check_sounds_()
         if not self.sounds: return self
 
-        if self._sound_vars_["is-paused"]:
-            paused_snd = self._sound_vars_["paused-snd"]
+        if self._soundvars_["is-paused"]:
+            paused_snd = self._soundvars_["paused-snd"]
             if paused_snd is not None and paused_snd.get_state() == al.AL_PAUSED:
-                self._sound_vars_["paused-snd"].play()
-            self._sound_vars_["is-paused"] = False
+                self._soundvars_["paused-snd"].play()
+            self._soundvars_["is-paused"] = False
         return self
 
     # Перемотать к началу:
@@ -160,7 +160,7 @@ class Sound:
 
     # Установить скорость звука:
     def set_pitch(self, pitch: float) -> "Sound":
-        self._sound_vars_["pitch"] = abs(pitch)
+        self._soundvars_["pitch"] = abs(pitch)
         self._check_sounds_()
         if not self.sounds: return self
         for s in self.sounds: s.set_pitch(abs(pitch))
@@ -169,11 +169,11 @@ class Sound:
     # Получить скорость звука:
     def get_pitch(self) -> float:
         self._check_sounds_()
-        return self._sound_vars_["pitch"]
+        return self._soundvars_["pitch"]
 
     # Установить громкость звука:
     def set_volume(self, volume: float) -> "Sound":
-        self._sound_vars_["volume"] = abs(volume)
+        self._soundvars_["volume"] = abs(volume)
         self._check_sounds_()
         if not self.sounds: return self
         for s in self.sounds: s.set_gain(abs(volume))
@@ -182,11 +182,11 @@ class Sound:
     # Получить громкость звука:
     def get_volume(self) -> float:
         self._check_sounds_()
-        return self._sound_vars_["volume"]
+        return self._soundvars_["volume"]
 
     # Установить расстояние, при котором звук будет воспроизводиться с максимальной громкостью без затухания:
     def set_min_distance(self, value: float) -> "Sound":
-        self._sound_vars_["min-dist"] = abs(value)
+        self._soundvars_["min-dist"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
         for s in self.sounds: s.set_reference_distance(abs(value))
@@ -195,11 +195,11 @@ class Sound:
     # Получить расстояние, при котором звук будет воспроизводиться с максимальной громкостью без затухания:
     def get_min_distance(self) -> float:
         self._check_sounds_()
-        return self._sound_vars_["min-dist"]
+        return self._soundvars_["min-dist"]
 
     # Установить максимальное расстояние на котором слышен звук:
     def set_max_distance(self, value: float) -> "Sound":
-        self._sound_vars_["max-dist"] = abs(value)
+        self._soundvars_["max-dist"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
         for s in self.sounds: s.set_max_distance(abs(value))
@@ -208,11 +208,11 @@ class Sound:
     # Получить максимальное расстояние на котором слышен звук:
     def get_max_distance(self) -> float:
         self._check_sounds_()
-        return self._sound_vars_["max-dist"]
+        return self._soundvars_["max-dist"]
 
     # Установить силу затухания звука с расстоянием:
     def set_rolloff_factor(self, value: float = 1.0) -> "Sound":
-        self._sound_vars_["rolloff"] = abs(value)
+        self._soundvars_["rolloff"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
         for s in self.sounds: s.set_rolloff_factor(abs(value))
@@ -221,11 +221,11 @@ class Sound:
     # Получить силу затухания звука с расстоянием:
     def get_rolloff_factor(self) -> float:
         self._check_sounds_()
-        return self._sound_vars_["rolloff"]
+        return self._soundvars_["rolloff"]
 
     # Установить минимальное значение громкости звука:
     def set_min_volume(self, value: float) -> "Sound":
-        self._sound_vars_["min-volume"] = abs(value)
+        self._soundvars_["min-volume"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
         for s in self.sounds: s.set_min_gain(abs(value))
@@ -234,11 +234,11 @@ class Sound:
     # Получить минимальное значение громкости звука:
     def get_min_volume(self) -> float:
         self._check_sounds_()
-        return self._sound_vars_["min-volume"]
+        return self._soundvars_["min-volume"]
 
     # Установить максимальное значение громкости звука:
     def set_max_volume(self, value: float) -> "Sound":
-        self._sound_vars_["max-volume"] = abs(value)
+        self._soundvars_["max-volume"] = abs(value)
         self._check_sounds_()
         if not self.sounds: return self
         for s in self.sounds: s.set_max_gain(abs(value))
@@ -247,39 +247,39 @@ class Sound:
     # Получить максимальное значение громкости звука:
     def get_max_volume(self) -> float:
         self._check_sounds_()
-        return self._sound_vars_["max-volume"]
+        return self._soundvars_["max-volume"]
 
     # Установить позицию:
     def set_position(self, position: vec2 | vec3) -> "Sound":
         if position is None: position = vec3(0.0)
-        self._sound_vars_["position"] = position if isinstance(position, vec3) else vec3(position, 0.0)
+        self._soundvars_["position"] = position if isinstance(position, vec3) else vec3(position, 0.0)
         self._check_sounds_()
         if not self.sounds: return self
-        for s in self.sounds: s.set_position(self._sound_vars_["position"])
+        for s in self.sounds: s.set_position(self._soundvars_["position"])
         return self
 
     # Получить позицию:
     def get_position(self) -> vec3:
         self._check_sounds_()
-        return self._sound_vars_["position"]
+        return self._soundvars_["position"]
 
     # Установить скорость звука:
     def set_velocity(self, velocity: vec2 | vec3) -> "Sound":
         if velocity is None: velocity = vec3(0.0)
-        self._sound_vars_["velocity"] = velocity if isinstance(velocity, vec3) else vec3(velocity, 0.0)
+        self._soundvars_["velocity"] = velocity if isinstance(velocity, vec3) else vec3(velocity, 0.0)
         self._check_sounds_()
         if not self.sounds: return self
-        for s in self.sounds: s.set_velocity(self._sound_vars_["velocity"])
+        for s in self.sounds: s.set_velocity(self._soundvars_["velocity"])
         return self
 
     # Получить скорость звука:
     def get_velocity(self) -> vec3:
         self._check_sounds_()
-        return self._sound_vars_["velocity"]
+        return self._soundvars_["velocity"]
 
     # Установить звук относительно слушателя:
     def set_relative(self, is_relative: bool) -> "Sound":
-        self._sound_vars_["relative"] = is_relative
+        self._soundvars_["relative"] = is_relative
         self._check_sounds_()
         if not self.sounds: return self
         for s in self.sounds: s.set_source_relative(is_relative)
@@ -288,20 +288,20 @@ class Sound:
     # Получить звук относительно слушателя:
     def get_relative(self) -> bool:
         self._check_sounds_()
-        return self._sound_vars_["relative"]
+        return self._soundvars_["relative"]
 
     # Установить цикличность:
     def set_looping(self, is_loop: bool) -> "Sound":
-        self._sound_vars_["is-loop"] = is_loop
+        self._soundvars_["is-loop"] = is_loop
         self._check_sounds_()
         if not self.sounds: return self
-        self.sounds[-1].set_looping(self._sound_vars_["is-loop"])
+        self.sounds[-1].set_looping(self._soundvars_["is-loop"])
         return self
 
     # Получить цикличность:
     def get_looping(self) -> bool:
         self._check_sounds_()
-        return self._sound_vars_["is-loop"]
+        return self._soundvars_["is-loop"]
 
     # Активен ли проигрыватель или нет:
     def get_active(self) -> bool:
@@ -312,7 +312,7 @@ class Sound:
     # Освобождаем ресурсы:
     def destroy(self) -> None:
         [s.destroy() for s in self.sounds] ; self.sounds.clear()
-        self._sound_vars_ = dict(self._sound_vars_copy_)  # Сбрасываем параметры.
+        self._soundvars_ = dict(self._soundvars_copy_)  # Сбрасываем параметры.
 
         if self.buffer is not None:
             # self.buffer.destroy()  # По неизвестной причине, нельзя вручную удалить буфер звука.

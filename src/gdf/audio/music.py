@@ -31,7 +31,6 @@ class Music:
             self.path = io.BytesIO(self.path)
 
         # Пытаемся загрузить:
-        if self.path is None: return self
         try: self.audio = pygame.mixer.Sound(self.path)
         except Exception as error:
             raise Exception(f"Error in \"Music.load()\": {error}\n")

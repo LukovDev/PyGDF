@@ -14,20 +14,27 @@ from .texture import Texture
 # Файл шрифта:
 class FontFile:
     def __init__(self, file_path: str | io.BytesIO = None) -> None:
-        self.path = file_path if isinstance(file_path, str) else None
-        self.data = file_path if isinstance(file_path, io.BytesIO) else None
+        self.path = file_path
 
     # Загрузить шрифт:
     def load(self, file_path: str | io.BytesIO = None) -> "FontFile":
-        self.path = file_path if isinstance(file_path, str) else self.path
+        self.path = file_path if file_path is not None else self.path
 
-        if isinstance(self.path, str):
+        # Проверяем на наличие файла:
+        if self.path is None or (isinstance(self.path, str) and not os.path.isfile(self.path)):
+            raise FileNotFoundError(f"File not found: {self.path}")
+
+        # Если мы передали не путь и не BytesIO, конвертируем в BytesIO:
+        if not isinstance(self.path, str) and not isinstance(self.path, io.BytesIO):
+            self.path = io.BytesIO(self.path)
+
+        # Пытаемся загрузить:
+        try:
+            if isinstance(self.path, io.BytesIO): return self
             with open(self.path, "rb") as f:
-                self.data = io.BytesIO(f.read())
-        elif isinstance(file_path, io.BytesIO):
-            self.data = file_path
-        elif isinstance(self.data, io.BytesIO) and file_path is None and self.path is None:
-            pass  # Значит мы уже загрузили данные шрифта.
+                self.path = io.BytesIO(f.read())
+        except Exception as error:
+            raise Exception(f"Error in \"FontFile.load()\": {error}")
 
         return self
 
@@ -61,8 +68,8 @@ class FontGenerator:
         bg_color = [c * 255 for c in bg_color]
 
         # Создаём экземпляр шрифта:
-        if isinstance(self.font, FontFile):
-            font = pygame.font.Font(io.BytesIO(self.font.data.getbuffer()), font_size)
+        if isinstance(self.font, FontFile) and self.font.path is not None:
+            font = pygame.font.Font(io.BytesIO(self.font.path.getbuffer()), font_size)
         else: font = pygame.font.SysFont("Arial", font_size)
 
         # Создаём и получаем битмап текста из шрифта:

@@ -44,6 +44,7 @@ class Image:
         if not isinstance(self.path, str) and not isinstance(self.path, io.BytesIO):
             self.path = io.BytesIO(self.path)
 
+        # Пытаемся загрузить:
         try: self._update_image_(pygame.image.load(self.path))
         except Exception as error:
             raise Exception(f"Error in \"Image.load()\": {error}")

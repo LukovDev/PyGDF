@@ -291,8 +291,8 @@ class Sound:
         return self._soundvars_["relative"]
 
     # Установить цикличность:
-    def set_looping(self, is_loop: bool) -> "Sound":
-        self._soundvars_["is-loop"] = is_loop
+    def set_looping(self, loop: bool) -> "Sound":
+        self._soundvars_["is-loop"] = loop
         self._check_sounds_()
         if not self.sounds: return self
         self.sounds[-1].set_looping(self._soundvars_["is-loop"])

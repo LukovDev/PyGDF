@@ -64,7 +64,7 @@ class Sound:
         self.path = file_path if isinstance(file_path, str) else self.path
 
         # Проверяем на наличие файла:
-        if not os.path.isfile(self.path):
+        if self.path is None or not os.path.isfile(self.path):
             raise FileNotFoundError(f"File not found: {self.path}")
 
         # Пытаемся загрузить:

@@ -55,7 +55,7 @@ class PackerTexture:
         height = max(texture.height for _, texture in sorted_textures)
 
         # Создаём поверхность на которой будем рисовать текстуры:
-        atlas = Image((width, height))
+        atlas = Image(size=(width, height))
 
         # "Волшебный" алгоритм по расстановке текстур в атласе.
         # TODO: Этот алгоритм крайне не эффективен (по заполнению пустот). Его надо переделать.

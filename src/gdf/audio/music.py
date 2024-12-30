@@ -23,7 +23,7 @@ class Music:
         self.path = file_path if file_path is not None else self.path
 
         # Проверяем на наличие файла:
-        if isinstance(self.path, str) and not os.path.isfile(self.path):
+        if self.path is None or (isinstance(self.path, str) and not os.path.isfile(self.path)):
             raise FileNotFoundError(f"File not found: {self.path}")
 
         # Если мы передали не путь и не BytesIO, конвертируем в BytesIO:

@@ -320,7 +320,7 @@ class Window:
 
         # Создаём и устанавливаем прозрачную иконку только в том случае, если мы передали None:
         self._winvars_["icon"] = icon
-        pygame.display.set_icon(Image((64, 64)).fill([0, 0, 0, 0]).surface if icon is None else icon.surface)
+        pygame.display.set_icon(Image(size=(64, 64)).fill([0, 0, 0, 0]).surface if icon is None else icon.surface)
 
     # Получить иконку окна:
     def get_icon(self) -> Image:
@@ -548,7 +548,7 @@ class Window:
         else:     gl.glReadBuffer(gl.GL_BACK)   # Задний (в процессе рисовки) буфер.
         w, h = s = self.get_size()
         p = np.frombuffer(gl.glReadPixels(0, 0, *s, gl.GL_RGB, gl.GL_UNSIGNED_BYTE), dtype=np.uint8).reshape((h, w, 3))
-        return Image((0, 0), surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
+        return Image(surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
 
     # Вызовите, когда хотите закрыть окно:
     def exit(self) -> None:

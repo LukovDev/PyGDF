@@ -71,12 +71,12 @@ class FontGenerator:
         bitmap_size = bitmap.get_width()+padding_x*2, bitmap.get_height()+padding_y*2
 
         # Создаём фон текста, и рисуем на нём основной текст:
-        text_image = Image(bitmap_size)
+        text_image = Image(size=bitmap_size)
         text_image.fill(bg_color)
         text_image.draw(bitmap, padding_x, padding_y)
 
         # Создаём текстуру из битмапа:
-        texture = Texture(Image((0, 0), surface=text_image))
+        texture = Texture(Image(surface=text_image))
 
         # Устанавливаем сглаживание текстуры:
         texture.set_linear() if smooth else texture.set_pixelized()
@@ -92,7 +92,7 @@ class FontGenerator:
                      padding_x: int  = 0,
                      padding_y: int  = 0,
                      smooth:    bool = True
-                     ) -> "Font":
+                     ) -> "FontGenerator":
         # Удаляем старую текстуру текста:
         if self.texture is not None:
             self.texture.destroy()

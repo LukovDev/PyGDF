@@ -18,8 +18,8 @@ from .graphics import Image, Texture, Sprite2D
 
 
 # Загружаем изображение:
-def load_image(file_path: str) -> Image:
-    return Image((0, 0)).load(file_path)
+def load_image(file_path: str | io.BytesIO) -> Image:
+    return Image().load(file_path)
 
 
 # Сохраняем изображение:
@@ -28,8 +28,8 @@ def save_image(file_path: str, image: Image) -> None:
 
 
 # Загружаем текстуру:
-def load_texture(file_path: str, is_flip_y: bool = False, pixelized: bool = False) -> Texture:
-    texture = Texture(Image((0, 0)).load(file_path), is_flip_y)
+def load_texture(file_path: str | io.BytesIO, is_flip_y: bool = False, pixelized: bool = False) -> Texture:
+    texture = Texture(Image().load(file_path), is_flip_y)
     return texture.set_pixelized() if pixelized else texture
 
 

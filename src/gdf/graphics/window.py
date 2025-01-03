@@ -5,6 +5,7 @@
 
 # Импортируем:
 import gc
+import sys
 import time
 import pygame
 
@@ -200,7 +201,7 @@ class Window:
             event_list = pygame.event.get()
             for event in event_list:
                 # Если программу хотят закрыть:
-                if event.type == pygame.QUIT: self.exit()
+                if event.type == pygame.QUIT: self.close()
 
                 # Проверка на то, изменился ли размер окна или нет:
                 elif event.type == pygame.VIDEORESIZE:
@@ -266,13 +267,8 @@ class Window:
 
             # Если хотят закрыть окно:
             if self._winvars_["is-exit"]:
-                # Вызываем функцию удаления ресурсов у сцены, если та существует:
-                if scn is not None and issubclass(type(scn), Scene): scn.destroy()
-                self.destroy()  # Вызываем удаление пользовательских ресурсов.
-                al_quit()       # Закрываем OpenAL.
-                pygame.quit()   # Закрываем окно PyGame.
-                gc.collect()    # Собираем мусор (на всякий случай).
-                return          # Возвращаемся из этого класса.
+                self._destroy_window_()
+                return # Возвращаемся из этого класса.
 
             # Делаем задержку между кадрами:
             self.clock.tick(self._winvars_["setted-fps"]) if not self._winvars_["vsync"] else self.clock.tick(0)
@@ -299,6 +295,15 @@ class Window:
         glu.gluOrtho2D(-wdth, wdth, -hght, hght)
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
+    
+    # Функция для удаления всех данных окна при выходе:
+    def _destroy_window_(self) -> None:
+        scn = self._winvars_["current-scene"]
+        if scn is not None and issubclass(type(scn), Scene): scn.destroy()
+        self.destroy()  # Вызываем удаление пользовательских ресурсов.
+        al_quit()       # Закрываем OpenAL.
+        pygame.quit()   # Закрываем окно PyGame.
+        gc.collect()    # Собираем мусор (на всякий случай).
 
     # ------------------------------------------------------ API: ------------------------------------------------------
 
@@ -550,14 +555,20 @@ class Window:
         p = np.frombuffer(gl.glReadPixels(0, 0, *s, gl.GL_RGB, gl.GL_UNSIGNED_BYTE), dtype=np.uint8).reshape((h, w, 3))
         return Image(surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
 
-    # Вызовите когда хотите закрыть окно:
+    # Вызовите когда хотите закрыть окно и выполнение кода:
     def exit(self) -> None:
+        self._destroy_window_()
+        sys.exit()
+
+    # Вызовите когда хотите закрыть окно после выполнения цикла обновления и рендеринга:
+    def close(self) -> None:
         self.set_visible(False)
         self.clear(0, 0, 0)
         self._winvars_["is-exit"] = True
 
-    # Вызовите когда хотите закрыть видеосистему pygame не дожидаясь когда выполнится функция exit():
-    def close(self) -> None: pygame.quit()
+    # Вызовите когда хотите закрыть видеосистему pygame:
+    def quit(self) -> None:
+        pygame.quit()
 
     # Очистка окна (цвета от 0 до 1):
     @staticmethod

@@ -37,7 +37,7 @@ except PackageNotFoundError:
 
 
 # Получить версию библиотеки:
-def get_version() -> str: return "v1.2-in-dev"
+def get_version() -> str: return "v1.2"
 
 
 # Получить полное название системы:

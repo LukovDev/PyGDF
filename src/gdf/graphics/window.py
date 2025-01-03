@@ -550,14 +550,14 @@ class Window:
         p = np.frombuffer(gl.glReadPixels(0, 0, *s, gl.GL_RGB, gl.GL_UNSIGNED_BYTE), dtype=np.uint8).reshape((h, w, 3))
         return Image(surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
 
-    # Вызовите, когда хотите закрыть окно:
+    # Вызовите когда хотите закрыть окно:
     def exit(self) -> None:
         self.set_visible(False)
         self.clear(0, 0, 0)
         self._winvars_["is-exit"] = True
 
-    # Альтернатива функции exit(). Нет никаких отличий. Просто кому как удобнее:
-    def close(self) -> None: self.exit()
+    # Вызовите когда хотите закрыть видеосистему pygame не дожидаясь когда выполнится функция exit():
+    def close(self) -> None: pygame.quit()
 
     # Очистка окна (цвета от 0 до 1):
     @staticmethod

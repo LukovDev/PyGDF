@@ -11,32 +11,35 @@ from ..utils import Utils2D
 
 
 # Класс 2D частиц:
-class SimpleParticleEffect2D:
+class ParticleEffect2D:
     """ Пример использования:
-        particles = SimpleParticleEffect2D(
+        particles = ParticleEffect2D(
             texture       = [particle_texture],
             position      = vec2(0, 0),
             direction     = vec2(0, 0),
-            start_size    = vec2(16, 16),
-            end_size      = vec2(0, 0),
+            start_size    = [vec2(16, 16), vec2(16, 16)],
+            end_size      = [vec2(0, 0), vec2(0, 0)],
             speed         = vec2(3, 10),
             damping       = 0.01,
             duration      = vec2(1, 2),
             count         = 512,
             gravity       = vec2(0, 0),
-            start_angle   = 0.0,
-            end_angle     = 0.0,
+            start_angle   = vec2(0.0),
+            end_angle     = vec2(0.0),
+            size_exp      = 1.0,
+            angle_exp     = 1.0,
             is_infinite   = False,
             is_local_pos  = False,
             is_dir_angle  = False,
-            spawn_in      = SimpleParticleEffect2D.SpawnInPoint(),
+            spawn_in      = ParticleEffect2D.SpawnInPoint(),
             custom_update = None
         ).create()
     """
 
     """ Пример кастомной функции обновления частиц:
         def custom_update(delta_time: float, particles: list) -> None:
-            pass
+            for particle in list(particles):
+                particle.position.xy += particle.velocity.xy * delta_time
     """
 
     # Создать частицу в точке:
@@ -67,7 +70,7 @@ class SimpleParticleEffect2D:
 
         # Получить направление частицы:
         def get_direction(self, orig_pos: vec2, spawn_pos: vec2) -> vec2:
-            if self.dir_out: return normalize(spawn_pos-orig_pos)
+            if self.dir_out: return normalize(spawn_pos.xy-orig_pos.xy)
             else:
                 a = random.uniform(0, 2*math.pi)
                 return vec2(sin(a), cos(a))
@@ -91,7 +94,7 @@ class SimpleParticleEffect2D:
 
         # Получить направление частицы:
         def get_direction(self, orig_pos: vec2, spawn_pos: vec2) -> vec2:
-            if self.dir_out: return normalize(spawn_pos-orig_pos)
+            if self.dir_out: return normalize(spawn_pos.xy-orig_pos.xy)
             else:
                 a = random.uniform(0, 2*math.pi)
                 return vec2(sin(a), cos(a))
@@ -118,20 +121,26 @@ class SimpleParticleEffect2D:
     # Частица:
     class Particle:
         def __init__(self,
-                     texture:  Texture | list,
-                     position: vec2,
-                     velocity: vec2,
-                     angle:    float,
-                     size:     vec2,
-                     time:     float
+                     texture:   Texture | list,
+                     position:  vec2,
+                     velocity:  vec2,
+                     angle:     float,
+                     end_angle: float,
+                     size:      vec2,
+                     end_size:  vec2,
+                     time:      float
                      ) -> None:
-            self.texture     = texture
-            self.position    = position
-            self.velocity    = velocity
-            self.angle       = angle
-            self.size        = size
-            self.time        = time
-            self.static_time = time
+            self.texture    = texture
+            self.position   = position
+            self.velocity   = velocity
+            self.angle      = angle
+            self.s_angle    = angle
+            self.e_angle    = end_angle
+            self.size       = size.xy
+            self.s_size     = size.xy
+            self.e_size     = end_size.xy
+            self.time       = time
+            self.start_time = time
 
         # Скорость перемещения частицы:
         @property
@@ -142,43 +151,64 @@ class SimpleParticleEffect2D:
                  texture:       Texture | list,
                  position:      vec2,
                  direction:     vec2,
-                 start_size:    vec2,
-                 end_size:      vec2,
+                 start_size:    vec2 | list[vec2],
+                 end_size:      vec2 | list[vec2],
                  speed:         vec2,
                  damping:       float,
                  duration:      vec2,
                  count:         int,
                  gravity:       vec2,
-                 start_angle:   float = 0.0,
-                 end_angle:     float = 0.0,
+                 start_angle:   float | vec2 = vec2(0.0),
+                 end_angle:     float | vec2 = vec2(0.0),
+                 size_exp:      float = 1.0,
+                 angle_exp:     float = 1.0,
                  is_infinite:   bool  = True,
                  is_local_pos:  bool  = False,
                  is_dir_angle:  bool  = True,
                  spawn_in:      SpawnInPoint | SpawnInCircle | SpawnInSquare | SpawnInLine = None,
-                 custom_update: any   = None
+                 custom_update: any = None
                  ) -> None:
+        # Подготовка данных:
+
+        # Подготовка начальных и конечных размеров частиц:
+        if not isinstance(start_size, list):      # Если это не массив из двух векторов, делаем его массивом.
+            if not isinstance(start_size, vec2):  # Если это даже не вектор, делаем его вектором.
+                start_size = vec2(start_size)
+            start_size = [start_size, start_size]
+        if not isinstance(end_size, list):      # Если это не массив из двух векторов, делаем его массивом.
+            if not isinstance(end_size, vec2):  # Если это даже не вектор, делаем его вектором.
+                end_size = vec2(end_size)
+            end_size = [end_size, end_size]
+
+        # Подготовка продолжительности жизни частицы:
+        duration, speed = vec2(duration), vec2(speed)
+
+        # Подготовка начальных и конечных углов частиц:
+        start_angle, end_angle = vec2(start_angle), vec2(end_angle)
 
         # Параметры:
         self.texture       = texture        # Текстура частиц.
         self.position      = position       # Позиция эффекта частиц.
         self.direction     = direction      # Вектор направления частиц.
-        self.start_size    = start_size     # Начальный размер частиц.
-        self.end_size      = end_size       # Конечный размер частиц.
+        self.start_size    = start_size     # Начальный размер частиц (два вектора между которыми выбирается случ.разм).
+        self.end_size      = end_size       # Конечный размер частиц (два вектора между которыми выбирается случ.разм).
         self.speed         = speed          # Начальная скорость частицы. Случайно от X до Y.
         self.damping       = damping        # Сила затухания скорости частицы.
         self.duration      = duration       # Сколько должна жить частица (в секундах). Случайно от X до Y.
         self.count         = count          # Количество частиц.
         self.gravity       = gravity        # Сила гравитации.
-        self.start_angle   = start_angle    # Начальный угол частицы.
-        self.end_angle     = end_angle      # Конечный угол частицы.
+        self.start_angle   = start_angle    # Начальный угол частицы (2 значения между которыми выбирается случ.число).
+        self.end_angle     = end_angle      # Конечный угол частицы (2 значения между которыми выбирается случ.число).
+        self.size_exp      = size_exp       # Экспоненциальное масштабирование размера.
+        self.angle_exp     = angle_exp      # Экспоненциальный поворот.
         self.is_infinite   = is_infinite    # Бесконечные ли частицы.
         self.is_local_pos  = is_local_pos   # Частицы в локальном пространстве.
         self.is_dir_angle  = is_dir_angle   # Поворачивать ли частицу в сторону направления движения.
-        self.spawn_in      = spawn_in       # Как создавать частицу.
+        self.spawn_in      = spawn_in       # Как создавать частицу (укажите класс спавнера частиц).
         self.custom_update = custom_update  # Кастомный обновлятор частиц.
 
         # Если передали пустой спавнер, создаём спавнер по умолчанию (точка):
-        if self.spawn_in is None: self.spawn_in = SimpleParticleEffect2D.SpawnInPoint()
+        if self.spawn_in is None: self.spawn_in = ParticleEffect2D.SpawnInPoint()
 
         # Внутренние переменные класса:
         self.particles = None  # Список частиц.
@@ -197,17 +227,30 @@ class SimpleParticleEffect2D:
         ptxt = self.texture if type(self.texture) is Texture else random.choice(self.texture)
         ppos = self.position.xy + spwn_pos.xy
         pvel = normalize(spwn_dir+self.direction) * random.uniform(*self.speed.xy)
-        pang = self.start_angle
-        psiz = self.start_size.xy
+
+        pang = random.uniform(*self.start_angle.xy)
+        peag = random.uniform(*self.end_angle.xy)
+
+        psiz = vec2(
+            random.uniform(self.start_size[0].x, self.start_size[1].x),
+            random.uniform(self.start_size[0].y, self.start_size[1].y)
+        )
+        pnsz = vec2(
+            random.uniform(self.end_size[0].x, self.end_size[1].x),
+            random.uniform(self.end_size[0].y, self.end_size[1].y)
+        )
+
         ptfl = random.uniform(*self.duration.xy)
 
         # Частица:
-        particle = SimpleParticleEffect2D.Particle(
+        particle = ParticleEffect2D.Particle(
             ptxt,  # Текстура частицы.
             ppos,  # Позиция.
             pvel,  # Вектор направления и скорости.
             pang,  # Угол поворота.
+            peag,  # Конечный угол поворота.
             psiz,  # Размер.
+            pnsz,  # Конечный размер.
             ptfl   # Время жизни частицы.
         )
 
@@ -215,7 +258,7 @@ class SimpleParticleEffect2D:
         self.particles.append(particle)
 
     # Создать эффект частиц:
-    def create(self) -> "SimpleParticleEffect2D":
+    def create(self) -> "ParticleEffect2D":
         if self.particles is None: self.particles = []
 
         for i in range(0 if self.is_infinite else self.count-len(self.particles)):
@@ -224,7 +267,7 @@ class SimpleParticleEffect2D:
         return self
 
     # Обновление частиц:
-    def update(self, delta_time: float) -> "SimpleParticleEffect2D":
+    def update(self, delta_time: float) -> "ParticleEffect2D":
         if self.particles is None: return
 
         if self.custom_update is not None: self.custom_update(delta_time, self.particles) ; return
@@ -240,7 +283,7 @@ class SimpleParticleEffect2D:
                 self._create_particle_()
                 self._partvars_["timer"] += (sum(self.duration) / 2) / self.count
 
-        # Урезаем лишние частицы:
+        # Урезаем лишние частицы (на всякий случай ограничиваем их количество):
         self.particles = self.particles[:self.count]
 
         # Проходимся по частицам (проходимся по последней копии списка частиц):
@@ -249,35 +292,34 @@ class SimpleParticleEffect2D:
             particle.time -= dt
 
             # Применяем гравитацию к направлению частицы:
-            particle.velocity += self.gravity * (dt*60)
+            particle.velocity += self.gravity * dt
             particle.velocity *= 1.0 - self.damping
 
             # Перемещаем частичку в сторону её направления умноженное на её скорость:
-            particle.position += (normalize(particle.velocity) * particle.speed) * (dt*60)
+            particle.position += normalize(particle.velocity) * particle.speed * dt
             if self.is_local_pos: particle.position += self.position - self._partvars_["old-pos"]
 
             # Прогресс жизни частицы от 0 до 1:
-            life_progress = 1.0 - (particle.time / particle.static_time)
+            prgss = 1.0 - (particle.time / particle.start_time)
 
             # Вращаем частицу:
-            if not (self.end_angle is None or self.end_angle == self.start_angle):
-                particle.angle = mix(self.start_angle, self.end_angle, life_progress)
+            if particle.s_angle != particle.e_angle:  # Только если начальный и конечный не одинаковы:
+                particle.angle = mix(particle.s_angle, particle.e_angle, smoothstep(0, 1, prgss**self.angle_exp))
 
             # Меняем размер:
-            if not (self.end_size is None or self.end_size.xy == self.start_size.xy) and type(self.end_size) == vec2:
-                particle.size.xy = mix(self.start_size.xy, self.end_size.xy, life_progress)
+            if particle.s_size.xy != particle.e_size.xy:  # Только если начальный и конечный не одинаковы:
+                particle.size.xy = mix(particle.s_size.xy, particle.e_size.xy, smoothstep(0, 1, prgss**self.size_exp))
 
             # Удаляем частицу только после всех изменений и если её время вышло:
             if particle.time <= 0.0:
                 self.particles.remove(particle)
-                if self.is_infinite: 
-                    self._create_particle_()
+                if self.is_infinite: self._create_particle_()
 
         self._partvars_["old-pos"].xy = self.position.xy
         return self
 
     # Отрисовка частиц:
-    def render(self, color: list = None, batch: SpriteBatch2D = None) -> "SimpleParticleEffect2D":
+    def render(self, color: list = None, batch: SpriteBatch2D = None) -> "ParticleEffect2D":
         if self.particles is None: return
 
         # Проходимся по частицам:

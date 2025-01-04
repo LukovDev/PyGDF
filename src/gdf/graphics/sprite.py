@@ -28,8 +28,8 @@ class Sprite2D:
     def render(self,
                x:      float,
                y:      float,
-               width:  float = 0,
-               height: float = 0,
+               width:  float = None,
+               height: float = None,
                angle:  float = 0.0,
                color:  list = None
                ) -> "Sprite2D":
@@ -41,7 +41,7 @@ class Sprite2D:
             self.width  = self.texture.width
             self.height = self.texture.height
 
-        wdth, hght = width or self.width, height or self.height
+        wdth, hght = width if width is not None else self.width, height if height is not None else self.height
 
         # Вращаем вершины спрайта:
         if angle != 0.0:

@@ -5,6 +5,7 @@
 
 # Импортируем:
 import gc
+import sys
 import time
 import pygame
 
@@ -69,8 +70,8 @@ class Window:
                  min_size:   vec2  = vec2(0, 0),
                  max_size:   vec2  = vec2(float("inf"), float("inf")),
                  samples:    int   = 0,
-                 gl_major:   int   = None,
-                 gl_minor:   int   = None) -> None:
+                 gl_major:   int   = 3,
+                 gl_minor:   int   = 1) -> None:
         self.clock = pygame.time.Clock()
         self.window = self
         self._winvars_ = {
@@ -100,13 +101,16 @@ class Window:
             "mouse-visible":  True,
             "key-down":       [],
             "key-up":         [],
-            "dtime":          1/60,
-            "old-dtime":      1/60,
+            "dtime":          1/(60 if fps <= 0 else fps),
+            "dtime-old":      1/(60 if fps <= 0 else fps),
             "is-exit":        False,
             "start-time":     0.0,
             "current-scene":  None,
             "is-new-scene":   False,
         }
+
+        # Делаем окно временно скрытым (изменяем переменную напрямую чтобы не пересоздавать несуществующее окно):
+        _before_visible_ = self._winvars_["visible"] ; self._winvars_["visible"] = False
 
         # Создание окна:
         try:
@@ -132,11 +136,23 @@ class Window:
         except Exception as error:
             raise OpenGLWindowError(f"Error creating the window: {error}")
 
+        # Проверка на совместимость (если текущая версия OpenGL ниже установленной, вызываем исключение):
+        gl_version = self.get_opengl_version()
+        msg_error = "GDF-Core" if gl_version < "3.1" else "game" if gl_version < f"{gl_major}.{gl_minor}" else None
+        if msg_error is not None:
+            raise OpenGLWindowError(
+                f"Your OpenGL version is lower than the {msg_error} requires.\n"
+                f"Required version: {gl_major}.{gl_minor} Your version: {gl_version}"
+            )
+
+        # Показываем окно (до этого момента оно было скрыто, чтобы правильно и незаметно применить параметры):
+        self.set_visible(_before_visible_)
+
         # Включаем смешивание цветов:
         gl.glEnable(gl.GL_BLEND)
-        
+
         # Устанавливаем режим смешивания:
-        gl_set_blend_mode()  # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
         # Разрешаем установку размера точки через шейдер:
         gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
@@ -161,23 +177,31 @@ class Window:
 
         # Основной цикл окна:
         while True:
-            start_frame_time               = time.time()
+            start_frame_time = time.time()
+            scn = self._winvars_["current-scene"]
+
             self._winvars_["mouse-scroll"] = vec2(0)
             self._winvars_["mouse-rel"]    = vec2(pygame.mouse.get_rel())
             self._winvars_["mouse-down"]   = [False, False, False]
             self._winvars_["mouse-up"]     = [False, False, False]
             self._winvars_["key-down"]     = []
             self._winvars_["key-up"]       = []
-            scn                            = self._winvars_["current-scene"]
 
             # Проверяем установлена ли новая сцена. Если да, то сбрасываем окно просмотра:
-            if self._winvars_["is-new-scene"]: self._winvars_["is-new-scene"] = False ; self._reset_viewport_()
+            if self._winvars_["is-new-scene"]:
+                self._winvars_["is-new-scene"] = False
+                self._winvars_["dtime"] = 0.0  # Сбрасываем дельту чтобы не регестрировать задержку в переключении сцен.
+                self._reset_viewport_()        # Сбрасываем окно просмотра (настройки камеры).
+
+            # Проверяем чтобы дельта времени не была равна нулю. Иначе используем прошлую дельту времени:
+            if self._winvars_["dtime"] > 0.0: self._winvars_["dtime-old"] = self._winvars_["dtime"]
+            else: self._winvars_["dtime"] = self._winvars_["dtime-old"]
 
             # Обработка событий под капотом:
             event_list = pygame.event.get()
             for event in event_list:
                 # Если программу хотят закрыть:
-                if event.type == pygame.QUIT: self.exit()
+                if event.type == pygame.QUIT: self.close()
 
                 # Проверка на то, изменился ли размер окна или нет:
                 elif event.type == pygame.VIDEORESIZE:
@@ -243,21 +267,14 @@ class Window:
 
             # Если хотят закрыть окно:
             if self._winvars_["is-exit"]:
-                # Вызываем функцию удаления ресурсов у сцены, если та существует:
-                if scn is not None and issubclass(type(scn), Scene): scn.destroy()
-                self.destroy()  # Вызываем удаление пользовательских ресурсов.
-                al_quit()       # Закрываем OpenAL.
-                pygame.quit()   # Закрываем окно PyGame.
-                gc.collect()    # Собираем мусор (на всякий случай).
-                return          # Возвращаемся из этого класса.
+                self._destroy_window_()
+                return # Возвращаемся из этого класса.
 
             # Делаем задержку между кадрами:
             self.clock.tick(self._winvars_["setted-fps"]) if not self._winvars_["vsync"] else self.clock.tick(0)
 
             # Получаем дельту времени (время кадра или же время обработки одного цикла окна):
-            dt = time.time() - start_frame_time
-            if dt > 0.0: self._winvars_["old-dtime"] = self._winvars_["dtime"] = dt
-            else: self._winvars_["dtime"] = self._winvars_["old-dtime"]  # Использовать DT прошлого кадра.
+            self._winvars_["dtime"] = time.time() - start_frame_time
 
     # Пересоздать окно (обновить режим окна):
     def _recreate_(self, size: tuple | vec2 = None, flags: int = None) -> None:
@@ -278,6 +295,15 @@ class Window:
         glu.gluOrtho2D(-wdth, wdth, -hght, hght)
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
+    
+    # Функция для удаления всех данных окна при выходе:
+    def _destroy_window_(self) -> None:
+        scn = self._winvars_["current-scene"]
+        if scn is not None and issubclass(type(scn), Scene): scn.destroy()
+        self.destroy()  # Вызываем удаление пользовательских ресурсов.
+        al_quit()       # Закрываем OpenAL.
+        pygame.quit()   # Закрываем окно PyGame.
+        gc.collect()    # Собираем мусор (на всякий случай).
 
     # ------------------------------------------------------ API: ------------------------------------------------------
 
@@ -299,7 +325,7 @@ class Window:
 
         # Создаём и устанавливаем прозрачную иконку только в том случае, если мы передали None:
         self._winvars_["icon"] = icon
-        pygame.display.set_icon(Image((64, 64)).fill([0, 0, 0, 0]).surface if icon is None else icon.surface)
+        pygame.display.set_icon(Image(size=(64, 64)).fill([0, 0, 0, 0]).surface if icon is None else icon.surface)
 
     # Получить иконку окна:
     def get_icon(self) -> Image:
@@ -403,30 +429,31 @@ class Window:
 
     # Установить конфигурацию окна:
     def set_config(self,
-                   title:      str,
-                   icon:       Image,
-                   size:       vec2,
-                   vsync:      bool,
-                   fps:        int,
-                   visible:    bool,
-                   titlebar:   bool,
-                   resizable:  bool,
-                   fullscreen: bool,
-                   min_size: vec2 = vec2(0),
-                   max_size: vec2 = vec2(float("inf"),
-                   float("inf")), samples: int = 0) -> None:
-        self.set_title(title)
-        self.set_icon(icon)
+                   title:      str   = None,
+                   icon:       Image = None,
+                   size:       vec2  = None,
+                   vsync:      bool  = None,
+                   fps:        int   = None,
+                   visible:    bool  = None,
+                   titlebar:   bool  = None,
+                   resizable:  bool  = None,
+                   fullscreen: bool  = None,
+                   min_size:   vec2  = vec2(0),
+                   max_size:   vec2  = vec2(float("inf"), float("inf")),
+                   samples:    int   = 0) -> None:
+        size = size if size is not None else self.get_size()
+        self.set_title(title           if title is not None else self.get_title())
+        self.set_icon(icon             if icon  is not None else self.get_icon())
         self.set_size(*size)
-        self.set_vsync(vsync)
-        self.set_fps(fps)
-        self.set_visible(visible)
-        self.set_titlebar(titlebar)
-        self.set_resizable(resizable)
-        self.set_fullscreen(fullscreen, size)
-        self.set_min_size(*min_size)
-        self.set_max_size(*max_size)
-        self.set_samples(samples)
+        self.set_vsync(vsync           if vsync      is not None else self.get_vsync())
+        self.set_fps(fps               if fps        is not None else self.get_setted_fps())
+        self.set_visible(visible       if visible    is not None else self.get_visible())
+        self.set_titlebar(titlebar     if titlebar   is not None else self.get_titlebar())
+        self.set_resizable(resizable   if resizable  is not None else self.get_resizable())
+        self.set_fullscreen(fullscreen if fullscreen is not None else self.get_fullscreen(), size)
+        self.set_min_size(*min_size    if min_size   is not None else self.get_min_size())
+        self.set_max_size(*max_size    if max_size   is not None else self.get_max_size())
+        self.set_samples(samples       if samples    is not None else self.get_samples())
 
     # Получить конфигурацию окна:
     def get_config(self) -> list:
@@ -526,16 +553,22 @@ class Window:
         else:     gl.glReadBuffer(gl.GL_BACK)   # Задний (в процессе рисовки) буфер.
         w, h = s = self.get_size()
         p = np.frombuffer(gl.glReadPixels(0, 0, *s, gl.GL_RGB, gl.GL_UNSIGNED_BYTE), dtype=np.uint8).reshape((h, w, 3))
-        return Image((0, 0), surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
+        return Image(surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
 
-    # Вызовите, когда хотите закрыть окно:
+    # Вызовите когда хотите закрыть окно и выполнение кода:
     def exit(self) -> None:
+        self._destroy_window_()
+        sys.exit()
+
+    # Вызовите когда хотите закрыть окно после выполнения цикла обновления и рендеринга:
+    def close(self) -> None:
         self.set_visible(False)
         self.clear(0, 0, 0)
         self._winvars_["is-exit"] = True
 
-    # Альтернатива функции exit(). Нет никаких отличий. Просто кому как удобнее:
-    def close(self) -> None: self.exit()
+    # Вызовите когда хотите закрыть видеосистему pygame:
+    def quit(self) -> None:
+        pygame.quit()
 
     # Очистка окна (цвета от 0 до 1):
     @staticmethod

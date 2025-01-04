@@ -89,15 +89,15 @@ def main() -> None:
     print("\n\n\nCopying the data folder...")
 
     # Копируем содержимое сборки и содержимое data папки в папку out:
-    if os.path.isdir("./dist/"):
-        shutil.copytree("./dist/", "../out/", dirs_exist_ok=True)
-        shutil.rmtree("./dist/")
+    if os.path.isdir("dist/"):
+        shutil.copytree("dist/", "../out/", dirs_exist_ok=True)
+        shutil.rmtree("dist/")
         shutil.copytree(f"../../{data_folder}", f"../out/{os.path.basename(os.path.normpath(data_folder))}")
 
     wait_active = False
     print("\rDone!"+' '*wait_text_len)
 
-    print("\n\nOutput of build in folder: /build/out/")
+    print("\n\nOutput of build in folder: build/out/")
 
 
 # Если этот скрипт запускают:

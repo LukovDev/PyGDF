@@ -9,10 +9,35 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 import sys
 import platform
+from importlib.metadata import version, PackageNotFoundError
+
+
+# Если ваша версия питона ниже 3.11.0:
+if platform.python_version() < "3.11.0":
+    sys.exit(
+        f"\nGDF-Fatal-Error:\n"
+        f"    Sorry, but your python version ({platform.python_version()}) is lower than 3.11.0\n"
+        f"    Please update your python to be at least 3.11.0"
+    )
+
+
+# Если версия NumPy выше 1.26.4:
+try:
+    if version("numpy") > "1.26.4":
+        sys.exit(
+            f"\nGDF-Fatal-Error:\n"
+            f"    Sorry, but your numpy version ({version('numpy')}) is upper than 1.26.4\n"
+            f"    Please install numpy==1.26.4"
+        )
+except PackageNotFoundError:
+    sys.exit(
+        f"\nGDF-Fatal-Error:\n"
+        f"    NumPy is not installed. Please install numpy==1.26.4"
+    )
 
 
 # Получить версию библиотеки:
-def get_version() -> str: return "v1.1-release"
+def get_version() -> str: return "v1.2"
 
 
 # Получить полное название системы:
@@ -29,12 +54,3 @@ from . import files        # Скрипт отвечающий за файлы.
 from . import input        # Скрипт отвечающий за ввод данных.
 from . import math         # Скрипт отвечающий за математику.
 from . import utils        # Скрипт отвечающий за полезные функции.
-
-
-# Если ваша версия питона ниже 3.11.0:
-if platform.python_version() < "3.11.0":
-    sys.exit(
-        f"\nGDF-Error:\n"
-        f"    Sorry, but your python version ({platform.python_version()}) is lower than 3.11.0\n"
-        f"    Please update your python to be at least 3.11.0"
-    )

@@ -9,6 +9,15 @@ import pymunk.autogeometry
 from pymunk import BB
 from ..graphics.texture import Texture
 from ..math import *
+from . import (
+    _p2d_mesh_create_segments_from_verts_,
+    _p2d_mesh_get_vertices_,
+    _p2d_collision_handler_begin_,
+    _p2d_collision_handler_end_,
+    _p2d_space_object_query_,
+    _p2d_space_find_near_object_,
+    _p2d_space_find_objects_,
+)
 
 
 # Ошибка физики:
@@ -88,15 +97,28 @@ class Physics2D:
     class FindedObject:
         def __init__(self, object: "Physics2D.Objects", distance: float, point: vec2) -> None:
             self.object   = object
-            self.distance = distance
-            self.point    = point
+            self.distance = float(distance)
+            self.point    = vec2(point)
+        
+        # Выводим информацию, когда хотим получить экземпляр этого класса как строку:
+        def __repr__(self) -> str:
+            obj = self.object.__class__.__name__
+            distance = f"{round(self.distance, 4)}"
+            vtr = lambda v: f"vec2({round(v.x, 4)}, {round(v.y, 4)})"
+            return f"FindedObject(object={obj}, distance={distance}), point={vtr(self.point)}"
 
     # Структура для точек столкновения:
     class ContactPoint:
         def __init__(self, point_a: vec2, point_b: vec2, distance: float) -> None:
-            self.point_a  = point_a
-            self.point_b  = point_b
-            self.distance = distance
+            self.point_a  = vec2(point_a)
+            self.point_b  = vec2(point_b)
+            self.distance = float(distance)
+
+        # Выводим информацию, когда хотим получить экземпляр этого класса как строку:
+        def __repr__(self) -> str:
+            vtr = lambda v: f"vec2({round(v.x, 4)}, {round(v.y, 4)})"
+            distance = f"{round(self.distance, 4)}"
+            return f"ContactPoint(point_a={vtr(self.point_a)}, point_b={vtr(self.point_b)}, distance={distance})"
 
     # Физические объекты:
     class Objects:
@@ -226,6 +248,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
+                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.body               = pymunk.Body(mass, body_type=body_type)
                 self.body.position      = tuple(position.xy)
@@ -244,6 +267,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
+                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.size               = vec2(abs(size.x), abs(size.y))
                 self.body               = pymunk.Body(mass, pymunk.moment_for_box(mass, size), body_type)
@@ -270,6 +294,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
+                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.radius             = abs(radius)
                 self.body               = pymunk.Body(mass, pymunk.moment_for_circle(mass, 0, radius), body_type)
@@ -295,6 +320,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
+                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 vertices = [
                     (-size.x/2, -sqrt(3) / 2 * size.y/2),
@@ -326,6 +352,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
+                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 if vertices is None: vertices = [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)]
                 else:                vertices = [tuple(vert.xy) for vert in vertices]
@@ -355,6 +382,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
+                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.points             = [tuple(point_a.xy), tuple(point_b.xy)]
                 self.radius             = radius
@@ -383,26 +411,23 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
+                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 if vertices is None: vertices = [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)]
-                else:                vertices = [tuple(vert.xy) for vert in vertices]
-                self.vertices           = vertices
+                self.vertices           = [vec2(vert) for vert in vertices]
                 self.body               = pymunk.Body(mass, pymunk.moment_for_poly(mass, vertices), body_type)
                 self.body.position      = tuple(position.xy)
                 self.body.angle         = -radians(angle)
-                self.shapes             = []
                 self.body.velocity_func = self._limit_velocity_func_()
                 
-                # Создаём набор сегментов исходя из вершин:
-                for index in range(len(vertices)):
-                    shape = pymunk.Segment(self.body, vertices[index], vertices[(index + 1) % len(vertices)], radius)
-                    shape.elasticity = elasticity
-                    shape.friction   = friction
-                    self.shapes.append(shape)
+                # Создаём массив сегментов исходя из вершин:
+                self.shapes = _p2d_mesh_create_segments_from_verts_(
+                    elasticity, friction, self.vertices, radius, self.body
+                )
 
             # Получить вершины формы:
             def get_vertices(self) -> list:
-                return [vec2(v) for v in self.vertices]
+                return _p2d_mesh_get_vertices_(self.vertices, self.body)
 
     # Классы ограничителей объекта:
     class Constraints:
@@ -580,6 +605,25 @@ class Physics2D:
 
     # Пространство симуляции:
     class Space:
+        """ Пример обработчиков столкновений:
+        # Каждая функция принимает такие параметры:
+        # normal  - Нормаль столкновения (vec2).
+        # points  - Массив точек прикосновения (Physics2D.ContactPoint).
+        # impulse - Общая сила импульса (vec2).
+
+        # points это массив, в котором есть ContactPoint.
+        # ContactPoint содержит 3 параметра:
+        # .point_a и .point_b - Точки касания двух форм (vec2 для каждого).
+        # .distance - Это дистанция проникновения двух форм друг в друга от двух точек касания (float).
+
+        # Начало столкновения:
+        def collision_handler_begin(normal: vec2, points: list, impulse: vec2) -> None:
+            pass
+
+        # Конец столкновения:
+        def collision_handler_end(normal: vec2, points: list, impulse: vec2) -> None:
+            pass
+        """
         def __init__(self,
                      gravity:        vec2  = vec2(0),
                      phys_speed:     float = 1.0,
@@ -619,16 +663,12 @@ class Physics2D:
 
         # Внутренний обработчик начальных столкновений:
         def _collision_handler_begin_(self, arbiter, space, data) -> bool:
-            if self.handler_begin is not None:
-                p = [Physics2D.ContactPoint(p.point_a, p.point_b, p.distance) for p in arbiter.contact_point_set.points]
-                self.handler_begin(vec2(arbiter.contact_point_set.normal), p, vec2(arbiter.total_impulse))
+            _p2d_collision_handler_begin_(Physics2D, self, arbiter, space, data)
             return True
 
         # Внутренний обработчик конечных столкновений:
         def _collision_handler_end_(self, arbiter, space, data) -> bool:
-            if self.handler_end is not None:
-                p = [Physics2D.ContactPoint(p.point_a, p.point_b, p.distance) for p in arbiter.contact_point_set.points]
-                self.handler_end(vec2(arbiter.contact_point_set.normal), p, vec2(arbiter.total_impulse))
+            _p2d_collision_handler_end_(Physics2D, self, arbiter, space, data)
             return False
 
         # Шаг симуляции:
@@ -776,29 +816,14 @@ class Physics2D:
 
         # Проверить столкновение одного объекта с другим:
         def object_query(self, object: "Physics2D.Objects") -> list:
-            body_to_object, objs = {obj.body: obj for obj in self.objects}, set()
-            for shape in object.body.shapes:
-                for info in self.space.shape_query(shape):
-                    if info.shape.body in body_to_object:
-                        objs.add(body_to_object[info.shape.body])
-            return list(objs)
+            return _p2d_space_object_query_(self.space, self.objects, object)
 
         # Найти ближайший объект:
         def find_near_object(self, point: vec2, max_dst: float,
-                                shape_filter: pymunk.ShapeFilter = pymunk.ShapeFilter()) -> list:
-            info = self.space.point_query_nearest(tuple(point.xy), max_dst, shape_filter)
-            if not info: return None
-            obj = {obj.body: obj for obj in self.objects}.get(info.shape.body)
-            return Physics2D.FindedObject(obj, float(info.distance), vec2(info.point)) if obj else None
+                             shape_filter: pymunk.ShapeFilter = pymunk.ShapeFilter()) -> list:
+            return _p2d_space_find_near_object_(Physics2D, self.space, self.objects, point, max_dst, shape_filter)
 
         # Найти все объекты в области:
         def find_objects(self, point: vec2, max_dst: float,
                          shape_filter: pymunk.ShapeFilter = pymunk.ShapeFilter()) -> list:
-            info_list = self.space.point_query(tuple(point.xy), max_dst, shape_filter)
-            if info_list is None: return None
-            body_to_object, fobj, objs = {obj.body: obj for obj in self.objects}, [], []
-            for info in info_list:
-                obj = body_to_object.get(info.shape.body)
-                if obj and obj not in objs:
-                    objs.append(obj) ; fobj.append(Physics2D.FindedObject(obj, float(info.distance), vec2(info.point)))
-            return fobj if fobj else None
+            return _p2d_space_find_objects_(Physics2D, self.space, self.objects, point, max_dst, shape_filter)

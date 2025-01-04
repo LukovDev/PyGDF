@@ -18,8 +18,8 @@ from .graphics import Image, Texture, Sprite2D
 
 
 # Загружаем изображение:
-def load_image(file_path: str) -> Image:
-    return Image((0, 0)).load(file_path)
+def load_image(file_path: str | io.BytesIO) -> Image:
+    return Image().load(file_path)
 
 
 # Сохраняем изображение:
@@ -28,8 +28,8 @@ def save_image(file_path: str, image: Image) -> None:
 
 
 # Загружаем текстуру:
-def load_texture(file_path: str, is_flip_y: bool = False, pixelized: bool = False) -> Texture:
-    texture = Texture(Image((0, 0)).load(file_path), is_flip_y)
+def load_texture(file_path: str | io.BytesIO, is_flip_y: bool = False, pixelized: bool = False) -> Texture:
+    texture = Texture(Image().load(file_path), is_flip_y)
     return texture.set_pixelized() if pixelized else texture
 
 
@@ -40,13 +40,13 @@ def save_texture(file_path: str, texture: Texture) -> None:
 
 
 # Загружаем файл:
-def load_file(file_path: str | io.BytesIO, mode: str = "r+", encoding: str = "utf-8") -> str:
+def load_file(file_path: str | io.BytesIO, mode: str = "r+", encoding: str = "utf-8") -> str | bytes:
     if isinstance(file_path, io.BytesIO): return file_path.getvalue().decode(encoding)
-    with open(file_path, mode, encoding=encoding) as f: return str(f.read())
+    with open(file_path, mode, encoding=encoding) as f: return f.read()
 
 
 # Сохраняем файл:
-def save_file(file_path: str, data: str, mode: str = "w+", encoding: str = "utf-8") -> None:
+def save_file(file_path: str | io.BytesIO, data: str, mode: str = "w+", encoding: str = "utf-8") -> None:
     with open(file_path, mode, encoding=encoding) as f: f.write(data)
 
 
@@ -66,7 +66,7 @@ def load_sprite(file_path: str, is_flip_y: bool = False, pixelized: bool = False
 
 
 # Загружаем музыку:
-def load_music(file_path: str) -> Music:
+def load_music(file_path: str | io.BytesIO) -> Music:
     return Music().load(file_path)
 
 
@@ -77,7 +77,7 @@ def load_sound(file_path: str) -> Sound:
 
 # Загрузить файл шрифта:
 def load_font(file_path: str) -> FontFile:
-    return FontFile(file_path).load()
+    return FontFile().load(file_path)
 
 
 # Создаем zip-файл и добавляем файлы и папки из списка:

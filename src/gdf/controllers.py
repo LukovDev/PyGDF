@@ -4,6 +4,7 @@
 
 
 # Импортируем:
+from .graphics import Camera2D, Camera3D
 from .input import InputHandler, Key
 from .math import *
 
@@ -12,7 +13,7 @@ from .math import *
 def check_mouse_pos(input, camera, x_pos_detect: int = 16, y_pos_detect: int = 16) -> None:
     mouse_pos = input.get_mouse_pos()
     set_mouse = input.set_mouse_pos
-    win_size = camera.width, camera.height
+    win_size  = camera.width, camera.height
     if mouse_pos[0] < x_pos_detect:               set_mouse((win_size[0] - x_pos_detect, mouse_pos[1]))
     if mouse_pos[0] > win_size[0] - x_pos_detect: set_mouse((x_pos_detect, mouse_pos[1]))
     if mouse_pos[1] < y_pos_detect:               set_mouse((mouse_pos[0], win_size[1] - y_pos_detect))
@@ -21,12 +22,12 @@ def check_mouse_pos(input, camera, x_pos_detect: int = 16, y_pos_detect: int = 1
 
 # Класс управления 2D камеры:
 class CameraController2D:
-    def __init__(self, input: InputHandler, camera,
+    def __init__(self, input: InputHandler, camera: Camera2D,
                  offset_scale: float = 1.0,
                  min_zoom:     float = 1/1000,
                  max_zoom:     float = 128000,
                  friction:     float = 0.2) -> None:
-        self.input = input
+        self.input  = input
         self.camera = camera
 
         self.fixed_mouse_pos = (0, 0)
@@ -72,15 +73,15 @@ class CameraController2D:
 
 # Класс управления 3D камеры:
 class CameraController3D:
-    def __init__(self, input: InputHandler, camera,
+    def __init__(self, input: InputHandler, camera: Camera3D,
                  mouse_sensitivity: float = 1.0,
                  ctrl_speed:        float = 0.75,
                  speed:             float = 6,
                  shift_speed:       float = 24,
                  friction:          float = 1.0,
                  up_forward:        bool  = False) -> None:
-        self.input             = input
-        self.camera            = camera
+        self.input  = input
+        self.camera = camera
 
         self.mouse_sensitivity = mouse_sensitivity
         self.ctrl_speed        = ctrl_speed
@@ -130,7 +131,7 @@ class CameraController3D:
             self.camera.position += ((self.camera_target-self.camera.position)*1/fr) * delta_time
         else: self.camera.position = self.camera_target
 
-        if round(length(self.camera_target-self.camera.position), 4) > 0.001 or \
+        if round(glm.length(self.camera_target-self.camera.position), 4) > 0.001 or \
            (not (mdxy[0] == 0 and mdxy[1] == 0) and self.input.get_mouse_pressed()[2]):
             self.is_movement = True
         else: self.is_movement = False
@@ -173,7 +174,7 @@ class CameraController3D:
 
         # Перемещать ли камеру вверх-вниз в зависимости от направления взгляда или нет:
         if self.up_forward: self.up = cross(-self.forward, self.right)
-        else:               self.forward = -normalize(cross(self.right, vec3(0, 1, 0)))
+        else: self.forward = -normalize(cross(self.right, vec3(0, 1, 0)))
 
         # Управление движением:
         if keys[Key.K_w]: self.camera_target -= self.forward * speed

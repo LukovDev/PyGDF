@@ -13,15 +13,29 @@ from .texture import Texture
 
 # Файл шрифта:
 class FontFile:
-    def __init__(self, file_path: str = None) -> None:
+    def __init__(self, file_path: str | io.BytesIO = None) -> None:
         self.path = file_path
-        self.data = None
 
     # Загрузить шрифт:
-    def load(self, file_path: str = None) -> "FontFile":
-        self.path = file_path if isinstance(file_path, str) else self.path
-        with open(file_path if isinstance(file_path, str) else self.path, "rb") as f:
-            self.data = f.read()
+    def load(self, file_path: str | io.BytesIO = None) -> "FontFile":
+        self.path = file_path if file_path is not None else self.path
+
+        # Проверяем на наличие файла:
+        if self.path is None or (isinstance(self.path, str) and not os.path.isfile(self.path)):
+            raise FileNotFoundError(f"File not found: {self.path}")
+
+        # Если мы передали не путь и не BytesIO, конвертируем в BytesIO:
+        if not isinstance(self.path, str) and not isinstance(self.path, io.BytesIO):
+            self.path = io.BytesIO(self.path)
+
+        # Пытаемся загрузить:
+        try:
+            if isinstance(self.path, io.BytesIO): return self
+            with open(self.path, "rb") as f:
+                self.path = io.BytesIO(f.read())
+        except Exception as error:
+            raise Exception(f"Error in \"FontFile.load()\": {error}")
+
         return self
 
 
@@ -44,12 +58,18 @@ class FontGenerator:
         # Настраиваем цвета:
         if color    is None: color    = [1, 1, 1, 1]
         if bg_color is None: bg_color = [0, 0, 0, 0]
+
+        # Контролируем чтобы в цветах был альфа канал, даже если его не передают:
+        if len(color)    < 4: color.append(1)
+        if len(bg_color) < 4: bg_color.append(1)
+
+        # Конвертируем цвета из 1-ричного в 256-ричный (0-255):
         color    = [c * 255 for c in color]
         bg_color = [c * 255 for c in bg_color]
 
         # Создаём экземпляр шрифта:
-        if isinstance(self.font, FontFile):
-            font = pygame.font.Font(io.BytesIO(self.font.data), font_size)
+        if isinstance(self.font, FontFile) and self.font.path is not None:
+            font = pygame.font.Font(io.BytesIO(self.font.path.getbuffer()), font_size)
         else: font = pygame.font.SysFont("Arial", font_size)
 
         # Создаём и получаем битмап текста из шрифта:
@@ -58,12 +78,12 @@ class FontGenerator:
         bitmap_size = bitmap.get_width()+padding_x*2, bitmap.get_height()+padding_y*2
 
         # Создаём фон текста, и рисуем на нём основной текст:
-        text_image = Image(bitmap_size)
+        text_image = Image(size=bitmap_size)
         text_image.fill(bg_color)
         text_image.draw(bitmap, padding_x, padding_y)
 
         # Создаём текстуру из битмапа:
-        texture = Texture(Image((0, 0), surface=text_image))
+        texture = Texture(Image(surface=text_image))
 
         # Устанавливаем сглаживание текстуры:
         texture.set_linear() if smooth else texture.set_pixelized()
@@ -79,7 +99,7 @@ class FontGenerator:
                      padding_x: int  = 0,
                      padding_y: int  = 0,
                      smooth:    bool = True
-                     ) -> "Font":
+                     ) -> "FontGenerator":
         # Удаляем старую текстуру текста:
         if self.texture is not None:
             self.texture.destroy()

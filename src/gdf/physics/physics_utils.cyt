@@ -1,0 +1,90 @@
+#
+# physics_utils.cyt - Код для создания очень быстрых функций (на уровне языка си) для работы с физикой.
+#
+# Этот код никак не используется ядром, пока не будет скомпилирован.
+#
+# Это код на Cython. Создаёт файл динамического импорта модуля после компиляции.
+# Этот код нужен чтобы не использовать тяжёлый numba, который увеличивает скорость запуска и размер сборки на ~+30-35мб.
+# Но при этом, код ниже даже быстрее, чем если использовать numba @njit (по крайней мере в моих тестах).
+#
+
+
+# Импортируем:
+import pymunk
+from glm import vec2
+
+
+# Создать массив сегментов исходя из вершин в 2D физике:
+cpdef list _p2d_mesh_create_segments_from_verts_(float elasticity, float friction, list vertices, float radius, body):
+    cdef list shapes = []
+    cdef int index
+    cdef shape
+    for index in range(len(vertices)):
+        shape = pymunk.Segment(body, tuple(vertices[index]), tuple(vertices[(index + 1) % len(vertices)]), radius)
+        shape.elasticity = elasticity
+        shape.friction   = friction
+        shapes += [shape]
+    return shapes
+
+
+# Создать массив вершин геометрии mesh объекта в 2D физике:
+cpdef list _p2d_mesh_get_vertices_(list vertices, body):
+    cdef point
+    return [vec2(body.local_to_world(tuple(point))) for point in vertices]
+
+
+# Внутренний обработчик начальных столкновений в 2D физике:
+cpdef _p2d_collision_handler_begin_(Physics2D, self, arbiter, space, data):
+    cdef list points = []
+    if self.handler_begin is not None:
+        for c in arbiter.contact_point_set.points:
+            points += [Physics2D.ContactPoint(c.point_a, c.point_b, c.distance)]
+        self.handler_begin(vec2(arbiter.contact_point_set.normal), points, vec2(arbiter.total_impulse))
+
+
+# Внутренний обработчик конечных столкновений в 2D физике:
+cpdef _p2d_collision_handler_end_(Physics2D, self, arbiter, space, data):
+    cdef list points = []
+    if self.handler_end is not None:
+        for c in arbiter.contact_point_set.points:
+            points += [Physics2D.ContactPoint(c.point_a, c.point_b, c.distance)]
+        self.handler_end(vec2(arbiter.contact_point_set.normal), points, vec2(arbiter.total_impulse))
+
+
+# Проверить столкновение одного объекта с другим в 2D физике:
+cpdef list _p2d_space_object_query_(space, list objects, object):
+    cdef dict body_to_object = {obj.body: obj for obj in objects}
+    cdef set objs = set()
+
+    cdef shape, info
+    for shape in object.body.shapes:
+        for info in space.shape_query(shape):
+            if info.shape.body in body_to_object:
+                objs.add(body_to_object[info.shape.body])
+    return list(objs)
+
+
+# Найти ближайший объект в 2D физике:
+cpdef _p2d_space_find_near_object_(Physics2D, space, list objects, point: vec2, max_dst: float,
+                                        shape_filter: pymunk.ShapeFilter = pymunk.ShapeFilter()):
+    cdef info = space.point_query_nearest(tuple(point.xy), max_dst, shape_filter)
+    if not info: return None
+    obj = {obj.body: obj for obj in objects}.get(info.shape.body)
+    return Physics2D.FindedObject(obj, float(info.distance), vec2(info.point)) if obj else None
+
+
+# Найти все объекты в области в 2D физике:
+cpdef list _p2d_space_find_objects_(Physics2D, space, list objects, point: vec2, max_dst: float,
+                                    shape_filter: pymunk.ShapeFilter = pymunk.ShapeFilter()):
+    cdef list info_list = space.point_query(tuple(point.xy), max_dst, shape_filter)
+    if info_list is None: return None
+
+    cdef dict body_to_object = {obj.body: obj for obj in objects}
+    cdef list fobj = [], objs = []
+
+    cdef info, obj
+    for info in info_list:
+        obj = body_to_object.get(info.shape.body)
+        if obj and obj not in objs:
+            objs += [obj] ; fobj += [Physics2D.FindedObject(obj, float(info.distance), vec2(info.point))]
+    return fobj if fobj else None

@@ -1,11 +1,11 @@
 {
     "program-name": "PyGDF Game",
 
-    "main-file":    "/src/main.py",
+    "main-file":    "src/main.py",
 
-    "data-folder":  "/data/",
+    "data-folder":  "data/",
 
-    "program-icon": "/data/icons/build-icon.ico",
+    "program-icon": "data/icons/build-icon.ico",
 
     "console-disabled": true,
 

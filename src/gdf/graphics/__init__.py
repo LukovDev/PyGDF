@@ -8,14 +8,16 @@ import os
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 
-# Ускоренная функция поворота вершин полигона спрайта:
+# Утилиты написанные на Cython:
 try:
     # Импортируем скомпилированную библиотеку графических утилит:
     from .graphics_utils import (
         _rot2d_vertices_rectangle_,
         _convert_quads_to_triangles_,
-        _render_sprite_batch_2d_,
-        _render_atlas_texture_batch_2d_
+        _sprite_batch_2d_draw_,
+        _atlas_texture_batch_2d_draw_,
+        _sprite_batch_2d_render_,
+        _atlas_texture_batch_2d_render_,
     )
 except (ModuleNotFoundError, ImportError) as error:
     raise Exception(f"The compiled module could not be imported: {error}")
@@ -61,10 +63,10 @@ from .camera    import Camera2D, Camera3D
 from .draw      import Draw2D, Draw3D
 from .font      import FontFile, FontGenerator
 from .image     import Image
-from .imgui     import ImGUI
+from .imgui     import ImGUI, imgui_bundle, imgui
 from .light     import Light2D
 from .packer    import PackerTexture
-from .particles import SimpleParticleEffect2D
+from .particles import ParticleEffect2D
 from .renderer  import Renderer2D
 from .scene     import Scene
 from .shader    import ShaderProgram

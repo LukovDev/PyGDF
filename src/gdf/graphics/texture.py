@@ -12,8 +12,15 @@ from .image import Image
 
 # Класс обычной текстуры:
 class Texture:
-    def __init__(self, image: Image, is_flip_y: bool = False, size: tuple = None, use_mipmap: bool = False,
-                 texture_format: int = gl.GL_RGBA, data_type: int = gl.GL_UNSIGNED_BYTE) -> None:
+    def __init__(self,
+                 image:          Image = None,
+                 is_flip_y:      bool  = False,
+                 size:           tuple = None,
+                 use_mipmap:     bool  = False,
+                 texture_format: int   = gl.GL_RGBA8,
+                 data_format:    int   = gl.GL_RGBA,
+                 data_type:      int   = gl.GL_UNSIGNED_BYTE
+                 ) -> None:
         self.image  = image
         self.id     = int
         if image is None or image.surface is None:
@@ -24,18 +31,15 @@ class Texture:
         self.height = surface.get_height()
         self.id     = int(gl.glGenTextures(1))
 
-        gl.glEnable(gl.GL_TEXTURE_2D)
-
         self.set_linear()
         self.set_filter([gl.GL_TEXTURE_WRAP_S, gl.GL_TEXTURE_WRAP_T], gl.GL_CLAMP_TO_EDGE)
 
         wdth, hght = self.width, self.height
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
         if texture_format == gl.GL_DEPTH_COMPONENT: self.data = None
-        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, texture_format, wdth, hght, 0, texture_format, data_type, self.data)
+        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, texture_format, wdth, hght, 0, data_format, data_type, self.data)
         if use_mipmap: gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-        gl.glDisable(gl.GL_TEXTURE_2D)
 
     # Использовать текстуру:
     def begin(self) -> "Texture":
@@ -77,13 +81,19 @@ class Texture:
     # Удалить текстуру:
     def destroy(self) -> None:
         if self.id != 0:
-            gl.glDeleteTextures(self.id)
+            gl.glDeleteTextures(1, [self.id])
             self.id = 0
 
 
 # Класс 3D текстуры:
 class Texture3D:
-    def __init__(self, data: np.ndarray, size: tuple[int, int, int], is_flip_y: bool = False) -> None:
+    def __init__(self,
+                 data:           np.ndarray,
+                 size:           tuple[int, int, int],
+                 texture_format: int = gl.GL_RGBA8,
+                 data_format:    int = gl.GL_RGBA,
+                 data_type:      int = gl.GL_UNSIGNED_BYTE
+                 ) -> None:
         if size is None: size = (1, 1, 1)
         self.id     = gl.glGenTextures(1)
         self.width  = size[0]
@@ -95,8 +105,8 @@ class Texture3D:
 
         wdth, hght, dpth = int(self.width), int(self.height), int(self.depth)
         gl.glBindTexture(gl.GL_TEXTURE_3D, self.id)
-        gl.glTexImage3D(gl.GL_TEXTURE_3D, 0, gl.GL_RGBA8, wdth, hght, dpth, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, data)
-        self.set_wrap(gl.GL_CLAMP_TO_EDGE)
+        gl.glTexImage3D(gl.GL_TEXTURE_3D, 0, texture_format, wdth, hght, dpth, 0, data_format, data_type, data)
+        self.set_wrap(gl.GL_REPEAT)
         self.set_linear()
         gl.glBindTexture(gl.GL_TEXTURE_3D, 0)
 
@@ -145,5 +155,5 @@ class Texture3D:
     # Удалить текстуру:
     def destroy(self) -> None:
         if self.id != 0:
-            gl.glDeleteTextures(self.id)
+            gl.glDeleteTextures(1, [self.id])
             self.id = 0

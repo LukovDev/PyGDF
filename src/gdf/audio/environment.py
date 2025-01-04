@@ -4,14 +4,14 @@
 
 
 # Импортируем:
-from .listener import Listener
+from .listener import SoundListener
 from .sound import Sound
 from ..math import *
 
 
 # Класс звукового окружения:
 class SoundEnvironment:
-    def __init__(self, listener: Listener, volume: float = 1.0) -> None:
+    def __init__(self, listener: SoundListener, volume: float = 1.0) -> None:
         self.listener = listener  # Слушатель.
         self.sounds   = []        # Список звуков.
         self.volume   = volume    # Громкость всех звуков в окружении.
@@ -20,7 +20,7 @@ class SoundEnvironment:
     def update(self) -> "SoundEnvironment":
         for sound in self.sounds:
             # Устанавливаем громкость звука в зависимости от расстояния:
-            distance = length(self.listener.position.xy-sound.get_position().xy)
+            distance = glm.length(self.listener.position.xy-sound.get_position().xy)
             min_dst, max_dst, rolloff = sound.get_min_distance(), sound.get_max_distance(), sound.get_rolloff_factor()
             normal_val = (distance-max_dst)/(min_dst-max_dst) if min_dst != max_dst else distance-min_dst
             volume = smoothstep(0.0, 1.0, normal_val**rolloff if distance < max_dst else 0.0)

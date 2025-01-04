@@ -9,13 +9,13 @@ from ..math import *
 
 
 # Класс слушателя:
-class Listener:
+class SoundListener:
     def __init__(self,
-                 position: vec3  = vec3(0, 0, 0),
+                 position: vec2 | vec3  = vec3(0, 0, 0),
                  look_at:  vec3  = vec3(0, 0, -1),
                  up:       vec3  = vec3(0, 1, 0),
                  volume:   float = 1.0) -> None:
-        self.position = position
+        self.position = position if isinstance(position, vec3) else vec3(position, 0.0)
         self.look_at = look_at
         self.up = up
         self.volume = volume
@@ -25,15 +25,15 @@ class Listener:
         self.listener.set_orientation(list(self.look_at) + list(self.up))
 
     # Обновление слушателя:
-    def update(self) -> "Listener":
+    def update(self) -> "SoundListener":
         self.listener.set_position(self.position)
         self.listener.set_orientation(list(self.look_at) + list(self.up))
         self.listener.set_gain(abs(self.volume))
         return self
 
     # Установить позицию слушателя:
-    def set_position(self, position: vec3) -> "Listener":
-        self.position = position.xyz
+    def set_position(self, position: vec2 | vec3) -> "SoundListener":
+        self.position = position if isinstance(position, vec3) else vec3(position, 0.0)
         return self
 
     # Получить позицию слушателя:
@@ -41,7 +41,7 @@ class Listener:
         return self.position
 
     # Установить ориентацию:
-    def set_orientation(self, look_at: vec3, up: vec3) -> "Listener":
+    def set_orientation(self, look_at: vec3, up: vec3) -> "SoundListener":
         self.look_at = look_at.xyz
         self.up = up.xyz
         return self
@@ -51,7 +51,7 @@ class Listener:
         return self.look_at, self.up
 
     # Установить громкость слушателя (усиление слуха):
-    def set_volume(self, volume: float) -> "Listener":
+    def set_volume(self, volume: float) -> "SoundListener":
         self.volume = volume
         return self
 

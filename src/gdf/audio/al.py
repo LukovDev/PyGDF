@@ -6,6 +6,7 @@
 # Импортируем:
 import openal as al
 from openal import alc
+from .sound import _all_sounds_
 
 
 # Флаг о том, что openal был закрыт:
@@ -14,7 +15,9 @@ _opengl_quited_ = False
 
 # Закрыть OpenAL:
 def al_quit() -> None:
-    global _opengl_quited_
+    global _all_sounds_, _opengl_quited_
+    for sound in _all_sounds_: sound.destroy()
+    _all_sounds_.clear()
     if _opengl_quited_: return
     _opengl_quited_ = True
     al.oalQuit()

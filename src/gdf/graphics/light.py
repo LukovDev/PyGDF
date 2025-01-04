@@ -18,14 +18,75 @@ from ..math import *
 class Light2D:
     # Класс слоя освещения:
     class LightLayer:
-        def __init__(self, camera: Camera2D, ambient: list = None) -> None:
-            if ambient is None: ambient = [0, 0, 0, 0.5]
+        def __init__(self,
+                     camera:    Camera2D,
+                     ambient:   list  = None,
+                     intensity: float = 1.0,
+                     mix_level: float = 0.0
+                     ) -> None:
+            ambient = [0, 0, 0, 0.5] if ambient is None else ambient
 
-            self.camera   = camera                 # Ваша 2D камера.
-            self.ambient  = ambient                # Цвет окружающего света.
-            self.lights   = []                     # Список источников света.
-            self.batch    = SpriteBatch2D(camera)  # Пакетная отрисовка спрайтов.
-            self.renderer = Renderer2D(camera)     # Конвейер рендеринга.
+            self.camera              = camera              # Ваша 2D камера.
+            self.ambient             = ambient             # Цвет окружающего света.
+            self.intensity           = intensity           # Яркость всего освещения.
+            self.mix_level           = mix_level           # Сила смешивания окружающего света и источников света.
+            self.lights              = []                  # Список источников света.
+            self.batch               = SpriteBatch2D()     # Пакетная отрисовка спрайтов.
+            self.ambient_framebuffer = Renderer2D(camera)  # Кадровый буфер окружающего освещения.
+            self.light_framebuffer   = Renderer2D(camera)  # Кадровый буфер источников света.
+
+            # Шейдер:
+            self.shader = ShaderProgram(
+                vert="""
+                    #version 330 core
+
+                    layout (location = 0) in vec3 a_position;
+
+                    void main(void) {
+                        gl_Position = vec4(a_position, 1.0);
+                    }
+                """,
+                frag="""
+                    #version 330 core
+
+                    uniform sampler2D u_ambient_texture;
+                    uniform sampler2D u_light_texture;
+                    uniform vec2      u_resolution;
+                    uniform float     u_intensity;
+                    uniform float     u_mix_level;
+
+                    out vec4 FragColor;
+
+                    void main(void) {
+                        vec2 TexCoords = gl_FragCoord.xy / u_resolution.xy;
+
+                        // Ограничиваем параметр смешивания:
+                        float mix_level = clamp(u_mix_level, 0.0, 1.0);
+
+                        // Получаем цвета пикселей из текстур:
+                        vec4 ambient_color = texture(u_ambient_texture, TexCoords);
+                        vec4 light_color = texture(u_light_texture, TexCoords);
+
+                        // Альфа цвета пикселей (из их суммарной средней яркости):
+                        float light_alpha = (light_color.r+light_color.g+light_color.b+light_color.a)/4.0*u_intensity;
+                        float ambient_alpha = (ambient_color.r+ambient_color.g+ambient_color.b+ambient_color.a)/4.0;
+
+                        // Основной смешанный цвет:
+                        vec3 color = mix(
+                            // Смешивание окружающего освещения и источников света (без "дымки"):
+                            mix(ambient_color.rgb, light_color.rgb, ambient_alpha+light_alpha),
+
+                            // Складывание окружающего освещения и источников света для создания "дымки":
+                            ambient_color.rgb + light_color.rgb,
+                        mix_level);
+
+                        // Основной смешанный альфа цвет:
+                        float alpha = mix(ambient_color.a-light_alpha, ambient_color.a-light_color.a, mix_level);
+
+                        FragColor = vec4(color, alpha);
+                    }
+                """
+            ).compile()
 
             # Старый размер камеры:
             self._old_size_ = (self.camera.width, self.camera.height)
@@ -34,21 +95,19 @@ class Light2D:
         def render(self, color: list = None) -> "Light2D.LightLayer":
             # Если размер камеры отличается от старого размера:
             if self._old_size_ != (self.camera.width, self.camera.height):
-                self.renderer.resize(self.camera.width, self.camera.height)
+                self.ambient_framebuffer.resize(self.camera.width, self.camera.height)
+                self.light_framebuffer.resize(self.camera.width, self.camera.height)
                 self._old_size_ = (self.camera.width, self.camera.height)
 
             # Ограничиваем альфа-канал окружения от 0 до 1:
             self.ambient[3] = clamp(self.ambient[3], 0.0, 1.0)
 
-            # Закрашиваем текстуру кадрового буфера в фоновый цвет освещения:
-            self.renderer.clear(self.ambient)
+            # Закрашиваем текстуру окружающего света и текстуру освещения:
+            self.ambient_framebuffer.clear(self.ambient)
+            self.light_framebuffer.clear([0, 0, 0, 0])
 
-            # Начинаем рисовать источники света в окружении (слое света):
-            self.renderer.begin()
-
-            # Устанавливаем специальный режим смешивания:
-            # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
-            gl_set_blend_mode(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+            # Начинаем рисовать источники света:
+            self.light_framebuffer.begin()
 
             # Рисуем источники света:
             self.batch.begin()
@@ -75,13 +134,17 @@ class Light2D:
             self.batch.end()
             self.batch.render(color)
 
-            # Возвращаем обычный режим смешивания:
-            # ЭТО ФУНКЦИЯ НЕ ИЗ БИБЛИОТЕКИ OpenGL, А ИЗ ФАЙЛА gl.py!
-            gl_set_blend_mode()
-
             # Рисуем слой света:
-            self.renderer.end()
-            self.renderer.render()
+            self.light_framebuffer.end()
+
+            self.shader.begin()
+            self.shader.set_sampler2d("u_ambient_texture", self.ambient_framebuffer.texture)  # Текстура окружения.
+            self.shader.set_sampler2d("u_light_texture",   self.light_framebuffer.texture)    # Текстура освещения.
+            self.shader.set_uniform  ("u_resolution",      self.camera.size.xy)         # Размер окна.
+            self.shader.set_uniform  ("u_intensity",       self.intensity)         # Яркость всего света.
+            self.shader.set_uniform  ("u_mix_level",       self.mix_level)         # Смешивание света и окружения.
+            self.ambient_framebuffer.render_shader()
+            self.shader.end()
 
             return self
 
@@ -224,7 +287,7 @@ class Light2D:
     # Класс спрайтного источника света:
     class SpriteLight:
         def __init__(self,
-                     layer:    "SpriteLight.LightLayer",
+                     layer:    "Light2D.LightLayer",
                      sprite:   Sprite2D | Texture,
                      position: vec2,
                      angle:    float,

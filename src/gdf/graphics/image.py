@@ -4,18 +4,25 @@
 
 
 # Импортируем:
+import io
+import os
 import pygame
 
 
 # Класс изображения:
 class Image:
-    def __init__(self, size: tuple, surface: pygame.Surface = None) -> None:
-        self.width   = size[0]
-        self.height  = size[1]
-        self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+    def __init__(self, file_path: str | io.BytesIO = None, size: tuple = None, surface: pygame.Surface = None) -> None:
+        self.path    = file_path
+        self.width   = size[0] if size is not None else 0
+        self.height  = size[1] if size is not None else 0
+        self.surface = None
         self.data    = None
 
-        if surface is not None: self._update_image_(surface)
+        if size is not None:
+            self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+
+        if surface is not None:
+            self._update_image_(surface)
 
     # Обновляет данные о поверхности, её размере и данных:
     def _update_image_(self, surface: pygame.Surface = None) -> None:
@@ -26,8 +33,19 @@ class Image:
         self.surface = surface
 
     # Загружаем изображение:
-    def load(self, file_path: str) -> "Image":
-        try: self._update_image_(pygame.image.load(file_path))
+    def load(self, file_path: str | io.BytesIO = None) -> "Image":
+        self.path = file_path if file_path is not None else self.path
+
+        # Проверяем на наличие файла:
+        if self.path is None or (isinstance(self.path, str) and not os.path.isfile(self.path)):
+            raise FileNotFoundError(f"File not found: {self.path}")
+
+        # Если мы передали не путь и не BytesIO, конвертируем в BytesIO:
+        if not isinstance(self.path, str) and not isinstance(self.path, io.BytesIO):
+            self.path = io.BytesIO(self.path)
+
+        # Пытаемся загрузить:
+        try: self._update_image_(pygame.image.load(self.path))
         except Exception as error:
             raise Exception(f"Error in \"Image.load()\": {error}")
         return self

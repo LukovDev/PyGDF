@@ -19,7 +19,7 @@ pyopengl_accelerate == 3.1.7
 
 pymunk == 6.9.0
 
-pypresence    == 4.3.0
-imgui[pygame] == 2.0.0
-requests      == 2.32.3
-cython        == 3.0.11
+pypresence   == 4.3.0
+imgui_bundle == 1.6.1
+requests     == 2.32.3
+cython       == 3.0.11

@@ -4,10 +4,13 @@
 
 
 # Импортируем:
+import os
 import pygame
+import imgui_bundle
 from imgui_bundle import imgui
 from imgui_bundle.python_backends.opengl_backend import ProgrammablePipelineRenderer
 from typing import Dict
+from .gl import *
 from ..math import *
 
 
@@ -74,8 +77,8 @@ class PygameRenderer(ProgrammablePipelineRenderer):
             elif event.button == 3: imgui_button = 1  # Right mouse button
             elif event.button == 2: imgui_button = 2  # Middle mouse button
 
-            down = event.type == pygame.MOUSEBUTTONDOWN
-            io.add_mouse_button_event(imgui_button, down)
+            if imgui_button is not None:
+                io.add_mouse_button_event(imgui_button, event.type == pygame.MOUSEBUTTONDOWN)
             return True
 
         if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
@@ -122,9 +125,9 @@ class ImGUI:
         self.io   = imgui.get_io()
 
         # Настройка:
-        self.io.display_size  = tuple(window_size.xy)
-        self.io.set_ini_filename(self.ini_file_path)
-        imgui.load_ini_settings_from_disk(self.ini_file_path)
+        self.io.config_flags |= imgui.ConfigFlags_.docking_enable  # Включаем docking.
+        self.io.display_size = tuple(window_size.xy)
+        self.load()  # Загружаем конфигурацию если есть.
 
     # Вызывайте, когда хотите отрисовать интерфейс:
     def render(self) -> "ImGUI":
@@ -145,10 +148,37 @@ class ImGUI:
         self.impl.process_event(event)
         return self
 
+    # Установить шрифт:
+    def set_font(self, file_path: str, font_size: int = 14, smooth: bool = False) -> "ImGUI":
+        # Если не передали шрифт, то устанавливаем шрифт по умолчанию:
+        if file_path is None:
+            self.io.fonts.clear()
+            self.io.font_default = self.io.fonts.add_font_default()
+            self.impl.refresh_font_texture()
+            return self
+
+        # Проверяем на наличие файла:
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        # Устанавливаем шрифт:
+        self.io.fonts.clear()
+        self.io.font_default = self.io.fonts.add_font_from_file_ttf(file_path, int(font_size))
+        self.impl.refresh_font_texture()
+
+        # Устанавливаем сглаживание шрифта:
+        if not smooth:
+            gl.glBindTexture(gl.GL_TEXTURE_2D, self.io.fonts.tex_id)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+
+        return self
+
     # Загружаем настройки интерфейса:
     def load(self) -> "ImGUI":
         self.io.set_ini_filename(self.ini_file_path)
-        imgui.save_ini_settings_to_disk(self.ini_file_path)
+        imgui.load_ini_settings_from_disk(self.ini_file_path)
         return self
 
     # Сохранить весь интерфейс в ini файл:
@@ -160,3 +190,4 @@ class ImGUI:
     # Вызывайте, при закрытии окна:
     def destroy(self, save_gui: bool = True) -> None:
         if save_gui: self.save()
+        imgui.destroy_context()

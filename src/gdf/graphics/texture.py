@@ -31,8 +31,6 @@ class Texture:
         self.height = surface.get_height()
         self.id     = int(gl.glGenTextures(1))
 
-        gl.glEnable(gl.GL_TEXTURE_2D)
-
         self.set_linear()
         self.set_filter([gl.GL_TEXTURE_WRAP_S, gl.GL_TEXTURE_WRAP_T], gl.GL_CLAMP_TO_EDGE)
 
@@ -42,7 +40,6 @@ class Texture:
         gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, texture_format, wdth, hght, 0, data_format, data_type, self.data)
         if use_mipmap: gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-        gl.glDisable(gl.GL_TEXTURE_2D)
 
     # Использовать текстуру:
     def begin(self) -> "Texture":

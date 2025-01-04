@@ -6,6 +6,7 @@
 # Импортируем:
 import array
 import ctypes
+from .texture import Texture
 from .gl import *
 from ..math import numpy as np
 
@@ -62,10 +63,11 @@ class SSBO:
 
 # Кадровый буфер:
 class FrameBuffer:
-    def __init__(self, texture_id: int) -> None:
+    def __init__(self, texture: Texture) -> None:
+        self.texture = texture
         self.id = gl.glGenFramebuffers(1)
         self._id_before_begin_ = gl.glGetIntegerv(gl.GL_FRAMEBUFFER_BINDING)
-        self.attach_texture(texture_id, gl.GL_COLOR_ATTACHMENT0)
+        self.attach_texture(self.texture.id, gl.GL_COLOR_ATTACHMENT0)
 
     # Привязать текстуру к фреймбуферу:
     def attach_texture(self, texture_id: int, attach_type: int = gl.GL_COLOR_ATTACHMENT0) -> "FrameBuffer":
@@ -99,6 +101,14 @@ class FrameBuffer:
         self.end()
     
         return self
+    
+    # Изменить размер текстуры кадрового буфера:
+    def resize(self, width: int, height: int) -> "FrameBuffer":
+        self.texture.width = int(width)
+        self.texture.height = int(height)
+        wdth, hght = self.texture.width, self.texture.height
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture.id)
+        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA8, wdth, hght, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, None)
 
     # Удалить буфер:
     def destroy(self) -> None:
@@ -119,9 +129,11 @@ class VBO:
         else: self.vertices = vertices
 
         gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.id)
-        gl.glBufferData(gl.GL_ARRAY_BUFFER,
-                        self.vertices.nbytes if isinstance(self.vertices, np.ndarray) else len(self.vertices),
-                        self.vertices, int(mode))
+        gl.glBufferData(
+            gl.GL_ARRAY_BUFFER,
+            self.vertices.nbytes if isinstance(self.vertices, np.ndarray) else len(self.vertices),
+            self.vertices, int(mode)
+        )
 
     # Отрисовать буфер:
     def render(self,

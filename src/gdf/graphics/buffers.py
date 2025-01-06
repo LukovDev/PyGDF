@@ -109,6 +109,7 @@ class FrameBuffer:
         wdth, hght = self.texture.width, self.texture.height
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture.id)
         gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA8, wdth, hght, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, None)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
     # Удалить буфер:
     def destroy(self) -> None:

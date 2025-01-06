@@ -7,8 +7,10 @@
 import io
 import os
 import pygame
+from .gl import *
 from .image import Image
 from .texture import Texture
+from ..math import *
 
 
 # Файл шрифта:
@@ -43,18 +45,17 @@ class FontFile:
 class FontGenerator:
     def __init__(self, font: FontFile = None) -> None:
         self.font = font
-        self.texture = None
+        self.texture = Texture()
 
-    # Запечь текст шрифта, и получить новую текстуру:
-    def get_texture_text(self,
-                         text:      str,
-                         font_size: int,
-                         color:     list = None,
-                         bg_color:  list = None,
-                         padding_x: int  = 0,
-                         padding_y: int  = 0,
-                         smooth:    bool = True
-                         ) -> Texture:
+    # Сгенерировать текстуру с текстом:
+    def generate(self,
+                 text:      str,
+                 font_size: int,
+                 color:     list = None,
+                 bg_color:  list = None,
+                 padding_x: int  = 0,
+                 padding_y: int  = 0,
+                 smooth:    bool = True) -> "FontGenerator":
         # Настраиваем цвета:
         if color    is None: color    = [1, 1, 1, 1]
         if bg_color is None: bg_color = [0, 0, 0, 0]
@@ -75,45 +76,29 @@ class FontGenerator:
         # Создаём и получаем битмап текста из шрифта:
         bitmap = font.render(text, smooth, color[:3])
         bitmap.set_alpha(color[3])
-        bitmap_size = bitmap.get_width()+padding_x*2, bitmap.get_height()+padding_y*2
+        bitmap_size = (bitmap.get_width()+padding_x*2, bitmap.get_height()+padding_y*2)
 
         # Создаём фон текста, и рисуем на нём основной текст:
-        text_image = Image(size=bitmap_size)
-        text_image.fill(bg_color)
-        text_image.draw(bitmap, padding_x, padding_y)
+        img = Image(size=bitmap_size)
+        img.fill(bg_color)
+        img.draw(bitmap, padding_x, padding_y)
 
         # Создаём текстуру из битмапа:
-        texture = Texture(Image(surface=text_image))
+        if self.texture is None:
+            self.texture = Texture(Image(surface=img))
+        else:
+            wdth, hght = bitmap_size
+            self.texture.image = img
+            self.texture.data = img.data
+            self.texture.width, self.texture.height = wdth, hght
+            gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture.id)
+            gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA8, wdth, hght, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, img.data)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
         # Устанавливаем сглаживание текстуры:
-        texture.set_linear() if smooth else texture.set_pixelized()
-
-        return texture
-
-    # Запечь текст шрифта на текстуре:
-    def bake_texture(self,
-                     text:      str,
-                     font_size: int,
-                     color:     list = None,
-                     bg_color:  list = None,
-                     padding_x: int  = 0,
-                     padding_y: int  = 0,
-                     smooth:    bool = True
-                     ) -> "FontGenerator":
-        # Удаляем старую текстуру текста:
-        if self.texture is not None:
-            self.texture.destroy()
-            self.texture = None
-
-        # Создаём текстуру текста:
-        if self.texture is None:
-            self.texture = self.get_texture_text(text, font_size, color, bg_color, padding_x, padding_y, smooth)
+        self.texture.set_linear() if smooth else self.texture.set_pixelized()
 
         return self
-
-    # Получить текстуру:
-    def get_texture(self) -> Texture:
-        return self.texture
 
     # Получить ширину текста:
     def get_width(self) -> int:
@@ -122,6 +107,10 @@ class FontGenerator:
     # Получить высоту текста:
     def get_height(self) -> int:
         return self.texture.height if self.texture is not None else 0
+
+    # Получить размер текстуры текста:
+    def get_size(self) -> vec2:
+        return vec2(self.get_width(), self.get_height())
 
     # Удалить шрифт:
     def destroy(self) -> None:

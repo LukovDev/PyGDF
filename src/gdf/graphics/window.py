@@ -220,6 +220,7 @@ class Window:
                         scn.resize(*size) if scn is not None and issubclass(type(scn), Scene) else self.resize(*size)
 
                     # Обновляем размер окна в переменных окна:
+                    event.dict["size"] = size
                     self._winvars_["width"], self._winvars_["height"] = size
 
                 # Проверяем на то, развернуто окно или нет:

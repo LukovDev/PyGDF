@@ -19,7 +19,7 @@ class Image:
         self.data    = None
 
         if size is not None:
-            self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+            self._update_image_(pygame.Surface((self.width, self.height), pygame.SRCALPHA))
 
         if surface is not None:
             self._update_image_(surface)
@@ -60,17 +60,20 @@ class Image:
     # Установить альфа канал:
     def set_alpha(self, alpha: int) -> "Image":
         self.surface.set_alpha(abs(int(alpha)))
+        self.data = pygame.image.tostring(self.surface, "RGBA", False)
         return self
 
     # Установить пиксель:
     def set_pixel(self, x: int, y: int, color: list) -> "Image":
         self.surface.set_at((x, y), color)
+        self.data = pygame.image.tostring(self.surface, "RGBA", False)
         return self
 
     # Закрасить изображение:
     def fill(self, color: list) -> "Image":
         if len(color) < 3: color = [0, 0, 0]
         self.surface.fill(color)
+        self.data = pygame.image.tostring(self.surface, "RGBA", False)
         return self
 
     # Нарисовать повехность на этом изображении:
@@ -84,6 +87,7 @@ class Image:
             self.surface.blit(image, (int(x), int(y)))
         elif isinstance(image, type(self)) and image.surface is not None:
             self.surface.blit(image.surface, (int(x), int(y)))
+        self.data = pygame.image.tostring(self.surface, "RGBA", False)
         return self
 
     # Изменить размер:

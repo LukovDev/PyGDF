@@ -330,12 +330,12 @@ class ParticleEffect2D:
             # Рисуем частицу:
             sprite_batch = self._partvars_["batch"] if batch is None else batch
             sprite_batch.draw(
-                sprite = particle.texture,
-                x      = particle.position.x - particle.size.x / 2,
-                y      = particle.position.y - particle.size.y / 2,
-                width  = particle.size.x,
-                height = particle.size.y,
-                angle  = angl + particle.angle
+                particle.texture,
+                particle.position.x - particle.size.x / 2,
+                particle.position.y - particle.size.y / 2,
+                particle.size.x,
+                particle.size.y,
+                angl + particle.angle
             )
         if batch is None:
             self._partvars_["batch"].end()

@@ -13,6 +13,7 @@
 import numpy as np
 from OpenGL import GL as gl
 from libc.math cimport sin, cos, pi
+from cpython.long cimport PyLong_Check
 
 
 # Сверхбыстрая функция для поворота четырёх 2D вершин (для 2D прямоугольника), вокруг их общего центра:
@@ -34,18 +35,17 @@ cpdef list _rot2d_vertices_rectangle_(float x, float y, float width, float heigh
     cdef float dx4 = x - center_x
     cdef float dy4 = y + height - center_y
 
-    # Вычисление координат вершин:
-    cdef float x1 = dx1 * angle_rad_cos - dy1 * angle_rad_sin + center_x
-    cdef float y1 = dx1 * angle_rad_sin + dy1 * angle_rad_cos + center_y
-    cdef float x2 = dx2 * angle_rad_cos - dy2 * angle_rad_sin + center_x
-    cdef float y2 = dx2 * angle_rad_sin + dy2 * angle_rad_cos + center_y
-    cdef float x3 = dx3 * angle_rad_cos - dy3 * angle_rad_sin + center_x
-    cdef float y3 = dx3 * angle_rad_sin + dy3 * angle_rad_cos + center_y
-    cdef float x4 = dx4 * angle_rad_cos - dy4 * angle_rad_sin + center_x
-    cdef float y4 = dx4 * angle_rad_sin + dy4 * angle_rad_cos + center_y
-
     # Возвращаем 4 вершины спрайта:
-    return [x1, y1, x2, y2, x3, y3, x4, y4]
+    return [
+        dx1 * angle_rad_cos - dy1 * angle_rad_sin + center_x,
+        dx1 * angle_rad_sin + dy1 * angle_rad_cos + center_y,
+        dx2 * angle_rad_cos - dy2 * angle_rad_sin + center_x,
+        dx2 * angle_rad_sin + dy2 * angle_rad_cos + center_y,
+        dx3 * angle_rad_cos - dy3 * angle_rad_sin + center_x,
+        dx3 * angle_rad_sin + dy3 * angle_rad_cos + center_y,
+        dx4 * angle_rad_cos - dy4 * angle_rad_sin + center_x,
+        dx4 * angle_rad_sin + dy4 * angle_rad_cos + center_y
+    ]
 
 
 # Функция для конвертации массива квадратов в массив треугольников:
@@ -67,18 +67,23 @@ cpdef list _convert_quads_to_triangles_(list vertices):
 
 
 # Добавление спрайта в пакет текстур для пакетной отрисовки:
-cpdef _sprite_batch_2d_draw_(dict tbat, int tid, float x, float y, float wdth, float hgth, float ang):
+cpdef _sprite_batch_2d_draw_(dict tbat, object sprite, float x, float y, float width, float height, float angle):
     cdef list vertices
+    cdef int tid
+
+    if PyLong_Check(sprite):
+        tid = sprite
+    else: tid = sprite.id
 
     # Вращаем вершины спрайта:
-    if ang != 0.0:
-        vertices = _rot2d_vertices_rectangle_(x, y, wdth, hgth, ang)
+    if angle != 0.0:
+        vertices = _rot2d_vertices_rectangle_(x, y, width, height, angle)
     else:
         vertices = [
-            x       , y       ,  # Нижний левый угол.
-            x + wdth, y       ,  # Нижний правый угол.
-            x + wdth, y + hgth,  # Верхний правый угол.
-            x       , y + hgth,  # Верхный левый угол.
+            x        , y         ,  # Нижний левый угол.
+            x + width, y         ,  # Нижний правый угол.
+            x + width, y + height,  # Верхний правый угол.
+            x        , y + height,  # Верхный левый угол.
         ]
 
     # Если текстурки нет в уникальных текстурках:

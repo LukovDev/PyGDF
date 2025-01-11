@@ -38,7 +38,7 @@ class SpriteBatch2D:
 
     # Отрисовать спрайт:
     def draw(self,
-             sprite:       Sprite2D | Texture,
+             sprite:       Sprite2D | Texture | int,
              x:            float,
              y:            float,
              width:        float,
@@ -51,7 +51,7 @@ class SpriteBatch2D:
                 "before the \".draw()\" function.")
 
         # Добавляем спрайт в пакет текстур используя оптимизированную функцию на Cython:
-        _sprite_batch_2d_draw_(self.texture_batches, sprite.id, x, y, width, height, angle)
+        _sprite_batch_2d_draw_(self.texture_batches, sprite, x, y, width, height, angle)
 
         return self
 
@@ -105,8 +105,7 @@ class AtlasTextureBatch2D:
              y:            float,
              width:        int,
              height:       int,
-             angle:        float = 0.0,
-             cull_sprites: bool  = False
+             angle:        float = 0.0
              ) -> "AtlasTextureBatch2D":
         if not self._is_begin_:
             raise Exception(

@@ -60,15 +60,15 @@ class Utils2D:
         """ Переводит координаты точки на экране, в мировые координаты в 2D пространстве """
 
         # Позиция нижнего левого угла камеры с учётом метра и зума камеры:
-        camera_posx = camera.position.x - ((camera.width  * camera.zoom) / 2) * (camera.meter / 100)
-        camera_posy = camera.position.y - ((camera.height * camera.zoom) / 2) * (camera.meter / 100)
+        camera_pos_x = camera.position.x - ((camera.width  * camera.zoom) / 2) * (camera.meter / 100)
+        camera_pos_y = camera.position.y - ((camera.height * camera.zoom) / 2) * (camera.meter / 100)
 
         # Позиция точки с учётом метра и зума камеры (Y координату точки инвертируем):
-        point_posx = (+(point.x                ) * (camera.meter / 100)) * camera.zoom
-        point_posy = (-(point.y - camera.height) * (camera.meter / 100)) * camera.zoom
+        point_pos_x = (+(point.x                ) * (camera.meter / 100)) * camera.zoom
+        point_pos_y = (-(point.y - camera.height) * (camera.meter / 100)) * camera.zoom
 
         # Складываем и возвращаем результат:
-        return vec2(camera_posx + point_posx, camera_posy + point_posy)
+        return vec2(camera_pos_x + point_pos_x, camera_pos_y + point_pos_y)
 
         """ Сокращённая версия выглядит так:
         # Для использования вам нужен экземпляр 2D камеры с названием camera и вектор точки с названием point.

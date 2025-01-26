@@ -41,7 +41,6 @@ from . import draw
 from . import font
 from . import gl
 from . import image
-from . import imgui
 from . import light
 from . import packer
 from . import particles
@@ -63,7 +62,6 @@ from .camera    import Camera2D, Camera3D
 from .draw      import Draw2D, Draw3D
 from .font      import FontFile, FontGenerator
 from .image     import Image
-from .imgui     import ImGUI, imgui_bundle, imgui
 from .light     import Light2D
 from .packer    import PackerTexture
 from .particles import ParticleEffect2D

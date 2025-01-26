@@ -4,8 +4,11 @@
 
 
 # Импортируем:
+import pygame
 import pypresence
 from .graphics.camera import Camera2D
+from .graphics.sprite import Sprite2D
+from .graphics.texture import Texture
 from .math import *
 
 
@@ -113,6 +116,14 @@ class Utils2D:
         """ Возвращает скорость в виде float значения из вектора """
 
         return sqrt(vector.x**2 + vector.y**2)
+    
+    # Получить поверхность pygame из текстуры:
+    @staticmethod
+    def get_surface_from_texture(texture: Texture | Sprite2D) -> pygame.Surface:
+        """ Возвращает поверхность Pygame из текстуры OpenGL. """
+
+        texture = texture.texture if isinstance(texture, Sprite2D) else texture
+        return pygame.image.frombuffer(texture.get_data().tobytes(), (texture.width, texture.height), "RGBA")
 
 
 # 2D пересечения геометрических объектов:

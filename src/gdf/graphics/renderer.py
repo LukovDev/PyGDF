@@ -26,7 +26,7 @@ class Renderer2D:
             wdth, hght = camera.width, camera.height
 
         self.camera      = camera
-        self.texture     = Texture(None, size=(wdth, hght))
+        self.texture     = Texture(size=(wdth, hght))
         self.framebuffer = FrameBuffer(self.texture)
         self.sprite      = Sprite2D(self.texture)
         self._is_begin_  = False

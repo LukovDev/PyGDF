@@ -29,7 +29,7 @@ def gl_set_blend_mode(sfactor: int = None, dfactor: int = None) -> None:
     """
 
     # Простой режим смешивания. Альфа канал из фрагмента будет использоваться как коэффициент смешивания:
-    sfactor = gl.GL_SRC_ALPHA           if sfactor is None else sfactor
+    sfactor = gl.GL_SRC_ALPHA if sfactor is None else sfactor
     dfactor = gl.GL_ONE_MINUS_SRC_ALPHA if dfactor is None else dfactor
 
     # Устанавливаем режим:

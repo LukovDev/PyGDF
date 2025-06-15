@@ -12,14 +12,14 @@ pygame.init()
 
 # Класс музыки:
 class Music:
-    def __init__(self, file_path: str | io.BytesIO = None) -> None:
+    def __init__(self, file_path: str|io.BytesIO = None) -> None:
         self.path    = file_path
         self.audio   = None
         self.channel = None
         self.is_loop = False
 
     # Загрузить музыку:
-    def load(self, file_path: str | io.BytesIO = None) -> "Music":
+    def load(self, file_path: str|io.BytesIO = None) -> "Music":
         self.path = file_path if file_path is not None else self.path
 
         # Проверяем на наличие файла:
@@ -34,7 +34,6 @@ class Music:
         try: self.audio = pygame.mixer.Sound(self.path)
         except Exception as error:
             raise Exception(f"Error in \"Music.load()\": {error}\n")
-
         return self
 
     # Проиграть музыку:

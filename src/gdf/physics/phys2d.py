@@ -56,8 +56,7 @@ class Physics2D:
                      samples:   vec2,         # Детализация геометрии.
                      threshold: float,        # Порог срабатывания генерации.
                      tolerance: float = 1.0,  # Насколько сильно мы хотим упростить геометрию.
-                     use_alpha: bool = True   # Использовать альфа канал или яркость пикселя.
-                     ) -> list:
+                     use_alpha: bool = True) -> list:  # Использовать альфа канал или яркость пикселя.
             if not isinstance(texture, Texture):
                 raise PhysicsError(f"The texture data type (\"{type(texture)}\") is not a type \"{Texture}\"")
 
@@ -227,7 +226,7 @@ class Physics2D:
                 return self
 
             # Функция ограничения скорости вращения и перемещения:
-            def _limit_velocity_func_(self) -> any:
+            def _limit_velocity_func_(self) -> Any:
                 def limit_velocity(body, gravity, damping, dt) -> None:
                     pymunk.Body.update_velocity(body, gravity, damping, dt)
                     if body.velocity.length > (self.max_vel*KG_N*self.meter):
@@ -248,7 +247,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
-                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
+                if mass <= 0.0: mass = 0.0; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.body               = pymunk.Body(mass, body_type=body_type)
                 self.body.position      = tuple(position.xy)
@@ -267,7 +266,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
-                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
+                if mass <= 0.0: mass = 0.0; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.size               = vec2(abs(size.x), abs(size.y))
                 self.body               = pymunk.Body(mass, pymunk.moment_for_box(mass, size), body_type)
@@ -294,7 +293,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
-                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
+                if mass <= 0.0: mass = 0.0; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.radius             = abs(radius)
                 self.body               = pymunk.Body(mass, pymunk.moment_for_circle(mass, 0, radius), body_type)
@@ -320,7 +319,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
-                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
+                if mass <= 0.0: mass = 0.0; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 vertices = [
                     (-size.x/2, -sqrt(3) / 2 * size.y/2),
@@ -352,7 +351,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
-                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
+                if mass <= 0.0: mass = 0.0; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 if vertices is None: vertices = [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)]
                 else:                vertices = [tuple(vert.xy) for vert in vertices]
@@ -382,7 +381,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
-                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
+                if mass <= 0.0: mass = 0.0; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 self.points             = [tuple(point_a.xy), tuple(point_b.xy)]
                 self.radius             = radius
@@ -411,7 +410,7 @@ class Physics2D:
                          body_type:   int   = pymunk.Body.DYNAMIC,
                          max_vel:     float = float("inf"),
                          max_ang_vel: float = float("inf")) -> None:
-                if mass <= 0.0: mass = 0.0 ; body_type = pymunk.Body.KINEMATIC
+                if mass <= 0.0: mass = 0.0; body_type = pymunk.Body.KINEMATIC
                 super().__init__(mass, elasticity, friction, body_type, max_vel, max_ang_vel)
                 if vertices is None: vertices = [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)]
                 self.vertices           = [vec2(vert) for vert in vertices]
@@ -634,8 +633,8 @@ class Physics2D:
                      sleep_time:     float = float("inf"),
                      collision_slop: float = 0.01,
                      collision_bias: float = 0.75,
-                     handler_begin:  any   = None,
-                     handler_end:    any   = None
+                     handler_begin:  Any   = None,
+                     handler_end:    Any   = None
                      ) -> None:
             self.space             = pymunk.Space()   # Физическое пространство.
             self.phys_speed        = abs(phys_speed)  # Скорость симуляции физики.
@@ -797,21 +796,21 @@ class Physics2D:
             return self.space.collision_bias
 
         # Установить обработчик столкновений начала:
-        def set_handler_begin(self, func: any) -> "Physics2D.Space":
+        def set_handler_begin(self, func: Any) -> "Physics2D.Space":
             self.handler_begin = func
             return self
 
         # Получить обработчик столкновений начала:
-        def get_handler_begin(self) -> any:
+        def get_handler_begin(self) -> Any:
             return self.handler_begin
 
         # Установить обработчик столкновений конца:
-        def set_handler_end(self, func: any) -> "Physics2D.Space":
+        def set_handler_end(self, func: Any) -> "Physics2D.Space":
             self.handler_begin = func
             return self
 
         # Получить обработчик столкновений конца:
-        def get_handler_end(self) -> any:
+        def get_handler_end(self) -> Any:
             return self.handler_end
 
         # Проверить столкновение одного объекта с другим:

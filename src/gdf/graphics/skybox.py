@@ -1,5 +1,5 @@
 #
-# skybox.py - Создаёт класс для отрисовки неба используя 6 текстур.
+# skybox.py - Создаёт класс для отрисовки неба.
 #
 
 
@@ -8,95 +8,63 @@ from .gl import *
 from .texture import Texture
 from .camera import Camera3D
 from .shader import ShaderProgram
+from .render import RenderPipeline
+from .texunits import TextureUnits
 from ..math import *
 
 
 # Класс неба:
-class SkyBox:
+class Skybox:
     # Класс кубического неба:
     class CubeMap:
         def __init__(self,
-                     camera: Camera3D,
-                     up:     Texture,
-                     down:   Texture,
                      front:  Texture,
                      back:   Texture,
                      left:   Texture,
                      right:  Texture,
-                     box_size: float = 1) -> None:
-            self.camera = camera
-            self.textures = [
-                up, down,
-                front, back,
-                left, right
-            ]
-
-            s = box_size  # Половина размера куба неба.
-
-            # Вершины скайбокса:
-            self.vertices = [
-                [-s, -s, -s, 0, 1], [+s, -s, -s, 1, 1], [+s, +s, -s, 1, 0], [-s, +s, -s, 0, 0],
-                [-s, +s, +s, 1, 0], [+s, +s, +s, 0, 0], [+s, -s, +s, 0, 1], [-s, -s, +s, 1, 1],
-                [-s, +s, -s, 0, 1], [+s, +s, -s, 1, 1], [+s, +s, +s, 1, 0], [-s, +s, +s, 0, 0],
-                [+s, -s, -s, 1, 0], [-s, -s, -s, 0, 0], [-s, -s, +s, 0, 1], [+s, -s, +s, 1, 1],
-                [-s, +s, -s, 1, 0], [-s, +s, +s, 0, 0], [-s, -s, +s, 0, 1], [-s, -s, -s, 1, 1],
-                [+s, +s, +s, 1, 0], [+s, +s, -s, 0, 0], [+s, -s, -s, 0, 1], [+s, -s, +s, 1, 1]
-            ]
+                     top:    Texture,
+                     bottom: Texture) -> None:
+            self.textures = [front, back, left, right, top, bottom]
 
         # Отрисовать скайбокс:
-        def render(self) -> "SkyBox.CubeMap":
-            def draw_face(vertices: list, texture) -> None:
-                gl.glBindTexture(gl.GL_TEXTURE_2D, texture.id)
-                gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
-                gl.glBegin(gl.GL_QUADS)
-                for vert in vertices: gl.glTexCoord2f(vert[3], vert[4]) ; gl.glVertex3d(vert[0], vert[1], vert[2])
-                gl.glEnd()
-
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPushMatrix()
-            is_enabled_cull_face = True if gl.glIsEnabled(gl.GL_CULL_FACE) else False
-            is_enabled_lighting = True if gl.glIsEnabled(gl.GL_LIGHTING) else False
-            gl.glScale(1, 1, 1)
-            gl.glTranslated(*self.camera.position.xyz)
-            gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glDisable(gl.GL_LIGHTING)
-            gl.glEnable(gl.GL_CULL_FACE)
-            gl.glEnable(gl.GL_TEXTURE_2D)
-            gl.glColor(1, 1, 1)
-
-            draw_face(self.vertices[8:12],  self.textures[0])  # UP.
-            draw_face(self.vertices[12:16], self.textures[1])  # DOWN.
-            draw_face(self.vertices[:4],    self.textures[2])  # FRONT.
-            draw_face(self.vertices[4:8],   self.textures[3])  # BACK.
-            draw_face(self.vertices[16:20], self.textures[4])  # LEFT.
-            draw_face(self.vertices[20:],   self.textures[5])  # RIGHT.
-
-            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-            if not is_enabled_cull_face: gl.glDisable(gl.GL_CULL_FACE)
-            if is_enabled_lighting: gl.glEnable(gl.GL_LIGHTING)
-            gl.glEnable(gl.GL_DEPTH_TEST)
-            gl.glPopMatrix()
-
+        def render(self) -> "Skybox.CubeMap":
+            camera = RenderPipeline.camera
+            if not isinstance(camera, Camera3D):
+                raise Exception(f"Graphics Error: You are not using Camera3D! (current active camera: {type(camera)})")
+            # Первичная настройка:
+            camera.set_depth_test(False)
+            RenderPipeline.default_shader.begin()
+            RenderPipeline.Skybox.CubeMap.vao.begin()
+            RenderPipeline.Skybox.CubeMap.vvbo.begin()
+            # Устанавливаем параметры шейдера:
+            RenderPipeline.default_shader.set_uniform("u_color", vec4(1, 1, 1, 1))
+            RenderPipeline.default_shader.set_uniform("u_model", glm.translate(mat4(1.0), camera.position.xyz))
+            RenderPipeline.default_shader.set_uniform("u_use_texture", True)
+            # Рисуем куб по частям:
+            for i in range(6):
+                RenderPipeline.default_shader.set_sampler("u_texture", TextureUnits.rebind(self.textures[i], 0))
+                RenderPipeline.Skybox.CubeMap.vvbo.render(first=i*6, count=6, use_begin_end=False)
+            # Отключение буферов и шейдера и возвращение в обычное состояние:
+            RenderPipeline.Skybox.CubeMap.vvbo.end()
+            RenderPipeline.Skybox.CubeMap.vao.end()
+            RenderPipeline.default_shader.end()
+            camera.set_depth_test(True)
             return self
 
-    # Класс математически-вычисляемой атмосферы:
-    class Atmosphere:
+    # Класс математически-вычисляемой кубической атмосферы:
+    class AtmosphereBox:
         def __init__(self,
-                     camera:               Camera3D,
-                     sun_direction:        vec3,
-                     sun_radius:           float = 1.0,
-                     sun_color:            vec3  = vec3(1, 1, 1),
-                     sun_intensity:        float = 1.0,
-                     planet_radius:        float = 6371000.0,
-                     atmosphere_radius:    float = 6471000.0,
-                     wavelengths:          vec3  = vec3(720, 530, 440),
-                     coef_mie:             float = 0.000001,
-                     height_rlh:           float = 10_000.0,
-                     height_mie:           float = 1200.0,
-                     g_mie:                float = 0.985,
-                     box_size:             float = 1) -> None:
-            self.camera = camera
-
+                     sun_direction:     vec3,
+                     sun_radius:        float = 1.0,
+                     sun_color:         vec3  = vec3(1, 1, 1),
+                     sun_intensity:     float = 1.0,
+                     planet_radius:     float = 6371000.0,
+                     atmosphere_radius: float = 6471000.0,
+                     wavelengths:       vec3  = vec3(720, 530, 440),
+                     coef_mie:          float = 0.000001,
+                     height_rlh:        float = 10_000.0,
+                     height_mie:        float = 1200.0,
+                     g_mie:             float = 0.985) -> None:
             # Параметры:
             self.sun_direction     = sun_direction      # Направление солнца.
             self.sun_radius        = sun_radius         # Радиус солнца.
@@ -110,16 +78,21 @@ class SkyBox:
             self.height_mie        = height_mie         # Высота Миевского слоя  (1.2 км).
             self.g_mie             = g_mie              # Предпочтительное направление рассеяния Ми.
 
+            # Кэш параметров шейдера:
+            self._params_cache_ = {}
+
             # Вершинный шейдер:
             vertex_shader = """
             #version 330 core
 
-            // Позиция вершины:
+            uniform mat4 u_model = mat4(1.0);
+            uniform mat4 u_view = mat4(1.0);
+            uniform mat4 u_projection = mat4(1.0);
             layout (location = 0) in vec3 a_position;
+            layout (location = 1) in vec2 a_texcoord;
 
-            // Основная функция:
             void main(void) {
-                gl_Position = vec4(a_position, 1.0);
+                gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
             }
             """
 
@@ -379,69 +352,55 @@ class SkyBox:
             """
 
             # Компилируем шейдер:
-            self.shader = ShaderProgram(frag=fragment_shader, vert=vertex_shader).compile()
+            self.shader = ShaderProgram(vert=vertex_shader, frag=fragment_shader).compile()
 
-            s = box_size  # Половина размера куба неба.
-
-            # Вершины скайбокса:
-            self.vertices = [
-                [-s, -s, -s], [+s, -s, -s], [+s, +s, -s], [-s, +s, -s],
-                [-s, +s, +s], [+s, +s, +s], [+s, -s, +s], [-s, -s, +s],
-                [-s, +s, -s], [+s, +s, -s], [+s, +s, +s], [-s, +s, +s],
-                [+s, -s, -s], [-s, -s, -s], [-s, -s, +s], [+s, -s, +s],
-                [-s, +s, -s], [-s, +s, +s], [-s, -s, +s], [-s, -s, -s],
-                [+s, +s, +s], [+s, +s, -s], [+s, -s, -s], [+s, -s, +s]
-            ]
+        # Установка параметра в шейдере:
+        def _set_uniform_(self, name: str, value: Any) -> None:
+            # *Разница этого кэширования от того что в классе шейдера в том, что матрицы тоже кэшируются.*
+            # Проверка входных значений:
+            if hasattr(value, "to_list"): value = value.to_list()
+            if isinstance(value, tuple): value = list(value)
+            if isinstance(value, numpy.ndarray): value = value.tolist()
+            # Проверяем, если значение совпадает со значением в кэше, то ничего не делаем:
+            if name in self._params_cache_ and self._params_cache_[name] == value: return
+            # Иначе обновляем значение в кэше и устанавливаем параметр в шейдере:
+            self._params_cache_[name] = value
+            self.shader.set_uniform(name, value)
 
         # Отрисовать скайбокс:
-        def render(self) -> "SkyBox.Atmosphere":
-            def draw_face(vertices: list) -> None:
-                gl.glBegin(gl.GL_QUADS)
-                for vert in vertices: gl.glVertex3d(vert[0], vert[1], vert[2])
-                gl.glEnd()
-
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPushMatrix()
-            is_enabled_cull_face = True if gl.glIsEnabled(gl.GL_CULL_FACE) else False
-            is_enabled_lighting = True if gl.glIsEnabled(gl.GL_LIGHTING) else False
-            gl.glScale(1, 1, 1)
-            gl.glTranslated(*self.camera.position.xyz)
-            gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glDisable(gl.GL_LIGHTING)
-            gl.glEnable(gl.GL_CULL_FACE)
-            gl.glColor(1, 1, 1)
-
+        def render(self) -> "Skybox.Atmosphere":
+            camera = RenderPipeline.camera
+            if not isinstance(camera, Camera3D):
+                raise Exception(f"Graphics Error: You are not using Camera3D! (current active camera: {type(camera)})")
+            # Первичная настройка:
+            camera.set_depth_test(False)
             self.shader.begin()
-
-            # Обновляем параметры атмосферы:
-            self.shader.set_uniform("u_resolution",        (self.camera.width, self.camera.height))
-            self.shader.set_uniform("u_camera.position",   self.camera.position)
-            self.shader.set_uniform("u_camera.rotation",   self.camera.rotation)
-            self.shader.set_uniform("u_camera.fov",        float(self.camera.fov))
-            self.shader.set_uniform("u_sun.direction",     self.sun_direction)
-            self.shader.set_uniform("u_sun.radius",        self.sun_radius)
-            self.shader.set_uniform("u_sun.color",         self.sun_color)
-            self.shader.set_uniform("u_sun.intensity",     self.sun_intensity)
-            self.shader.set_uniform("u_planet_radius",     self.planet_radius)
-            self.shader.set_uniform("u_atmosphere_radius", self.atmosphere_radius)
-            self.shader.set_uniform("u_wavelengths",       self.wavelengths)
-            self.shader.set_uniform("u_coef_mie",          self.coef_mie)
-            self.shader.set_uniform("u_hrlh",              self.height_rlh)
-            self.shader.set_uniform("u_hmie",              self.height_mie)
-            self.shader.set_uniform("u_g_mie",             self.g_mie)
-
-            draw_face(self.vertices[8:12])   # UP.
-            draw_face(self.vertices[12:16])  # DOWN.
-            draw_face(self.vertices[:4])     # FRONT.
-            draw_face(self.vertices[4:8])    # BACK.
-            draw_face(self.vertices[16:20])  # LEFT.
-            draw_face(self.vertices[20:])    # RIGHT.
-
+            RenderPipeline.Skybox.CubeMap.vao.begin()
+            RenderPipeline.Skybox.CubeMap.vvbo.begin()
+            # Устанавливаем параметры шейдера:
+            self._set_uniform_("u_view",              camera.view.matrix)
+            self._set_uniform_("u_projection",        camera.projection.matrix)
+            self._set_uniform_("u_model",             glm.translate(mat4(1.0), camera.position.xyz))
+            self._set_uniform_("u_resolution",        (camera.width, camera.height))
+            self._set_uniform_("u_camera.position",   camera.position)
+            self._set_uniform_("u_camera.rotation",   camera.rotation)
+            self._set_uniform_("u_camera.fov",        float(camera.fov))
+            self._set_uniform_("u_sun.direction",     self.sun_direction)
+            self._set_uniform_("u_sun.radius",        self.sun_radius)
+            self._set_uniform_("u_sun.color",         self.sun_color)
+            self._set_uniform_("u_sun.intensity",     self.sun_intensity)
+            self._set_uniform_("u_planet_radius",     self.planet_radius)
+            self._set_uniform_("u_atmosphere_radius", self.atmosphere_radius)
+            self._set_uniform_("u_wavelengths",       self.wavelengths)
+            self._set_uniform_("u_coef_mie",          self.coef_mie)
+            self._set_uniform_("u_hrlh",              self.height_rlh)
+            self._set_uniform_("u_hmie",              self.height_mie)
+            self._set_uniform_("u_g_mie",             self.g_mie)
+            # Рисуем куб по частям:
+            for i in range(6):
+                RenderPipeline.Skybox.CubeMap.vvbo.render(first=i*6, count=6, use_begin_end=False)
+            # Отключение буферов и шейдера и возвращение в обычное состояние:
+            RenderPipeline.Skybox.CubeMap.vvbo.end()
+            RenderPipeline.Skybox.CubeMap.vao.end()
             self.shader.end()
-
-            if not is_enabled_cull_face: gl.glDisable(gl.GL_CULL_FACE)
-            if is_enabled_lighting: gl.glEnable(gl.GL_LIGHTING)
-            gl.glEnable(gl.GL_DEPTH_TEST)
-            gl.glPopMatrix()
-
             return self

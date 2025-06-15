@@ -6,7 +6,7 @@ echo.
 pip install -r .\build\pypi.txt
 
 echo.
-cd .\src\gdf\
+cd .\src\gdf\_scripts\
 "pypi.bat"
 
 echo.

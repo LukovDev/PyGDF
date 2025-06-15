@@ -6,15 +6,22 @@
 # Импортируем:
 import os
 import io
+import sys
 import json
 import pygame
 import zipfile
 import requests
+import importlib
 import tkinter as tk
 from tkinter import filedialog
+from types import ModuleType
 from .audio import Music, Sound
 from .graphics.font import FontFile
 from .graphics import Image, Texture, Sprite2D
+
+
+# Устанавливаем текущую рабочую директорию на ту, где находится исполняемый файл:
+if hasattr(sys, "_MEIPASS"): os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 
 # Загружаем изображение:
@@ -78,6 +85,18 @@ def load_sound(file_path: str) -> Sound:
 # Загрузить файл шрифта:
 def load_font(file_path: str) -> FontFile:
     return FontFile().load(file_path)
+
+
+# Загрузить модуль:
+def load_module(path: str, name: bool = None) -> ModuleType:
+    file = os.path.join(path, "__init__.py") if os.path.isdir(path) else path
+    if name is None: name = os.path.splitext(os.path.basename(path if os.path.isdir(path) else file))[0]
+    submod_locations = [path] if os.path.isdir(path) else None
+    spec = importlib.util.spec_from_file_location(name, file, submodule_search_locations=submod_locations)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 # Создаем zip-файл и добавляем файлы и папки из списка:

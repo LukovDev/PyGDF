@@ -12,7 +12,9 @@ import pygame
 from .gl import *
 from .image import Image
 from .scene import Scene
-from . import OpenGLWindowError, OpenGLContextNotSupportedError
+from .render import RenderPipeline
+from .texunits import TextureUnits
+from . import OpenGLWindowError, OpenGLContextNotSupportedError, BufferManager
 
 from ..audio.al import *
 from ..math import vec2, numpy as np
@@ -20,6 +22,8 @@ from ..math import vec2, numpy as np
 
 # Класс окна:
 class Window:
+    MIN_OPENGL_VERSION: str = "3.1"
+
     # --------------------- Приведённые ниже функции должны быть записаны в унаследованном классе: ---------------------
 
     # Создать окно:
@@ -70,8 +74,8 @@ class Window:
                  min_size:   vec2  = vec2(0, 0),
                  max_size:   vec2  = vec2(float("inf"), float("inf")),
                  samples:    int   = 0,
-                 gl_major:   int   = 3,
-                 gl_minor:   int   = 1) -> None:
+                 gl_major:   int   = 4,
+                 gl_minor:   int   = 1) -> "Window":
         self.clock = pygame.time.Clock()
         self.window = self
         self._winvars_ = {
@@ -109,25 +113,27 @@ class Window:
             "is-new-scene":   False,
         }
 
-        # Делаем окно временно скрытым (изменяем переменную напрямую чтобы не пересоздавать несуществующее окно):
-        _before_visible_ = self._winvars_["visible"] ; self._winvars_["visible"] = False
-
         # Создание окна:
         try:
-            pygame.init()
             self._winvars_["monitor-size"].xy = vec2(pygame.display.Info().current_w, pygame.display.Info().current_h)
             self.set_title(self._winvars_["title"])
             self.set_icon(self._winvars_["icon"])
 
             # Устанавливаем версию OpenGL:
+            pygame.init()
             pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, gl_major) if gl_major is not None else None
             pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, gl_minor) if gl_minor is not None else None
 
-            # Мы используем контекст OpenGL с обратной совместимостью чтобы можно было использовать устаревшие функции:
-            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_COMPATIBILITY)
+            # Устанавливаем профиль контекста:
+            pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
 
             # Устанавливаем мультисемплинг:
-            self.set_samples(self._winvars_["samples"])
+            if int(samples) not in (0, 2, 4, 8, 16):
+                raise OpenGLWindowError(
+                    f"Graphics Error: Samples must be set in the 0, 2, 4, 8, 16. You have set: {int(samples)}")
+            self._winvars_["samples"] = int(samples)
+            pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0 if max(int(samples), 0) == 0 else 1)
+            pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, self._winvars_["samples"])
 
             # Создаём окно:
             self._recreate_((self._winvars_["width"], self._winvars_["height"]))
@@ -137,16 +143,20 @@ class Window:
             raise OpenGLWindowError(f"Error creating the window: {error}")
 
         # Проверка на совместимость (если текущая версия OpenGL ниже установленной, вызываем исключение):
-        gl_version = self.get_opengl_version()
-        msg_error = "GDF-Core" if gl_version < "3.1" else "game" if gl_version < f"{gl_major}.{gl_minor}" else None
+        gl_version = ".".join(self.get_opengl_version().replace(".", " ").split()[:2])
+        msg_error, opengl_ver = None, Window.MIN_OPENGL_VERSION
+        if gl_version < Window.MIN_OPENGL_VERSION: msg_error = "GDF-Core"
+        elif gl_version < f"{gl_major}.{gl_minor}":
+            msg_error, opengl_ver = "game", f"{gl_major}.{gl_minor}"
+
         if msg_error is not None:
             raise OpenGLWindowError(
                 f"Your OpenGL version is lower than the {msg_error} requires.\n"
-                f"Required version: {gl_major}.{gl_minor} Your version: {gl_version}"
+                f"Required version: {opengl_ver} | Your version: {self.get_opengl_version()}"
             )
 
-        # Показываем окно (до этого момента оно было скрыто, чтобы правильно и незаметно применить параметры):
-        self.set_visible(_before_visible_)
+        # Включаем MSAA:
+        gl.glEnable(gl.GL_MULTISAMPLE)
 
         # Включаем смешивание цветов:
         gl.glEnable(gl.GL_BLEND)
@@ -160,6 +170,12 @@ class Window:
         # Делаем нулевой текстурный юнит привязанным к нулевой текстуре:
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+
+        # Инициализируем конвейер рендеринга:
+        RenderPipeline.init()
+
+        # Инициализируем текстурные юниты:
+        TextureUnits._init_units_()
 
         # Настраиваем соотношение сторон:
         self._reset_viewport_()
@@ -266,10 +282,13 @@ class Window:
                         self.render(self._winvars_["dtime"])
             except KeyboardInterrupt: self.exit()
 
+            # Очищаем все буфера (массивное удаление всех буферов за раз):
+            BufferManager.delete_buffers()
+
             # Если хотят закрыть окно:
             if self._winvars_["is-exit"]:
                 self._destroy_window_()
-                return # Возвращаемся из этого класса.
+                return  # Возвращаемся из этого класса.
 
             # Делаем задержку между кадрами:
             self.clock.tick(self._winvars_["setted-fps"]) if not self._winvars_["vsync"] else self.clock.tick(0)
@@ -278,9 +297,9 @@ class Window:
             self._winvars_["dtime"] = time.time() - start_frame_time
 
     # Пересоздать окно (обновить режим окна):
-    def _recreate_(self, size: tuple | vec2 = None, flags: int = None) -> None:
+    def _recreate_(self, size: tuple|vec2 = None, flags: int = None) -> None:
         if size is None: size = (self._winvars_["width"], self._winvars_["height"])
-        flags = pygame.DOUBLEBUF | pygame.OPENGL
+        flags = pygame.DOUBLEBUF|pygame.OPENGL
         flags |= pygame.SHOWN if self.get_visible() else pygame.HIDDEN
         if self.get_resizable():    flags |= pygame.RESIZABLE
         if self.get_fullscreen():   flags |= pygame.FULLSCREEN
@@ -290,21 +309,16 @@ class Window:
     # Сбрасываем окно просмотра:
     def _reset_viewport_(self) -> None:
         gl.glViewport(0, 0, self._winvars_["width"], self._winvars_["height"])
-        gl.glMatrixMode(gl.GL_PROJECTION)
-        gl.glLoadIdentity()
-        wdth, hght = self._winvars_["width"]/2, self._winvars_["height"]/2
-        glu.gluOrtho2D(-wdth, wdth, -hght, hght)
-        gl.glMatrixMode(gl.GL_MODELVIEW)
-        gl.glLoadIdentity()
-    
+
     # Функция для удаления всех данных окна при выходе:
     def _destroy_window_(self) -> None:
         scn = self._winvars_["current-scene"]
         if scn is not None and issubclass(type(scn), Scene): scn.destroy()
-        self.destroy()  # Вызываем удаление пользовательских ресурсов.
-        al_quit()       # Закрываем OpenAL.
-        pygame.quit()   # Закрываем окно PyGame.
-        gc.collect()    # Собираем мусор (на всякий случай).
+        self.destroy()            # Вызываем удаление пользовательских ресурсов.
+        RenderPipeline.destroy()  # Удаляем конвейер рендеринга.
+        al_quit()                 # Закрываем OpenAL.
+        pygame.quit()             # Закрываем окно PyGame.
+        gc.collect()              # Собираем мусор (на всякий случай).
 
     # ------------------------------------------------------ API: ------------------------------------------------------
 
@@ -391,7 +405,7 @@ class Window:
         return self._winvars_["resizable"]
 
     # Установить полноэкранный режим:
-    def set_fullscreen(self, fullscreen: bool, size: tuple | vec2 = None) -> None:
+    def set_fullscreen(self, fullscreen: bool, size: tuple|vec2 = None) -> None:
         self._winvars_["fullscreen"] = fullscreen
         self.set_size(*size if size is not None else self.get_monitor_size())
 
@@ -415,15 +429,6 @@ class Window:
     def get_max_size(self) -> vec2:
         return vec2(self._winvars_["max-size"])
 
-    # Установить количество сэмплов антиалиазинга:
-    def set_samples(self, samples: int) -> None:
-        if not 0 <= samples <= 16:  # Если samples не в диапазоне от 0 до 16:
-            raise OpenGLWindowError(
-                f"Graphics Error: Samples must be set in the range from 0 to 16. You have set: {samples}")
-        self._winvars_["samples"] = samples
-        pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, self._winvars_["samples"])
-        self._recreate_()
-
     # Получить количество сэмплов антиалиазинга:
     def get_samples(self) -> None:
         return self._winvars_["samples"]
@@ -440,8 +445,7 @@ class Window:
                    resizable:  bool  = None,
                    fullscreen: bool  = None,
                    min_size:   vec2  = vec2(0),
-                   max_size:   vec2  = vec2(float("inf"), float("inf")),
-                   samples:    int   = 0) -> None:
+                   max_size:   vec2  = vec2(float("inf"), float("inf"))) -> None:
         size = size if size is not None else self.get_size()
         self.set_title(title           if title is not None else self.get_title())
         self.set_icon(icon             if icon  is not None else self.get_icon())
@@ -454,7 +458,6 @@ class Window:
         self.set_fullscreen(fullscreen if fullscreen is not None else self.get_fullscreen(), size)
         self.set_min_size(*min_size    if min_size   is not None else self.get_min_size())
         self.set_max_size(*max_size    if max_size   is not None else self.get_max_size())
-        self.set_samples(samples       if samples    is not None else self.get_samples())
 
     # Получить конфигурацию окна:
     def get_config(self) -> list:
@@ -469,8 +472,7 @@ class Window:
             self.get_resizable(),
             self.get_fullscreen(),
             self.get_min_size(),
-            self.get_max_size(),
-            self.get_samples()
+            self.get_max_size()
         ]
 
     # Установить игровую сцену:
@@ -507,7 +509,7 @@ class Window:
         except KeyboardInterrupt: self.exit()
 
     # Получить текущую игровую сцену:
-    def get_scene(self) -> Scene | None:
+    def get_scene(self) -> Scene|None:
         return self._winvars_["current-scene"]
 
     # Получить размер монитора:
@@ -553,8 +555,19 @@ class Window:
         if front: gl.glReadBuffer(gl.GL_FRONT)  # Передний (отображаемый) буфер.
         else:     gl.glReadBuffer(gl.GL_BACK)   # Задний (в процессе рисовки) буфер.
         w, h = s = self.get_size()
+        self.gl_finish()  # Ждём выполнение всех команд чтобы было отрисовано точно всё.
         p = np.frombuffer(gl.glReadPixels(0, 0, *s, gl.GL_RGB, gl.GL_UNSIGNED_BYTE), dtype=np.uint8).reshape((h, w, 3))
         return Image(surface=pygame.surfarray.make_surface(np.rot90(p, k=-1, axes=(0, 1))))
+
+    # Выполнить очередь команд OpenGL не дожидаясь их выполнения:
+    @staticmethod
+    def gl_flush() -> None:
+        gl.glFlush()
+
+    # Ждать выполнение всех команд OpenGL (тяжёлая синхронизация):
+    @staticmethod
+    def gl_finish() -> None:
+        gl.glFinish()
 
     # Вызовите когда хотите закрыть окно и выполнение кода:
     def exit(self) -> None:
@@ -562,21 +575,24 @@ class Window:
         sys.exit()
 
     # Вызовите когда хотите закрыть окно после выполнения цикла обновления и рендеринга:
-    def close(self) -> None:
+    def close(self) -> "Window":
         self.set_visible(False)
         self.clear(0, 0, 0)
         self._winvars_["is-exit"] = True
+        return self
 
     # Вызовите когда хотите закрыть видеосистему pygame:
-    def quit(self) -> None:
+    @staticmethod
+    def quit() -> None:
         pygame.quit()
 
     # Очистка окна (цвета от 0 до 1):
     @staticmethod
     def clear(red: float = 0.0, green: float = 0.0, blue: float = 0.0) -> None:
         gl.glClearColor(abs(red), abs(green), abs(blue), 1.0)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT)
 
     # Отрисовка окна:
-    def display(self) -> None:
+    @staticmethod
+    def display() -> None:
         pygame.display.flip()  # Меняем буферы кадра местами.

@@ -4,7 +4,7 @@
 
 
 # Импортируем:
-from .batch import SpriteBatch2D
+from .batch import SpriteBatch
 from .texture import Texture
 from ..math import *
 from ..utils import Utils2D
@@ -108,10 +108,8 @@ class ParticleEffect2D:
         # Получить позицию частицы:
         def get_position(self) -> vec2:
             r = random.uniform(0, 1)  # Значение от 0.0 до 1.0 для интерполяции.
-            return vec2(
-                self.point1.x+r*(self.point2.x-self.point1.x),
-                self.point1.y+r*(self.point2.y-self.point1.y)
-            )
+            return vec2(self.point1.x+r*(self.point2.x-self.point1.x),
+                        self.point1.y+r*(self.point2.y-self.point1.y))
 
         # Получить направление частицы:
         def get_direction(self, orig_pos: vec2, spawn_pos: vec2) -> vec2:
@@ -121,15 +119,14 @@ class ParticleEffect2D:
     # Частица:
     class Particle:
         def __init__(self,
-                     texture:   Texture | list,
+                     texture:   Texture|list,
                      position:  vec2,
                      velocity:  vec2,
                      angle:     float,
                      end_angle: float,
                      size:      vec2,
                      end_size:  vec2,
-                     time:      float
-                     ) -> None:
+                     time:      float) -> None:
             self.texture    = texture
             self.position   = position
             self.velocity   = velocity
@@ -148,26 +145,25 @@ class ParticleEffect2D:
 
     # Инициализация:
     def __init__(self,
-                 texture:       Texture | list,
+                 texture:       Texture|list,
                  position:      vec2,
                  direction:     vec2,
-                 start_size:    vec2 | list[vec2],
-                 end_size:      vec2 | list[vec2],
+                 start_size:    vec2|list[vec2],
+                 end_size:      vec2|list[vec2],
                  speed:         vec2,
                  damping:       float,
                  duration:      vec2,
                  count:         int,
                  gravity:       vec2,
-                 start_angle:   float | vec2 = vec2(0.0),
-                 end_angle:     float | vec2 = vec2(0.0),
+                 start_angle:   float|vec2 = vec2(0.0),
+                 end_angle:     float|vec2 = vec2(0.0),
                  size_exp:      float = 1.0,
                  angle_exp:     float = 1.0,
                  is_infinite:   bool  = True,
                  is_local_pos:  bool  = False,
                  is_dir_angle:  bool  = True,
-                 spawn_in:      SpawnInPoint | SpawnInCircle | SpawnInSquare | SpawnInLine = None,
-                 custom_update: any = None
-                 ) -> None:
+                 spawn_in:      SpawnInPoint|SpawnInCircle|SpawnInSquare|SpawnInLine = None,
+                 custom_update: Any = None) -> None:
         # Подготовка данных:
 
         # Подготовка начальных и конечных размеров частиц:
@@ -213,7 +209,7 @@ class ParticleEffect2D:
         # Внутренние переменные класса:
         self.particles = None  # Список частиц.
         self._partvars_ = {
-            "batch":   SpriteBatch2D(),
+            "batch":   SpriteBatch(),
             "old-pos": position.xy,
             "timer":   0.0,
             "old-dt":  1/60,
@@ -231,14 +227,10 @@ class ParticleEffect2D:
         pang = random.uniform(*self.start_angle.xy)
         peag = random.uniform(*self.end_angle.xy)
 
-        psiz = vec2(
-            random.uniform(self.start_size[0].x, self.start_size[1].x),
-            random.uniform(self.start_size[0].y, self.start_size[1].y)
-        )
-        pnsz = vec2(
-            random.uniform(self.end_size[0].x, self.end_size[1].x),
-            random.uniform(self.end_size[0].y, self.end_size[1].y)
-        )
+        psiz = vec2(random.uniform(self.start_size[0].x, self.start_size[1].x),
+                    random.uniform(self.start_size[0].y, self.start_size[1].y))
+        pnsz = vec2(random.uniform(self.end_size[0].x, self.end_size[1].x),
+                    random.uniform(self.end_size[0].y, self.end_size[1].y))
 
         ptfl = random.uniform(*self.duration.xy)
 
@@ -261,16 +253,15 @@ class ParticleEffect2D:
     def create(self) -> "ParticleEffect2D":
         if self.particles is None: self.particles = []
 
-        for i in range(0 if self.is_infinite else self.count-len(self.particles)):
+        for _ in range(0 if self.is_infinite else self.count-len(self.particles)):
             self._create_particle_()
-
         return self
 
     # Обновление частиц:
     def update(self, delta_time: float) -> "ParticleEffect2D":
         if self.particles is None: return
 
-        if self.custom_update is not None: self.custom_update(delta_time, self.particles) ; return
+        if self.custom_update is not None: self.custom_update(delta_time, self.particles); return
 
         # Если новый dt больше старого в 2 раза, то используем старый dt. А также ограничиваем dt до 1/10 кадра в сек:
         dt = min(self._partvars_["old-dt"] if delta_time > self._partvars_["old-dt"] * 2 else delta_time, 1/10)
@@ -293,7 +284,7 @@ class ParticleEffect2D:
 
             # Применяем гравитацию к направлению частицы:
             particle.velocity += self.gravity * dt
-            particle.velocity *= 1.0 - self.damping
+            particle.velocity -= self.damping  # TODO ПОЧИНИТЬ!
 
             # Перемещаем частичку в сторону её направления умноженное на её скорость:
             particle.position += normalize(particle.velocity) * particle.speed * dt
@@ -319,13 +310,13 @@ class ParticleEffect2D:
         return self
 
     # Отрисовка частиц:
-    def render(self, color: list = None, batch: SpriteBatch2D = None) -> "ParticleEffect2D":
+    def render(self, color: list = None, batch: SpriteBatch = None) -> "ParticleEffect2D":
         if self.particles is None: return
 
         # Проходимся по частицам:
         if batch is None: self._partvars_["batch"].begin()
         for particle in self.particles:
-            angl = Utils2D.get_angle_points(vec2(0), normalize(particle.velocity)) + 90 if self.is_dir_angle else 0.0
+            angl = Utils2D.get_angle_points(vec2(0), normalize(particle.velocity)) if self.is_dir_angle else 0.0
 
             # Рисуем частицу:
             sprite_batch = self._partvars_["batch"] if batch is None else batch

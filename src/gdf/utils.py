@@ -5,6 +5,7 @@
 
 # Импортируем:
 import pygame
+import pyperclip
 import pypresence
 from .graphics.camera import Camera2D
 from .graphics.sprite import Sprite2D
@@ -55,6 +56,19 @@ class DiscordRPC:
         return self
 
 
+# Буфер обмена:
+class Clipboard:
+    # Копировать данные в буфер обмена:
+    @staticmethod
+    def copy(text: str) -> None:
+        pyperclip.copy(text)
+
+    # Получить данные из буфера обмена:
+    @staticmethod
+    def paste() -> str:
+        return pyperclip.paste()
+
+
 # Утилиты для 2D вещей:
 class Utils2D:
     # Получить позицию точки из окна в мировом пространстве:
@@ -85,14 +99,14 @@ class Utils2D:
     def get_angle_points(point_1: vec2, point_2: vec2) -> float:
         """ Возвращает угол между первой и второй координатой """
 
-        return -degrees(atan2(point_2.y - point_1.y, point_2.x - point_1.x))+90
+        return degrees(atan2(point_2.y - point_1.y, point_2.x - point_1.x))-90
 
     # Найти точку из угла и радиуса:
     @staticmethod
     def get_point_on_radius(radius: float, angle: float) -> vec2:
         """ Возвращает координаты в заданном радиусе и угле """
 
-        return vec2(sin(radians(angle)) * radius, cos(radians(angle)) * radius)
+        return vec2(cos(radians(angle+90)) * radius, sin(radians(angle+90)) * radius)
 
     # Получить дельту для перемещения вектора в сторону направления на расстояние:
     @staticmethod
@@ -100,7 +114,7 @@ class Utils2D:
         """ Возвращает 2 числа для перемещения вектора в сторону направления """
 
         point_on_rad = lambda a, d:   vec2(d * sin(radians(a)), d * cos(radians(a)))
-        angle_points = lambda p1, p2: -degrees(atan2(p2.y - p1.y, p2.x - p1.x))
+        angle_points = lambda p1, p2: degrees(atan2(p2.y - p1.y, p2.x - p1.x))-90
         return point_on_rad(angle_points(vec2(0, 0), normalize(direction)), distance)
 
     # Получить вектор направления из угла:
@@ -108,7 +122,7 @@ class Utils2D:
     def get_direction_in_angle(angle: float) -> vec2:
         """ Возвращает 2 числа в виде направления из угла """
 
-        return vec2(sin(radians(angle)), cos(radians(angle)))
+        return vec2(cos(radians(angle+90)), sin(radians(angle+90)))
 
     # Получить скорость из вектора:
     @staticmethod
@@ -124,7 +138,6 @@ class Utils2D:
 
         texture = texture.texture if isinstance(texture, Sprite2D) else texture
         return pygame.image.frombuffer(texture.get_data().tobytes(), (texture.width, texture.height), "RGBA")
-
 
 # 2D пересечения геометрических объектов:
 class Intersects:

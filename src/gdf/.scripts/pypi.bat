@@ -3,7 +3,7 @@
 echo INSTALLING PYPI LIBRARIES:
 echo.
 
-pip install -r pypi.txt
+pip install -r ..\pypi.txt
 
 echo.
 pause

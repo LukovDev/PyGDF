@@ -1,2 +1,2 @@
 pyinstaller
-pyogg
+pyogg==0.6.14a1

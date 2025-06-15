@@ -1,5 +1,5 @@
 #
-# gdf - Пакет (встраиваемая библиотека) для разработки игр.
+# gdf - Game Development Framework. Пакет () для разработки игр на Python.
 #
 
 
@@ -21,7 +21,7 @@ if platform.python_version() < "3.11.0":
     )
 
 
-# Если версия NumPy выше 1.26.4:
+# Если версия Numpy выше 1.26.4:
 try:
     if version("numpy") > "1.26.4":
         sys.exit(
@@ -32,16 +32,34 @@ try:
 except PackageNotFoundError:
     sys.exit(
         f"\nGDF-Fatal-Error:\n"
-        f"    NumPy is not installed. Please install numpy==1.26.4"
+        f"    Numpy is not installed. Please install numpy==1.26.4"
     )
 
 
-# Получить версию библиотеки:
-def get_version() -> str: return "v1.3-in-dev"
+# Получить версию ядра:
+def get_version() -> str: return "v1.3-indev"
 
 
 # Получить полное название системы:
 def get_platform() -> str: return platform.platform()
+
+
+# Получить версию питона:
+def get_python() -> str: return platform.python_version()
+
+
+# Класс который определяет систему на которой запущено ядро:
+class CurrentPlatform:
+    windows: bool = sys.platform in ["win32"]
+    macos:   bool = sys.platform in ["darwin"]
+    linux:   bool = sys.platform in ["linux", "linux2"]
+
+    @classmethod
+    def name(cls) -> str:
+        if cls.windows: return "Windows"
+        if cls.macos:   return "MacOS"
+        if cls.linux:   return "Linux"
+        return "Unknown"
 
 
 # Модули и скрипты:

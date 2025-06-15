@@ -4,7 +4,6 @@
 
 
 # Импортируем:
-import pygame
 from .image import Image
 from .texture import Texture
 from .atlas import AtlasTexture
@@ -48,7 +47,7 @@ class PackerTexture:
             self.tex_uv.clear()
 
         # Сортировка текстур по убыванию размеров:
-        sorted_textures = sorted(self.textures.items(), key=lambda item: item[1].width * item[1].height, reverse=True)
+        sorted_textures = sorted(self.textures.items(), key=lambda item: item[1].width*item[1].height, reverse=True)
 
         # Подсчёт размеров атласа:
         width = sum(texture.width for _, texture in sorted_textures) + (len(sorted_textures) - 1) * offset
@@ -59,6 +58,9 @@ class PackerTexture:
 
         # "Волшебный" алгоритм по расстановке текстур в атласе.
         # TODO: Этот алгоритм крайне не эффективен (по заполнению пустот). Его надо переделать.
+        # Как идея, пока что можно просто указать максимальные размеры по высоте и ширине, и если по ширине ещё один
+        # спрайт не помещается, он переносится по высоте на координату самой высокой текстуры из предыдущей строки, а
+        # по ширине смещение обнуляется и обновляется при смещении по ширине. По идее должно работать.
         x_offset = 0
         for name, texture in sorted_textures:
             # Рисуем текстуру на атласе:

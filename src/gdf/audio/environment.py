@@ -29,7 +29,7 @@ class SoundEnvironment:
 
     # Добавить новый звук в окружающую среду:
     def add(self,
-            sound: Sound,
+            sound:        Sound,
             min_distance: float = 100.0,
             max_distance: float = 100000.0,
             rolloff:      float = 1.0) -> "SoundEnvironment":

@@ -11,10 +11,10 @@ from ..math import *
 # Класс слушателя:
 class SoundListener:
     def __init__(self,
-                 position: vec2 | vec3  = vec3(0, 0, 0),
-                 look_at:  vec3  = vec3(0, 0, -1),
-                 up:       vec3  = vec3(0, 1, 0),
-                 volume:   float = 1.0) -> None:
+                 position: vec2|vec3 = vec3(0, 0, 0),
+                 look_at:  vec3      = vec3(0, 0, -1),
+                 up:       vec3      = vec3(0, 1, 0),
+                 volume:   float     = 1.0) -> None:
         self.position = position if isinstance(position, vec3) else vec3(position, 0.0)
         self.look_at = look_at
         self.up = up
@@ -32,7 +32,7 @@ class SoundListener:
         return self
 
     # Установить позицию слушателя:
-    def set_position(self, position: vec2 | vec3) -> "SoundListener":
+    def set_position(self, position: vec2|vec3) -> "SoundListener":
         self.position = position if isinstance(position, vec3) else vec3(position, 0.0)
         return self
 

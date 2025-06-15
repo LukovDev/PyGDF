@@ -6,6 +6,7 @@
 # Импортируем:
 import time
 import errno
+from typing import Any
 from threading import Thread
 from . import *
 
@@ -32,7 +33,7 @@ class NetServerTCP:
     """
 
     # Инициализация:
-    def __init__(self, connect_handler: any, socket_handler: any, disconnect_handler: any, error_handler: any) -> None:
+    def __init__(self, connect_handler: Any, socket_handler: Any, disconnect_handler: Any, error_handler: Any) -> None:
         # Внутренние переменные класса:
         self.connect_handler    = connect_handler     # Вызывается при подключении клиента.
         self.socket_handler     = socket_handler      # Вызывается каждый цикл обработки.
@@ -81,7 +82,7 @@ class NetServerTCP:
 
                     # Проверка накопленного времени таймаута:
                     if time.time() - stime > self._netvars_["timeout"]:
-                        self.error_handler(NetConnectionTimeout.__name__, address) ; break
+                        self.error_handler(NetConnectionTimeout.__name__, address); break
                 except (OSError, TypeError, socket.error):
                     break  # Выходим из за ошибки с работой сокета.
 
@@ -290,7 +291,7 @@ class NetClientTCP:
     """
 
     # Инициализация:
-    def __init__(self, connect_handler: any, socket_handler: any, disconnect_handler: any, error_handler: any) -> None:
+    def __init__(self, connect_handler: Any, socket_handler: Any, disconnect_handler: Any, error_handler: Any) -> None:
         # Внутренние переменные:
         self.connect_handler    = connect_handler     # Вызывается при подключении к серверу.
         self.socket_handler     = socket_handler      # Вызывается каждый 1/TPS раз в отдельном потоке.
@@ -336,7 +337,7 @@ class NetClientTCP:
 
                     # Проверка накопленного времени таймаута:
                     if time.time() - stime > self._netvars_["timeout"]:
-                        self.error_handler(NetConnectionTimeout.__name__, address) ; break
+                        self.error_handler(NetConnectionTimeout.__name__, address); break
                 except (OSError, TypeError, socket.error):
                     break  # Выходим из за ошибки с работой сокета.
 

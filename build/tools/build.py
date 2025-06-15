@@ -7,8 +7,11 @@
 
 # Импортируем:
 import os
+import sys
 import json
 import time
+import site
+import glob
 import shutil
 from importlib import resources
 from threading import Thread
@@ -33,7 +36,10 @@ def waiting() -> None:
 
 # Очищаем консоль:
 def clear_console() -> None:
-    if os.name == "nt": os.system("cls")
+    if sys.platform == "win32":
+        os.system("cls")
+    elif sys.platform == "darwin":
+        print("\033c", end="")
     else: os.system("clear")
 
 
@@ -55,26 +61,37 @@ def main() -> None:
     pyinstaller_flags = config["pyinstaller-flags"]
     lg                = "--log-level "
     waiting_enabled   = any(flag in pyinstaller_flags for flag in [lg+"WARN", lg+"ERROR", lg+"FATAL"])
-    path_separator    = ";" if os.name == "nt" else ":"
+    path_separ        = ";" if sys.platform == "win32" else ":"
 
     # Отдельный поток для вывода ожидания:
     waiting_thread = Thread(target=waiting, daemon=True)
     if not waiting_enabled: wait_text_len = 0
 
+    # Поиск gdf-ядра:
+    gdf_path = ""
+    for site_package in site.getsitepackages():
+        matching_folders = glob.glob(os.path.join(site_package, "gdf"))
+        if matching_folders: gdf_path = matching_folders[0]; break
+    else: gdf_path = glob.glob("../../src/**/gdf", recursive=True)[0]
+
     # Генерация флагов компиляции:
-    pyogg_data = f"{resources.files('pyogg')}{path_separator}pyogg"
+    pyogg_data = f"{resources.files('pyogg')}{path_separ}pyogg"
     flags = f"--noconfirm --add-data \"{pyogg_data}\" -n=\"{program_name}\" --exclude-module setuptools.msvc "
     for flag in pyinstaller_flags: flags += f"{flag} "
-    if console_disabled:           flags +=  "--noconsole "
+    if console_disabled:           flags +=  "--noconsole " if sys.platform == "win32" else "--noconsole --windowed "
     if program_icon is not None:   flags += f"--icon=../../{program_icon} "
 
+    # Добавляем папку библиотек звука в сборку в случае если сборка для MacOS. Потому что библиотеки OpenAL на маке нет:
+    if sys.platform == "darwin": flags += f"--add-data \"{os.path.join(gdf_path, 'audio/')}{path_separ}gdf/audio/\""
+
     # Собираем проект:
-    print(f"{' COMPILATION PROJECT ':─^96}\n")
+    print(f"{' COMPILATION PROJECT ':─^80}\n")
     if waiting_enabled: waiting_thread.start()
 
-    os.system(f"pyinstaller {flags} ../../{main_file}")
+    pyinst = "python3 -m PyInstaller" if sys.platform == "darwin" else "pyinstaller"
+    os.system(f"{pyinst} {flags} ../../{main_file}")
 
-    print(f"\r{' '*wait_text_len}\n> COMPILATION IS SUCCESSFUL!\n\n{'─'*96}\n\n")
+    print(f"\r{' '*wait_text_len}\n> COMPILATION IS SUCCESSFUL!\n\n{'─'*80}\n\n")
 
     # Удаляем мусор и собираем всё в одну папку:
     print("Deleting temporary build files...")
@@ -90,9 +107,19 @@ def main() -> None:
 
     # Копируем содержимое сборки и содержимое data папки в папку out:
     if os.path.isdir("dist/"):
-        shutil.copytree("dist/", "../out/", dirs_exist_ok=True)
+        flags_list = flags.split()
+        build_for_macos_app = sys.platform == "darwin" and console_disabled
+
+        # Если это макос и программа собирается в один файл, копируем только пакет программы:
+        if build_for_macos_app and ("--onefile" in flags_list or "-F" in flags_list):
+            shutil.copytree(f"dist/{program_name}.app", f"../out/{program_name}.app", dirs_exist_ok=True)
+        else: shutil.copytree("dist/", "../out/", dirs_exist_ok=True)
         shutil.rmtree("dist/")
-        shutil.copytree(f"../../{data_folder}", f"../out/{os.path.basename(os.path.normpath(data_folder))}")
+
+        # Копируем папку данных в папку out либо если это макос и собираем в один файл, то в пакет программы:
+        data_folder_name = os.path.basename(os.path.normpath(data_folder))
+        macappdir = f"../out/{program_name}.app/Contents/MacOS/{data_folder_name}"
+        shutil.copytree(f"../../{data_folder}", macappdir if build_for_macos_app else f"../out/{data_folder_name}")
 
     wait_active = False
     print("\rDone!"+' '*wait_text_len)

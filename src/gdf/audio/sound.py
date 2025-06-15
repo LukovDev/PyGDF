@@ -16,7 +16,7 @@ _all_sounds_ = []
 # Класс звука:
 class Sound:
     def __init__(self, file_path: str = None) -> None:
-        global _all_sounds_ ; _all_sounds_.append(self)
+        global _all_sounds_; _all_sounds_.append(self)
 
         self.path   = file_path if isinstance(file_path, str) else None
         self.buffer = None  # Основной звук.
@@ -57,7 +57,7 @@ class Sound:
         # Удаляем звук на паузе если больше не воспроизводится даже если не на паузе:
         if psd_snd is not None and psd_snd.get_state() != al.AL_PLAYING and not self._soundvars_["is-paused"]:
             if psd_snd in self.sounds: self.sounds.remove(psd_snd)
-            psd_snd.destroy() ; self._soundvars_["paused-snd"] = None
+            psd_snd.destroy(); self._soundvars_["paused-snd"] = None
 
     # Загрузить звук:
     def load(self, file_path: str = None) -> "Sound":
@@ -74,7 +74,6 @@ class Sound:
 
         self.set_min_distance(100.0)
         self.set_max_distance(100000.0)
-
         return self
 
     # Проиграть звук:
@@ -250,7 +249,7 @@ class Sound:
         return self._soundvars_["max-volume"]
 
     # Установить позицию:
-    def set_position(self, position: vec2 | vec3) -> "Sound":
+    def set_position(self, position: vec2|vec3) -> "Sound":
         if position is None: position = vec3(0.0)
         self._soundvars_["position"] = position if isinstance(position, vec3) else vec3(position, 0.0)
         self._check_sounds_()
@@ -264,7 +263,7 @@ class Sound:
         return self._soundvars_["position"]
 
     # Установить скорость звука:
-    def set_velocity(self, velocity: vec2 | vec3) -> "Sound":
+    def set_velocity(self, velocity: vec2|vec3) -> "Sound":
         if velocity is None: velocity = vec3(0.0)
         self._soundvars_["velocity"] = velocity if isinstance(velocity, vec3) else vec3(velocity, 0.0)
         self._check_sounds_()
@@ -311,7 +310,7 @@ class Sound:
 
     # Освобождаем ресурсы:
     def destroy(self) -> None:
-        [s.destroy() for s in self.sounds] ; self.sounds.clear()
+        [s.destroy() for s in self.sounds]; self.sounds.clear()
         self._soundvars_ = dict(self._soundvars_copy_)  # Сбрасываем параметры.
 
         if self.buffer is not None:

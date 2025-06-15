@@ -11,7 +11,7 @@ import pygame
 
 # Класс изображения:
 class Image:
-    def __init__(self, file_path: str | io.BytesIO = None, size: tuple = None, surface: pygame.Surface = None) -> None:
+    def __init__(self, file_path: str|io.BytesIO = None, size: tuple = None, surface: pygame.Surface = None) -> None:
         self.path    = file_path
         self.width   = size[0] if size is not None else 0
         self.height  = size[1] if size is not None else 0
@@ -33,7 +33,7 @@ class Image:
         self.surface = surface
 
     # Загружаем изображение:
-    def load(self, file_path: str | io.BytesIO = None) -> "Image":
+    def load(self, file_path: str|io.BytesIO = None) -> "Image":
         self.path = file_path if file_path is not None else self.path
 
         # Проверяем на наличие файла:

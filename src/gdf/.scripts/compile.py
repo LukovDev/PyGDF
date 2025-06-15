@@ -1,7 +1,9 @@
 #
 # compile.py - В основном нужен для компиляции Cython файлов и для прочих настроек ядра.
 #
-# Запуск этого скрипта: python setup.py build_ext --inplace
+# Запуск этого скрипта: python -I compile.py build_ext --inplace
+# Флаг -I нужен чтобы пайтон запустил скрипт изолировано, чтобы этот скрипт и библиотеки не могли
+# импортировать локальные модули и файлы.
 #
 
 
@@ -31,19 +33,9 @@ def clear() -> None:
         shutil.rmtree(build_directory)
 
 
-# Установка всех нужных библиотек:
-os.system("pip3 install -r pypi.txt")
-
-
-# Найти файлы .cyt и переименовать их в .pyx:
-cyt_files = find_files("cyt")
-for file in cyt_files:
-    pyx_file = file[:-4] + ".pyx"
-    os.rename(file, pyx_file)  # Переименовать .cyt в .pyx
-
-
 # Устанавливаем ядро:
 try:
+    os.chdir("../")
     setup(
         ext_modules=cythonize([
             Extension(
@@ -56,11 +48,7 @@ try:
 except Exception as error: pass
 
 
-# Переименовать файлы обратно из .pyx в .cyt:
-for file in find_files("pyx"):
-    cyt_file = file[:-4] + ".cyt"
-    os.rename(file, cyt_file)
-
-
 # Удаляем мусор:
+print("\nDeleting temporary build files... ", end="")
 clear()
+print("Done!")

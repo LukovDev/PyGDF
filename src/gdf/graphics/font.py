@@ -15,11 +15,11 @@ from ..math import *
 
 # Файл шрифта:
 class FontFile:
-    def __init__(self, file_path: str | io.BytesIO = None) -> None:
+    def __init__(self, file_path: str|io.BytesIO = None) -> None:
         self.path = file_path
 
     # Загрузить шрифт:
-    def load(self, file_path: str | io.BytesIO = None) -> "FontFile":
+    def load(self, file_path: str|io.BytesIO = None) -> "FontFile":
         self.path = file_path if file_path is not None else self.path
 
         # Проверяем на наличие файла:
@@ -37,7 +37,6 @@ class FontFile:
                 self.path = io.BytesIO(f.read())
         except Exception as error:
             raise Exception(f"Error in \"FontFile.load()\": {error}")
-
         return self
 
 
@@ -57,15 +56,15 @@ class FontGenerator:
                  padding_y: int  = 0,
                  smooth:    bool = True) -> "FontGenerator":
         # Настраиваем цвета:
-        if color    is None: color    = [1, 1, 1, 1]
+        if color is None: color = [1, 1, 1, 1]
         if bg_color is None: bg_color = [0, 0, 0, 0]
 
         # Контролируем чтобы в цветах был альфа канал, даже если его не передают:
-        if len(color)    < 4: color.append(1)
+        if len(color) < 4: color.append(1)
         if len(bg_color) < 4: bg_color.append(1)
 
         # Конвертируем цвета из 1-ричного в 256-ричный (0-255):
-        color    = [c * 255 for c in color]
+        color = [c * 255 for c in color]
         bg_color = [c * 255 for c in bg_color]
 
         # Создаём экземпляр шрифта:
@@ -76,10 +75,10 @@ class FontGenerator:
         # Создаём и получаем битмап текста из шрифта:
         bitmap = font.render(text, smooth, color[:3])
         bitmap.set_alpha(color[3])
-        bitmap_size = (bitmap.get_width()+padding_x*2, bitmap.get_height()+padding_y*2)
+        bmpsize = (bitmap.get_width()+padding_x*2, bitmap.get_height()+padding_y*2)
 
         # Создаём фон текста, и рисуем на нём основной текст:
-        img = Image(size=bitmap_size)
+        img = Image(size=bmpsize)
         img.fill(bg_color)
         img.draw(bitmap, padding_x, padding_y)
 
@@ -87,17 +86,11 @@ class FontGenerator:
         if self.texture is None:
             self.texture = Texture(Image(surface=img))
         else:
-            wdth, hght = bitmap_size
             self.texture.image = img
-            self.texture.data = img.data
-            self.texture.width, self.texture.height = wdth, hght
-            gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture.id)
-            gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA8, wdth, hght, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, img.data)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+            self.texture.set_data(bmpsize[0], bmpsize[1], img.data, gl.GL_RGBA8, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)
 
         # Устанавливаем сглаживание текстуры:
         self.texture.set_linear() if smooth else self.texture.set_pixelized()
-
         return self
 
     # Получить ширину текста:

@@ -12,11 +12,9 @@ import random
 import decimal
 from glm import *
 from math import *
+from typing import Any
 import array
-
-
-# Удаляем округление от glm:
-del round
+del round  # Удаляем округление от glm.
 
 
 # Класс чисел двойной точности:
@@ -183,41 +181,54 @@ class double:
         return other._value_ if isinstance(other, double) else decimal.Decimal(other)
 
 
-# Матрица преобразования для модели (opengl):
+# Матрица преобразования (opengl):
 class ModelMatrix:
-    def __init__(self, position: vec3 = None, rotation: vec3 = None, size: vec3 = None) -> None:
-        self._mat_ = mat4(1.0)
-        if position is not None: self.translate(position.xyz)
+    def __init__(self, position: vec2 | vec3 = None, rotation: vec3 | int | float = None,
+                 size: vec2 | vec3 = None, matrix: Any = None) -> None:
+        self._mat_ = mat4(1.0) if matrix is None else matrix
+        if matrix is not None and hasattr(matrix, "to_list"): return
+        if position is not None: self.translate(position)
         if rotation is not None:
-            self.rotate(rotation.y, vec3(False, True, False))
-            self.rotate(rotation.x, vec3(True, False, False))
-            self.rotate(rotation.z, vec3(False, False, True))
-        if size is not None: self.scale(size.xyz)
+            if isinstance(rotation, vec3):
+                self.rotate(rotation.y, vec3(0, 1, 0))
+                self.rotate(rotation.x, vec3(1, 0, 0))
+                self.rotate(rotation.z, vec3(0, 0, 1))
+            elif isinstance(rotation, (int, float)):
+                self.rotate(rotation, vec3(0, 0, 1))
+        if size is not None: self.scale(size)
 
-    # Получить матрицу модели:
+    # Параметр матрицы:
     @property
-    def matrix(self) -> list: return [[self._mat_[i][j] for j in range(4)] for i in range(4)]
+    def matrix(self) -> Any: return self._mat_
+
+    # Получить матрицу в виде списка:
+    def matrix_list(self) -> list: return self._mat_.to_list()
 
     # Дополнительная информация об этом объекте:
     def __repr__(self) -> str:
         return f"ModelMatrix({self.matrix})"
 
-    # Масштабировать матрицу модели:
-    def scale(self, size: vec3 | list) -> "ModelMatrix":
-        self._mat_ = glm.scale(self._mat_, size)
+    # Установить матрицу:
+    def set_matrix(self, matrix: Any) -> "ModelMatrix":
+        self._mat_ = matrix
         return self
 
-    # Переместить матрицу модели:
-    def translate(self, offset: vec3 | list) -> "ModelMatrix":
-        self._mat_ = glm.translate(self._mat_, offset)
+    # Переместить матрицу:
+    def translate(self, offset: vec2 | vec3) -> "ModelMatrix":
+        self._mat_ = glm.translate(self._mat_, offset if isinstance(offset, (vec3, glm.vec3)) else vec3(offset, 0.0))
         return self
 
-    # Вращать матрицу модели:
-    def rotate(self, angle: float, axis: vec3 | list) -> "ModelMatrix":
+    # Вращать матрицу (в градусах):
+    def rotate(self, angle: float, axis: vec3) -> "ModelMatrix":
         self._mat_ = glm.rotate(self._mat_, radians(angle), axis)
         return self
 
-    # Сбросить матрицу модели:
+    # Масштабировать матрицу:
+    def scale(self, size: vec2 | vec3) -> "ModelMatrix":
+        self._mat_ = glm.scale(self._mat_, size if isinstance(size, (vec3, glm.vec3)) else vec3(size, 0.0))
+        return self
+
+    # Сбросить матрицу:
     def reset(self) -> "ModelMatrix":
         self._mat_ = mat4(1.0)
         return self

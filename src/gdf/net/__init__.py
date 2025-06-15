@@ -8,6 +8,7 @@ import os
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import json
 import socket
+from typing import Any
 
 
 # Константы:
@@ -108,7 +109,7 @@ class NetSocket:
         finally: return self
 
     # Получить данные:
-    def recv_data(self, buffer_size: int = 1024, decoding: str = "utf-8") -> str | None:
+    def recv_data(self, buffer_size: int = 1024, decoding: str = "utf-8") -> str|None:
         try:
             data = self.socket.recv(buffer_size).decode(decoding)
             return data if data != "" else None
@@ -117,7 +118,7 @@ class NetSocket:
         except OSError: return None
 
     # Отправить сырые данные:
-    def send_raw(self, data: any) -> "NetSocket":
+    def send_raw(self, data: Any) -> "NetSocket":
         try: self.socket.sendall(data)
         except (TimeoutError, socket.timeout):
             raise NetTimeout("Send data timed-out.")
@@ -125,7 +126,7 @@ class NetSocket:
         finally: return self
 
     # Получить сырые данные:
-    def recv_raw(self, buffer_size: int = 1024) -> str | None:
+    def recv_raw(self, buffer_size: int = 1024) -> str|None:
         try:
             data = self.socket.recv(buffer_size)
             return data if data != "" else None
@@ -139,7 +140,7 @@ class NetSocket:
         return self
 
     # Получить пакет данных:
-    def recv_json(self, buffer_size: int = 1024, decoding: str = "utf-8") -> dict | None:
+    def recv_json(self, buffer_size: int = 1024, decoding: str = "utf-8") -> dict|None:
         data = self.recv_data(buffer_size, decoding)
         return json.loads(data) if data is not None else None
 
